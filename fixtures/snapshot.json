@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "snapshot_id": "synthetic-2026-10-18",
+  "mode": "synthetic",
+  "captured_at": "2026-10-18T12:00:00Z",
+  "app_revision": "synthetic-fixture-not-production",
+  "window": { "start": "2026-09-18T00:00:00Z", "end": "2026-10-18T12:00:00Z", "complete": true },
+  "coverage": { "events": true, "accounts": true, "reads": true, "settlements": true, "billing": true, "partners": true, "spend": true, "feedback": true, "candidates": true, "opportunities": true },
+  "icp": { "product_slug": "legibility", "source": "control-center:product_icp", "buyer_definition": "Synthetic developer building a product-data procurement or comparison agent", "status": "approved", "revision": "synthetic-icp-v1", "reviewed_at": "2026-10-17T12:00:00Z" },
+  "accounts": [
+    { "id": "builder-a", "email_verified": true, "use_case": "Procurement agent prototype", "relevant_context": true, "is_internal": false, "enrolled_at": "2026-10-01T10:00:00Z", "api_key_created_at": "2026-10-01T10:05:00Z", "acquisition_source": "partner", "production_agent": true },
+    { "id": "builder-b", "email_verified": true, "use_case": "Comparison prototype", "relevant_context": true, "is_internal": false, "enrolled_at": "2026-10-16T10:00:00Z", "api_key_created_at": "2026-10-16T10:05:00Z", "acquisition_source": "registry", "production_agent": false },
+    { "id": "unverified-c", "email_verified": false, "use_case": "Research", "relevant_context": true, "is_internal": false, "enrolled_at": "2026-10-17T10:00:00Z", "api_key_created_at": null, "acquisition_source": "direct", "production_agent": false },
+    { "id": "qa-bot", "email_verified": true, "use_case": "QA", "relevant_context": true, "is_internal": true, "enrolled_at": "2026-10-01T10:00:00Z", "api_key_created_at": "2026-10-01T10:01:00Z", "acquisition_source": "internal", "production_agent": true }
+  ],
+  "reads": [
+    { "id": "read-a1", "account_id": "builder-a", "occurred_at": "2026-10-01T11:00:00Z", "interface": "api", "product_present": true, "confidence": 0.9, "calibration_version": "synthetic-v1", "cost_usd": 0.001, "method": "jsonld", "failure_reason": null, "session_id": "session-a1" },
+    { "id": "read-a2", "account_id": "builder-a", "occurred_at": "2026-10-04T11:00:00Z", "interface": "mcp", "product_present": true, "confidence": 0.82, "calibration_version": "synthetic-v1", "cost_usd": 0.002, "method": "shopify", "failure_reason": null, "session_id": "session-a2" },
+    { "id": "read-a3", "account_id": "builder-a", "occurred_at": "2026-10-17T11:00:00Z", "interface": "api", "product_present": true, "confidence": 0.88, "calibration_version": "synthetic-v1", "cost_usd": 0.001, "method": "jsonld", "failure_reason": null, "session_id": "session-a3" },
+    { "id": "read-b1", "account_id": "builder-b", "occurred_at": "2026-10-16T11:00:00Z", "interface": "testbench", "product_present": true, "confidence": 0.95, "calibration_version": "synthetic-v1", "cost_usd": 0.001, "method": "barcode", "failure_reason": null, "session_id": "session-b1" },
+    { "id": "read-b2", "account_id": "builder-b", "occurred_at": "2026-10-16T11:10:00Z", "interface": "api", "product_present": false, "confidence": 0.2, "calibration_version": "synthetic-v1", "cost_usd": 0.001, "method": "opengraph", "failure_reason": "blocked", "session_id": "session-b1" },
+    { "id": "read-qa", "account_id": "qa-bot", "occurred_at": "2026-10-17T11:00:00Z", "interface": "api", "product_present": true, "confidence": 1, "calibration_version": "synthetic-v1", "cost_usd": 0, "method": "barcode", "failure_reason": null, "session_id": "qa-session" }
+  ],
+  "events": [
+    { "id": "event-1", "type": "beta_page_viewed", "account_id": null, "occurred_at": "2026-10-16T09:00:00Z", "source": "partner" },
+    { "id": "event-2", "type": "testbench_started", "account_id": "builder-b", "occurred_at": "2026-10-16T10:30:00Z", "source": "registry" },
+    { "id": "event-3", "type": "testbench_completed", "account_id": "builder-b", "occurred_at": "2026-10-16T10:35:00Z", "source": "registry" }
+  ],
+  "settlements": [ { "id": "settle-test", "occurred_at": "2026-10-17T11:00:00Z", "network": "base-sepolia", "status": "settled", "payer": "agent", "amount_usd": 10 } ],
+  "billing": [],
+  "partners": [ { "id": "synthetic-community", "distributed_at": "2026-10-16T09:00:00Z" } ],
+  "spend": { "paid_media_usd": 0 },
+  "feedback": [ { "id": "feedback-1", "account_id": "builder-a", "occurred_at": "2026-10-04T12:00:00Z" } ],
+  "benchmark": { "selection_method": "Synthetic acceptance fixture; deliberately includes blocked input and testbench-only success. Not a market benchmark.", "consented": false },
+  "suppressions": [],
+  "candidates": [
+    { "id": "candidate-example", "account_id": null, "pool": "builder", "company": "Synthetic Commerce Lab", "project": "Synthetic procurement agent", "channel": "manual-email", "current_signal": { "text": "Published an integration experiment comparing typed catalogue inputs for procurement agents.", "url": "https://example.org/synthetic-project", "observed_at": "2026-10-17T12:00:00Z" }, "relationship": { "kind": "cold", "evidence": null, "url": null }, "scores": { "fit": 1, "project": 1, "relationship": 0, "distribution": 1, "timing": 1 }, "draft": { "text": "I read Synthetic Commerce Lab's Synthetic procurement agent experiment about typed catalogue inputs. Legibility exposes product data with calibrated confidence over REST and MCP; structured pages, Shopify and barcodes are its current scope. Would a five-input compatibility test help the integration experiment?", "source_refs": ["https://example.org/synthetic-project"] }, "contact": { "status": "clear", "last_sent_at": null, "followups": 0 } }
+  ],
+  "opportunities": [
+    { "id": "registry-example", "kind": "integration", "title": "Prepare a procurement-agent first trusted read recipe", "url": "https://example.org/synthetic-recipe", "evidence_url": "https://example.org/synthetic-project", "observed_at": "2026-10-17T12:00:00Z", "status": "uncovered", "effort_minutes": 30 }
+  ]
+}

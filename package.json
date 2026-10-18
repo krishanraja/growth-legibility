@@ -1,0 +1,16 @@
+{
+  "name": "growth-legibility",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Evidence-led growth producer for trusted product data and production agents",
+  "engines": { "node": ">=24.0.0" },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "conveyor": "node scripts/check-stage-conveyor.mjs --root . --manifest pipeline/stage-conveyor.json",
+    "demo": "node src/cli.mjs run --snapshot fixtures/snapshot.json --at 2026-10-18T12:00:00Z --out runtime/demo",
+    "doctor": "node src/cli.mjs doctor",
+    "engine": "node src/cli.mjs"
+  }
+}

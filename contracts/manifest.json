@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "engine_id": "growth-legibility",
+  "artifacts": [
+    {
+      "path": "src/guards/wire.mjs",
+      "sha256": "ce54a3d5f5b0e412a39785e903a8d4c765251e68e98c4dbd8ee37536ce2793dc"
+    },
+    {
+      "path": "src/stages/measure.mjs",
+      "sha256": "5baec4b9be6c2637c2a9e0abbf945b768a273503aca4b3b987abaa7fee94ca66"
+    },
+    {
+      "path": "src/stages/prepare.mjs",
+      "sha256": "bad14bdbc73a94248131ba12ce143262bc411b2d06e518f7f4a483f4f1d4503b"
+    },
+    {
+      "path": "config/policy.json",
+      "sha256": "8321e0e475ac9380c8f57100ea99b3ab7b3c1ebf6d97ce5e1535548893089e3b"
+    },
+    {
+      "path": "fixtures/snapshot.json",
+      "sha256": "6e4996732522d096f338fd5d97523ce156ecaa85248a8f91162e6d3d10e709a3"
+    },
+    {
+      "path": "contracts/example-report.json",
+      "sha256": "d0da147ad99f28b0efe953cb717bcf608c0e4e8932a8c7038efc098493c7c786"
+    }
+  ]
+}

@@ -1,0 +1,431 @@
+{
+  "schema_version": "1.0.0",
+  "engine_id": "growth-legibility",
+  "product_slug": "legibility",
+  "run_id": "gl_15178fedbd8d7e8160b22f85e2f1af595eb8d105ef1ce68df906295ae00f8081",
+  "mode": "synthetic",
+  "observed_at": "2026-10-18T12:00:00Z",
+  "source": {
+    "snapshot_id": "synthetic-2026-10-18",
+    "snapshot_sha256": "1d2b1e132127583ce70d40cf2c73326f608cc4cdfbf4bd3ff648f7d3bde7107c",
+    "captured_at": "2026-10-18T12:00:00Z",
+    "app_revision": "synthetic-fixture-not-production",
+    "corpus_sha256": "c74369b59a458299db5aaef93041bd0018ed1390778efc9a9a4719365d8035ff"
+  },
+  "status": "ready",
+  "scorecard": {
+    "mode": "synthetic",
+    "measured_at": "2026-10-18T12:00:00.000Z",
+    "campaign": {
+      "status": "inactive",
+      "activated_at": null,
+      "ends_at": null,
+      "targets": {
+        "gross": 225,
+        "net": 200,
+        "keys": 120,
+        "activated": 75,
+        "returning": 30,
+        "feedback": 15,
+        "partners": 5
+      },
+      "target_progress": {
+        "gross": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        },
+        "net": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        },
+        "keys": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        },
+        "activated": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        },
+        "returning": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        },
+        "feedback": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        },
+        "partners": {
+          "value": null,
+          "unit": "ratio",
+          "reason": "Campaign has not been activated; observations are baseline only"
+        }
+      }
+    },
+    "north_star": {
+      "targets": {
+        "weekly_median_trusted_reads_per_active_account": 7,
+        "production_agents_weekly": 100,
+        "agent_revenue_share_strictly_greater_than": 0.5
+      },
+      "observation": "Usage includes zero-trust active accounts; testnet volume is excluded from revenue. Targets require human interpretation and never trigger automatic retirement."
+    },
+    "metrics": {
+      "verified_enrolments": {
+        "value": 2,
+        "unit": "count"
+      },
+      "qualified_enrolments": {
+        "value": 2,
+        "unit": "count"
+      },
+      "api_keys_created": {
+        "value": 2,
+        "unit": "count"
+      },
+      "first_calls": {
+        "value": 2,
+        "unit": "count"
+      },
+      "first_trusted_reads": {
+        "value": 1,
+        "unit": "count"
+      },
+      "seven_day_returning": {
+        "value": 1,
+        "unit": "count"
+      },
+      "seven_day_eligible": {
+        "value": 1,
+        "unit": "count"
+      },
+      "seven_day_mature_returning": {
+        "value": 1,
+        "unit": "count"
+      },
+      "feedback_submissions": {
+        "value": 1,
+        "unit": "count"
+      },
+      "feedback_contributors": {
+        "value": 1,
+        "unit": "count"
+      },
+      "active_partners": {
+        "value": 1,
+        "unit": "count"
+      },
+      "paid_media_usd": {
+        "value": 0,
+        "unit": "USD"
+      },
+      "mainnet_agent_revenue_usd": {
+        "value": 0,
+        "unit": "USD"
+      },
+      "mainnet_human_revenue_usd": {
+        "value": 0,
+        "unit": "USD"
+      },
+      "human_signup_revenue_usd": {
+        "value": 0,
+        "unit": "USD"
+      },
+      "testnet_settlement_volume_usd": {
+        "value": 10,
+        "unit": "testnet_USD_equivalent"
+      },
+      "beta_page_views": {
+        "value": 1,
+        "unit": "events"
+      },
+      "testbench_starts": {
+        "value": 1,
+        "unit": "events"
+      },
+      "testbench_completions": {
+        "value": 1,
+        "unit": "events"
+      },
+      "complaints": {
+        "value": 0,
+        "unit": "count"
+      },
+      "bounces": {
+        "value": 0,
+        "unit": "count"
+      },
+      "opt_outs": {
+        "value": 0,
+        "unit": "count"
+      },
+      "referral_enrolments": {
+        "value": 0,
+        "unit": "count"
+      },
+      "seven_day_return_rate": {
+        "value": 1,
+        "unit": "ratio"
+      },
+      "agent_revenue_share": {
+        "value": null,
+        "unit": "ratio",
+        "reason": "No positive combined mainnet-agent and human-signup revenue"
+      },
+      "weekly_reads": {
+        "value": 2,
+        "unit": "count"
+      },
+      "weekly_trusted_reads": {
+        "value": 1,
+        "unit": "count"
+      },
+      "weekly_active_accounts": {
+        "value": 2,
+        "unit": "count"
+      },
+      "weekly_reads_per_active_account": {
+        "value": 1,
+        "unit": "reads/account"
+      },
+      "weekly_median_reads_per_active_account": {
+        "value": 1,
+        "unit": "reads/account"
+      },
+      "weekly_trusted_reads_per_active_account": {
+        "value": 0.5,
+        "unit": "trusted_reads/account"
+      },
+      "weekly_median_trusted_reads_per_active_account": {
+        "value": 0.5,
+        "unit": "trusted_reads/account"
+      },
+      "production_agents_weekly": {
+        "value": 1,
+        "unit": "count"
+      },
+      "campaign_days_remaining": {
+        "value": null,
+        "unit": "days",
+        "reason": "Campaign has not been activated"
+      },
+      "required_daily_qualified": {
+        "value": null,
+        "unit": "users/day",
+        "reason": "Campaign has not started"
+      }
+    },
+    "funnel": {
+      "basis": "Event-count proxies for testbench rates; deduplicated qualified accounts for activation; mature seven-day cohort for retention",
+      "testbench_start_rate": {
+        "value": 1,
+        "unit": "ratio",
+        "reason": "Event-count proxy; unique relevant visitors and causal effects are not established"
+      },
+      "testbench_completion_rate": {
+        "value": 1,
+        "unit": "ratio",
+        "reason": "Event-count proxy; unique relevant visitors and causal effects are not established"
+      },
+      "report_to_enrolment_rate": {
+        "value": null,
+        "unit": "ratio",
+        "reason": "Numerator exceeds denominator; reconcile funnel cohorts"
+      },
+      "enrolment_to_key_rate": {
+        "value": 1,
+        "unit": "ratio"
+      },
+      "key_to_trusted_read_rate": {
+        "value": 0.5,
+        "unit": "ratio"
+      },
+      "seven_day_return_rate": {
+        "value": 1,
+        "unit": "ratio"
+      }
+    },
+    "channels": [
+      {
+        "source": "partner",
+        "verified_enrolments": {
+          "value": 1,
+          "unit": "count"
+        },
+        "qualified_enrolments": {
+          "value": 1,
+          "unit": "count"
+        },
+        "api_keys_created": {
+          "value": 1,
+          "unit": "count"
+        },
+        "first_trusted_reads": {
+          "value": 1,
+          "unit": "count"
+        },
+        "seven_day_returning": {
+          "value": 1,
+          "unit": "count"
+        }
+      },
+      {
+        "source": "registry",
+        "verified_enrolments": {
+          "value": 1,
+          "unit": "count"
+        },
+        "qualified_enrolments": {
+          "value": 1,
+          "unit": "count"
+        },
+        "api_keys_created": {
+          "value": 1,
+          "unit": "count"
+        },
+        "first_trusted_reads": {
+          "value": 0,
+          "unit": "count"
+        },
+        "seven_day_returning": {
+          "value": 0,
+          "unit": "count"
+        }
+      },
+      {
+        "source": "direct",
+        "verified_enrolments": {
+          "value": 0,
+          "unit": "count"
+        },
+        "qualified_enrolments": {
+          "value": 0,
+          "unit": "count"
+        },
+        "api_keys_created": {
+          "value": 0,
+          "unit": "count"
+        },
+        "first_trusted_reads": {
+          "value": 0,
+          "unit": "count"
+        },
+        "seven_day_returning": {
+          "value": 0,
+          "unit": "count"
+        }
+      }
+    ],
+    "benchmark": {
+      "publishable": false,
+      "reason": "Explicit benchmark publication consent is absent",
+      "sample_size": null,
+      "calibration_strata": []
+    },
+    "tripwires": [],
+    "recommendation": {
+      "code": "activate_campaign",
+      "action": "Verify the live test-to-API path and record the campaign activation time",
+      "reason": "The campaign clock has not started"
+    }
+  },
+  "actions": [
+    {
+      "id": "approval_9bcc8e34e10819d4d625630c",
+      "type": "direct_invitation",
+      "status": "pending_human",
+      "visibility": "private",
+      "approval_required": true,
+      "candidate_id": "candidate-example",
+      "candidate": {
+        "id": "candidate-example",
+        "account_id": null,
+        "pool": "builder",
+        "company": "Synthetic Commerce Lab",
+        "project": "Synthetic procurement agent",
+        "channel": "manual-email",
+        "current_signal": {
+          "text": "Published an integration experiment comparing typed catalogue inputs for procurement agents.",
+          "url": "https://example.org/synthetic-project",
+          "observed_at": "2026-10-17T12:00:00Z"
+        },
+        "relationship": {
+          "kind": "cold",
+          "evidence": null,
+          "url": null
+        },
+        "contact": {
+          "status": "clear",
+          "last_sent_at": null,
+          "followups": 0
+        },
+        "partner_id": null
+      },
+      "score": 80,
+      "lineage": {
+        "snapshot_id": "synthetic-2026-10-18",
+        "captured_at": "2026-10-18T12:00:00Z",
+        "app_revision": "synthetic-fixture-not-production",
+        "icp_revision": "synthetic-icp-v1",
+        "signal_observed_at": "2026-10-17T12:00:00Z",
+        "candidate_sha256": "a52d4a929781c910fb5954c0107c11e0f8178c5195e4dcf93cc50d0b32418ff8"
+      },
+      "source_refs": [
+        "https://example.org/synthetic-project"
+      ],
+      "exact_text": "I read Synthetic Commerce Lab's Synthetic procurement agent experiment about typed catalogue inputs. Legibility exposes product data with calibrated confidence over REST and MCP; structured pages, Shopify and barcodes are its current scope. Would a five-input compatibility test help the integration experiment?",
+      "text_sha256": "3dea89156af21c44567f186874d2f7008b12eea14b3263179f8be0b4be0e0dd5",
+      "risk_flags": [
+        "named_cold_requires_human_review",
+        "source_facts_require_human_review"
+      ],
+      "payload_sha256": "9bcc8e34e10819d4d625630c77b10d39ea3f5316a81d3fff1a596ffe9ed292d9",
+      "created_at": "2026-10-18T12:00:00.000Z",
+      "expires_at": "2026-10-20T12:00:00.000Z"
+    },
+    {
+      "id": "task_36a2fba83c5e5e33cce06170",
+      "type": "prepare_distribution_asset",
+      "status": "work_required",
+      "visibility": "private",
+      "approval_required": false,
+      "opportunity_id": "registry-example",
+      "kind": "integration",
+      "effort_minutes": 30,
+      "source_refs": [
+        "https://example.org/synthetic-project",
+        "https://example.org/synthetic-recipe"
+      ],
+      "lineage": {
+        "snapshot_id": "synthetic-2026-10-18",
+        "captured_at": "2026-10-18T12:00:00Z",
+        "app_revision": "synthetic-fixture-not-production",
+        "opportunity_sha256": "24711521c0739a7e41bf2a21e399f71d66f7b7785d51d3f73ad48375349ad064"
+      },
+      "risk_flags": [
+        "publication_requires_separate_approval"
+      ],
+      "requested_work": "Prepare a sourced distribution asset after checking the destination rules; obtain separate approval before publication."
+    }
+  ],
+  "holds": [],
+  "opportunities": [
+    {
+      "id": "registry-example",
+      "kind": "integration",
+      "title": "Prepare a procurement-agent first trusted read recipe",
+      "url": "https://example.org/synthetic-recipe",
+      "evidence_url": "https://example.org/synthetic-project",
+      "observed_at": "2026-10-17T12:00:00Z",
+      "status": "uncovered",
+      "effort_minutes": 30,
+      "visibility": "private"
+    }
+  ],
+  "payload_sha256": "59a1205499a8618ae77ef273ff7e354294d4399963abe053e95ef0ec56a85747"
+}

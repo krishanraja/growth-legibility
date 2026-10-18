@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "pipeline_id": "legibility-growth-v1",
+  "inventory": {"roots":["src"],"extensions":[".mjs"],"exclude":[]},
+  "external_inputs": ["source_snapshot","policy","run_clock","corpus_digest","delivery_options"],
+  "terminal_outputs": ["private_report","presentation_summary","verified_receipt"],
+  "stages": [
+    {
+      "id":"capture","owner":"source-contract-boundary","owned_paths":["src/capture.mjs"],
+      "inputs":["source_snapshot","policy","run_clock"],"outputs":["observed_snapshot"],"consumed_guards":["wire"],"side_effects":["none"],
+      "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Normalized source digest in immutable report","recovery_entrypoint":"capture-recovery"},
+      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs rejects invalid, contradictory and privacy-unsafe exports before consumption"}
+    },
+    {
+      "id":"measure","owner":"growth-measurement","owned_paths":["src/stages/measure.mjs"],
+      "inputs":["observed_snapshot","policy","run_clock"],"outputs":["scorecard"],"consumed_guards":["wire"],"side_effects":["none"],
+      "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Immutable source seal and scorecard in final report","recovery_entrypoint":"measure-recovery"},
+      "completion":{"source":"independent_rederivation","evidence":"tests/measure.test.mjs independently checks cohorts, unknown coverage and calibrated trust"}
+    },
+    {
+      "id":"prepare","owner":"growth-action-preparation","owned_paths":["src/stages/prepare.mjs"],
+      "inputs":["observed_snapshot","policy","run_clock"],"outputs":["prepared_work"],"consumed_guards":["wire"],"side_effects":["none"],
+      "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Private action content and source hashes in final report","recovery_entrypoint":"prepare-recovery"},
+      "completion":{"source":"independent_rederivation","evidence":"tests/prepare.test.mjs covers suppression, ICP, evidence and exact draft binding"}
+    },
+    {
+      "id":"plan","owner":"growth-orchestrator","owned_paths":["src/orchestrator.mjs","src/cli.mjs"],
+      "inputs":["observed_snapshot","policy","run_clock","corpus_digest","scorecard","prepared_work"],"outputs":["private_report","presentation_summary"],"consumed_guards":["wire","outbox"],"side_effects":["private immutable report and local transport journal writes"],
+      "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"runtime outbox row keyed by source, policy, clock and corpus seal","recovery_entrypoint":"plan-recovery"},
+      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs validates final private report digest, deduplicated scorecard and privacy projection"}
+    },
+    {
+      "id":"deliver","owner":"growth-report-transport","owned_paths":["src/transport.mjs"],
+      "inputs":["private_report","delivery_options"],"outputs":["verified_receipt"],"consumed_guards":["wire","outbox"],"side_effects":["approved private report write to capability-verified Control Center receiver"],
+      "retry":{"mode":"idempotent","total_attempt_cap":3,"checkpoint":"SQLite outbox attempts and uncertain/delivered receipt persist across restarts","recovery_entrypoint":"delivery-recovery"},
+      "completion":{"source":"destination_readback","evidence":"tests/transport.test.mjs exercises actual HTTP write then independent digest readback, no-persist and ambiguous-response recovery"}
+    }
+  ],
+  "edges":[{"from":"capture","to":"measure","artifact":"observed_snapshot"},{"from":"capture","to":"prepare","artifact":"observed_snapshot"},{"from":"capture","to":"plan","artifact":"observed_snapshot"},{"from":"measure","to":"plan","artifact":"scorecard"},{"from":"prepare","to":"plan","artifact":"prepared_work"},{"from":"plan","to":"deliver","artifact":"private_report"}],
+  "guards":[
+    {"id":"wire","owner":"contract-boundary","owned_paths":["src/guards/wire.mjs"],"required_for":["capture","measure","prepare","plan","deliver"],"enforced_by":["tests/engine.test.mjs","tests/transport.test.mjs"]},
+    {"id":"outbox","owner":"transport-journal","owned_paths":["src/outbox.mjs"],"required_for":["plan","deliver"],"enforced_by":["tests/transport.test.mjs"]}
+  ],
+  "entrypoints":[
+    {"id":"capture-api","stage":"capture","path":"src/capture.mjs","kind":"primary"},
+    {"id":"capture-recovery","stage":"capture","path":"src/capture.mjs","kind":"recovery"},
+    {"id":"run","stage":"plan","path":"src/cli.mjs","kind":"primary"},
+    {"id":"measure-recovery","stage":"measure","path":"src/stages/measure.mjs","kind":"recovery"},
+    {"id":"prepare-recovery","stage":"prepare","path":"src/stages/prepare.mjs","kind":"recovery"},
+    {"id":"plan-recovery","stage":"plan","path":"src/cli.mjs","kind":"recovery"},
+    {"id":"delivery-recovery","stage":"deliver","path":"src/transport.mjs","kind":"recovery"}
+  ],
+  "learnings":[
+    {"id":"http-success-is-not-persistence","owner_stage":"deliver","enforced_by":["tests/transport.test.mjs"]},
+    {"id":"testbench-is-not-api-activation","owner_stage":"measure","enforced_by":["tests/measure.test.mjs"]}
+  ]
+}

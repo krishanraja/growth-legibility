@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "trust_gate": 0.7,
+  "max_actions": 5,
+  "max_candidate_age_days": 30,
+  "max_followups": 1,
+  "max_snapshot_age_hours": 24,
+  "source_review_due": "2026-11-17T00:00:00Z",
+  "campaign": {
+    "activated_at": null,
+    "duration_days": 30,
+    "targets": { "gross": 225, "net": 200, "keys": 120, "activated": 75, "returning": 30, "feedback": 15, "partners": 5 }
+  }
+}

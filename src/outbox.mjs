@@ -1,9 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { canonical, validateReport } from './guards/wire.mjs';
+import { canonical, validateEngineReport } from './guards/wire.mjs';
 
-// A transport journal only. Control Center owns all business state and approvals.
+// A transport journal only, holding sealed protocol envelopes. Control Center owns all business state and approvals.
 export class Outbox {
   constructor(path) {
     mkdirSync(dirname(path), {recursive:true,mode:0o700});
@@ -16,7 +16,7 @@ export class Outbox {
   }
   close() { this.db.close(); }
   put(report) {
-    validateReport(report);
+    validateEngineReport(report);
     const old = this.get(report.run_id);
     if (old && old.digest !== report.payload_sha256) throw new Error('outbox_identity_conflict');
     this.db.prepare('INSERT OR IGNORE INTO reports(run_id,payload,digest) VALUES(?,?,?)').run(report.run_id,canonical(report),report.payload_sha256);

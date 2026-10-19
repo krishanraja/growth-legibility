@@ -2,8 +2,8 @@
   "schema_version": 1,
   "pipeline_id": "legibility-growth-v1",
   "inventory": {"roots":["src"],"extensions":[".mjs"],"exclude":[]},
-  "external_inputs": ["source_snapshot","policy","run_clock","corpus_digest","delivery_options"],
-  "terminal_outputs": ["private_report","presentation_summary","verified_receipt"],
+  "external_inputs": ["source_snapshot","policy","run_clock","corpus_digest","delivery_options","directive"],
+  "terminal_outputs": ["private_report","presentation_summary","attempt_journal","decision_tally"],
   "stages": [
     {
       "id":"capture","owner":"source-contract-boundary","owned_paths":["src/capture.mjs"],
@@ -25,20 +25,26 @@
     },
     {
       "id":"plan","owner":"growth-orchestrator","owned_paths":["src/orchestrator.mjs","src/cli.mjs"],
-      "inputs":["observed_snapshot","policy","run_clock","corpus_digest","scorecard","prepared_work"],"outputs":["private_report","presentation_summary"],"consumed_guards":["wire","outbox"],"side_effects":["private immutable report and local transport journal writes"],
+      "inputs":["observed_snapshot","policy","run_clock","corpus_digest","scorecard","prepared_work","directive"],"outputs":["private_report","presentation_summary","engine_report"],"consumed_guards":["wire","outbox"],"side_effects":["private immutable report and local transport journal writes"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"runtime outbox row keyed by source, policy, clock and corpus seal","recovery_entrypoint":"plan-recovery"},
-      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs validates final private report digest, deduplicated scorecard and privacy projection"}
+      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs validates final private report digest, deduplicated scorecard and privacy projection; tests/protocol.test.mjs validates the protocol envelope against engine-report.schema.json and the worked-example digest"}
     },
     {
       "id":"deliver","owner":"growth-report-transport","owned_paths":["src/transport.mjs"],
-      "inputs":["private_report","delivery_options"],"outputs":["verified_receipt"],"consumed_guards":["wire","outbox"],"side_effects":["approved private report write to capability-verified Control Center receiver"],
+      "inputs":["engine_report","delivery_options"],"outputs":["verified_receipt"],"consumed_guards":["wire","outbox"],"side_effects":["approved private protocol report write to the capability-verified Control Center growth engine routes"],
       "retry":{"mode":"idempotent","total_attempt_cap":3,"checkpoint":"SQLite outbox attempts and uncertain/delivered receipt persist across restarts","recovery_entrypoint":"delivery-recovery"},
-      "completion":{"source":"destination_readback","evidence":"tests/transport.test.mjs exercises actual HTTP write then independent digest readback, no-persist and ambiguous-response recovery"}
+      "completion":{"source":"destination_readback","evidence":"tests/transport.test.mjs exercises actual HTTP write then independent digest readback, replay, 409 conflict without blind retry, no-persist and ambiguous-response recovery"}
+    },
+    {
+      "id":"operate","owner":"growth-control-center-loop","owned_paths":["src/operate.mjs"],
+      "inputs":["verified_receipt","directive","delivery_options","run_clock"],"outputs":["attempt_journal","decision_tally"],"consumed_guards":["wire"],"side_effects":["attempt journal writes and directive and decision reads on the Control Center growth engine routes; never a send, post, spend or delete"],
+      "retry":{"mode":"idempotent","total_attempt_cap":2,"checkpoint":"Control Center attempt record keyed by attempt_id, read back before any second write","recovery_entrypoint":"operate-recovery"},
+      "completion":{"source":"destination_readback","evidence":"tests/protocol.test.mjs proves started then terminal attempts, directive, report readback, decisions and 401 and 409 codes against a local stand-in"}
     }
   ],
-  "edges":[{"from":"capture","to":"measure","artifact":"observed_snapshot"},{"from":"capture","to":"prepare","artifact":"observed_snapshot"},{"from":"capture","to":"plan","artifact":"observed_snapshot"},{"from":"measure","to":"plan","artifact":"scorecard"},{"from":"prepare","to":"plan","artifact":"prepared_work"},{"from":"plan","to":"deliver","artifact":"private_report"}],
+  "edges":[{"from":"capture","to":"measure","artifact":"observed_snapshot"},{"from":"capture","to":"prepare","artifact":"observed_snapshot"},{"from":"capture","to":"plan","artifact":"observed_snapshot"},{"from":"measure","to":"plan","artifact":"scorecard"},{"from":"prepare","to":"plan","artifact":"prepared_work"},{"from":"plan","to":"deliver","artifact":"engine_report"},{"from":"deliver","to":"operate","artifact":"verified_receipt"}],
   "guards":[
-    {"id":"wire","owner":"contract-boundary","owned_paths":["src/guards/wire.mjs"],"required_for":["capture","measure","prepare","plan","deliver"],"enforced_by":["tests/engine.test.mjs","tests/transport.test.mjs"]},
+    {"id":"wire","owner":"contract-boundary","owned_paths":["src/guards/wire.mjs"],"required_for":["capture","measure","prepare","plan","deliver","operate"],"enforced_by":["tests/engine.test.mjs","tests/transport.test.mjs","tests/protocol.test.mjs"]},
     {"id":"outbox","owner":"transport-journal","owned_paths":["src/outbox.mjs"],"required_for":["plan","deliver"],"enforced_by":["tests/transport.test.mjs"]}
   ],
   "entrypoints":[
@@ -48,10 +54,13 @@
     {"id":"measure-recovery","stage":"measure","path":"src/stages/measure.mjs","kind":"recovery"},
     {"id":"prepare-recovery","stage":"prepare","path":"src/stages/prepare.mjs","kind":"recovery"},
     {"id":"plan-recovery","stage":"plan","path":"src/cli.mjs","kind":"recovery"},
-    {"id":"delivery-recovery","stage":"deliver","path":"src/transport.mjs","kind":"recovery"}
+    {"id":"delivery-recovery","stage":"deliver","path":"src/transport.mjs","kind":"recovery"},
+    {"id":"operate","stage":"operate","path":"src/operate.mjs","kind":"primary"},
+    {"id":"operate-recovery","stage":"operate","path":"src/operate.mjs","kind":"recovery"}
   ],
   "learnings":[
     {"id":"http-success-is-not-persistence","owner_stage":"deliver","enforced_by":["tests/transport.test.mjs"]},
-    {"id":"testbench-is-not-api-activation","owner_stage":"measure","enforced_by":["tests/measure.test.mjs"]}
+    {"id":"testbench-is-not-api-activation","owner_stage":"measure","enforced_by":["tests/measure.test.mjs"]},
+    {"id":"journal-before-reading-sources","owner_stage":"operate","enforced_by":["tests/protocol.test.mjs"]}
   ]
 }

@@ -1,10 +1,12 @@
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildReport, publicSummary, loadJson } from './orchestrator.mjs';
+import { randomBytes } from 'node:crypto';
+import { buildReport, engineReport, protocolRunId, publicSummary, loadJson } from './orchestrator.mjs';
 import { validatePolicy } from './guards/wire.mjs';
 import { Outbox } from './outbox.mjs';
-import { deliver } from './transport.mjs';
+import { APPROVED_ORIGIN, controlCenter, deliver } from './transport.mjs';
+import { operate } from './operate.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)),'..');
 function args(argv) {
@@ -15,9 +17,26 @@ function args(argv) {
     if (key in out) throw new Error('duplicate_cli_argument');
     out[key]=argv[++i];
   }
-  const allowed={run:['snapshot','policy','at','out'],deliver:['run-id','out'],status:['run-id','out'],doctor:[],help:[]};
+  const allowed={run:['snapshot','policy','at','out'],operate:['snapshot','policy','out'],deliver:['run-id','out'],status:['run-id','out'],doctor:[],help:[]};
   if (!(out.command in allowed)||Object.keys(out).some(k=>k!=='command'&&!allowed[out.command].includes(k))) throw new Error('unknown_cli_option');
   return out;
+}
+// Credentials and the target come from the runtime environment only, and are never printed.
+function credentials() {
+  const token=process.env.CONTROL_CENTER_ENGINE_TOKEN, base=process.env.CONTROL_CENTER_URL||APPROVED_ORIGIN;
+  if(!token) throw new Error('control_center_engine_token_missing');
+  return {token,base};
+}
+// A dispatch names its engine and directive. Both are untrusted input: checked, never interpolated into a shell.
+function dispatch() {
+  const engine=process.env.CC_ENGINE_ID, directive=process.env.CC_DIRECTIVE_ID;
+  if(engine&&engine!=='growth-legibility') throw new Error('dispatch_engine_mismatch');
+  const date=/^legibility:(\d{4}-\d{2}-\d{2})$/.exec(directive??'')?.[1]??null;
+  if(directive&&!date) throw new Error('dispatch_directive_invalid');
+  const run=process.env.GITHUB_RUN_ID, attempt=process.env.GITHUB_RUN_ATTEMPT;
+  const invocation=/^\d{1,20}$/.test(run??'')&&/^\d{1,6}$/.test(attempt??'')?`gh${run}.${attempt}`:`local${randomBytes(6).toString('hex')}`;
+  const revision=/^[0-9a-f]{40}$/.test(process.env.GITHUB_SHA??'')?process.env.GITHUB_SHA:'unversioned-local';
+  return {date,invocation,revision};
 }
 function writeJson(path,value) { writeFileSync(path,`${JSON.stringify(value,null,2)}\n`,{mode:0o600}); }
 function corpus() {
@@ -36,13 +55,16 @@ async function main() {
   if(corpusSha!==c.register.sha256) throw new Error('corpus_integrity_failed');
   if(opts.command==='doctor') {
     console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',policy:'pass',source_review_due:policy.source_review_due,
-      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'requires implementation and live readback',credentials:{control_center:Boolean(process.env.LEGIBILITY_CC_TOKEN),product_api:Boolean(process.env.LEGIBILITY_API_KEY)}},null,2));
+      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY)}},null,2));
     return;
   }
   if(opts.command==='help') {
-    console.log('run --snapshot FILE [--policy FILE] [--at ISO] [--out runtime/live]\ndeliver --run-id ID [--out runtime/live]\nstatus --run-id ID [--out runtime/live]\ndoctor\nNo sends, posts, paid calls or schedules are executed. deliver writes a private report only to the verified Control Center receiver.');
+    console.log('run --snapshot FILE [--policy FILE] [--at ISO] [--out runtime/live]\noperate [--snapshot FILE] [--policy FILE] [--out runtime/live]\ndeliver --run-id ID [--out runtime/live]\nstatus --run-id ID [--out runtime/live]\ndoctor\nNo sends, posts, paid calls or schedules are executed. operate and deliver write private reports only to the verified Control Center protocol routes.');
     return;
   }
+  // Fail before touching anything when the run cannot reach Control Center at all.
+  const client=['operate','deliver'].includes(opts.command)?controlCenter(credentials()):null;
+  const plan=opts.command==='operate'?dispatch():null;
   const output=resolve(opts.out??join(root,'runtime','live'));
   // Private runtime must stay inside this ignored spool. Never permit accidental public output.
   const runtimeRoot=resolve(root,'runtime');
@@ -54,14 +76,23 @@ async function main() {
       if(!opts.snapshot) throw new Error('snapshot_required');
       const at=opts.at??new Date().toISOString();
       const report=buildReport(loadJson(resolve(opts.snapshot)),policy,at,corpusSha);
-      db.put(report);
       writeJson(join(output,`${report.run_id}.json`),report);
+      // The protocol envelope is what the outbox holds and deliver sends; its run_id names the day, command and observation.
+      const envelope=engineReport(report,{runId:protocolRunId('run',report.observed_at,report.run_id.slice(3,19))});
+      db.put(envelope);
+      writeJson(join(output,`${envelope.run_id.replaceAll(':','_')}.envelope.json`),envelope);
       const summary=publicSummary(report);
       writeJson(join(output,'latest-summary.json'),summary);
+      console.log(JSON.stringify({...summary,control_center_run_id:envelope.run_id},null,2));
+    } else if(opts.command==='operate') {
+      const {summary,privateReport}=await operate({client,outbox:db,policy,corpusSha,
+        loadSnapshot:opts.snapshot?()=>loadJson(resolve(opts.snapshot)):null,invocation:plan.invocation,revision:plan.revision,directiveDate:plan.date});
+      if(privateReport) writeJson(join(output,`${privateReport.run_id}.json`),privateReport);
       console.log(JSON.stringify(summary,null,2));
+      if(summary.status!=='succeeded'||summary.journal!=='closed') process.exitCode=1;
     } else if(opts.command==='deliver') {
       if(!opts['run-id']) throw new Error('run_id_required');
-      console.log(JSON.stringify(await deliver(db,opts['run-id'],{token:process.env.LEGIBILITY_CC_TOKEN}),null,2));
+      console.log(JSON.stringify(await deliver(db,opts['run-id'],{client}),null,2));
     } else {
       const row=db.get(opts['run-id']??'');
       if(!row) throw new Error('outbox_report_missing');

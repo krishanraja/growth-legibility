@@ -1,0 +1,36 @@
+name: Operate with Control Center
+# Control Center wakes this engine once a day (about 05:10 UTC) with cc-growth-directive; Krish can also run it by hand.
+# One run: journal the attempt, pull the directive, run the engine inside the walls, report and read back, read decisions,
+# close the attempt. Nothing in this engine sends, posts, publishes, spends, deletes or changes a permission.
+on:
+  repository_dispatch:
+    types: [cc-growth-directive]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: growth-legibility-operate
+  cancel-in-progress: false
+jobs:
+  operate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run check
+      - name: Run the Control Center loop
+        env:
+          CONTROL_CENTER_ENGINE_TOKEN: ${{ secrets.CONTROL_CENTER_ENGINE_TOKEN }}
+          CONTROL_CENTER_URL: ${{ vars.CONTROL_CENTER_URL }}
+          # The dispatch payload is untrusted input: passed as data and checked by the CLI, never pasted into a script.
+          CC_DIRECTIVE_ID: ${{ github.event.client_payload.directive_id }}
+          CC_ENGINE_ID: ${{ github.event.client_payload.engine_id }}
+        run: node src/cli.mjs operate --out runtime/live
+      # No artifact upload: runtime/ holds private reports and the transport journal, and this repository is public.

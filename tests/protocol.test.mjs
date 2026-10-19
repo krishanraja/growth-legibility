@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { sha256, canonical, validateEngineEnvelope, validateEngineReport, validateAttempt } from '../src/guards/wire.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId } from '../src/orchestrator.mjs';
 import { Outbox } from '../src/outbox.mjs';
@@ -184,7 +185,7 @@ test('a 409 on the report fails the attempt without a second write', async t => 
 });
 
 test('the CLI says which secret is missing, exits non-zero and prints no credential', () => {
-  const cli = new URL('../src/cli.mjs', import.meta.url).pathname;
+  const cli = fileURLToPath(new URL('../src/cli.mjs', import.meta.url));
   const base = { ...process.env, CONTROL_CENTER_ENGINE_TOKEN:'', CONTROL_CENTER_URL:'', GITHUB_RUN_ID:'', GITHUB_RUN_ATTEMPT:'' };
   const missing = spawnSync(process.execPath, [cli, 'operate'], { env:base, encoding:'utf8' });
   assert.equal(missing.status, 1); assert.match(missing.stderr, /control_center_engine_token_missing/);

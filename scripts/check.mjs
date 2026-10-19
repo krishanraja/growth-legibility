@@ -3,7 +3,7 @@ import { join,resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { validatePolicy,validateSnapshot } from '../src/guards/wire.mjs';
-import { buildReport } from '../src/orchestrator.mjs';
+import { buildReport, engineReport, protocolRunId } from '../src/orchestrator.mjs';
 const root=resolve(import.meta.dirname,'..');
 const json=p=>JSON.parse(readFileSync(join(root,p),'utf8'));
 validatePolicy(json('config/policy.json'));
@@ -16,6 +16,9 @@ if(existsSync(join(root,'contracts/manifest.json'))){
   }
   const expected=buildReport(json('fixtures/snapshot.json'),json('config/policy.json'),'2026-10-18T12:00:00Z',c.sha256);
   if(JSON.stringify(expected)!==JSON.stringify(json('contracts/example-report.json')))throw new Error('frozen_example_drift');
+  // The protocol envelope the same run would send to Control Center, frozen beside the private report.
+  const envelope=engineReport(expected,{runId:protocolRunId('run',expected.observed_at,expected.run_id.slice(3,19))});
+  if(JSON.stringify(envelope)!==JSON.stringify(json('contracts/example-engine-report.json')))throw new Error('frozen_engine_example_drift');
 }
 let files=0;
 function walk(dir){for(const f of readdirSync(join(root,dir),{withFileTypes:true})){
@@ -24,7 +27,7 @@ function walk(dir){for(const f of readdirSync(join(root,dir),{withFileTypes:true
   const body=readFileSync(join(root,path),'utf8');
   if(/\.(mjs|json|md|yml)$/.test(path)){
     // Patterns require credential shape, never a symbolic environment name. Values are never printed.
-    if(/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{30,}|lgk_[A-Za-z0-9]{24,})\b/.test(body))throw new Error(`credential_shape_detected:${path}`);
+    if(/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{30,}|lgk_[A-Za-z0-9]{24,}|gen1_[A-Za-z0-9_-]{43,})\b/.test(body))throw new Error(`credential_shape_detected:${path}`);
     if(!path.startsWith('_corpus')&&body.includes('\u2014'))throw new Error(`em_dash:${path}`);
   }
   if(path.endsWith('.mjs')){const r=spawnSync(process.execPath,['--check',join(root,path)],{encoding:'utf8'});if(r.status!==0)throw new Error(`syntax_failed:${path}`);files++;}

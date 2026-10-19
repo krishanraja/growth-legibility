@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0.0",
+  "engine_id": "growth-legibility",
+  "product_slug": "legibility",
+  "run_id": "legibility:2026-10-18:run:15178fedbd8d7e81",
+  "mode": "synthetic",
+  "observed_at": "2026-10-18T12:00:00Z",
+  "source": {
+    "revision": "1d2b1e132127583ce70d40cf2c73326f608cc4cdfbf4bd3ff648f7d3bde7107c",
+    "captured_at": "2026-10-18T12:00:00Z"
+  },
+  "status": "ready",
+  "objectives": [
+    {
+      "key": "activated",
+      "unit": "builders",
+      "window_start": null,
+      "window_end": null,
+      "timezone": "UTC",
+      "value": null,
+      "availability": "missing",
+      "reason": "The Founding 200 campaign clock has not been activated, so there is no campaign window to count in; observations are baseline only"
+    },
+    {
+      "key": "returning",
+      "unit": "builders",
+      "window_start": null,
+      "window_end": null,
+      "timezone": "UTC",
+      "value": null,
+      "availability": "missing",
+      "reason": "The Founding 200 campaign clock has not been activated, so there is no campaign window to count in; observations are baseline only"
+    },
+    {
+      "key": "net",
+      "unit": "founding_members",
+      "window_start": null,
+      "window_end": null,
+      "timezone": "UTC",
+      "value": null,
+      "availability": "missing",
+      "reason": "The Founding 200 campaign clock has not been activated, so there is no campaign window to count in; observations are baseline only"
+    }
+  ],
+  "activity": [
+    {
+      "line": "Measured the Founding 200 funnel from a synthetic source snapshot captured 2026-10-18T12:00:00Z (digest 1d2b1e132127).",
+      "evidence_url": null
+    },
+    {
+      "line": "Recommended constraint: Verify the live test-to-API path and record the campaign activation time.",
+      "evidence_url": null
+    },
+    {
+      "line": "Prepared 1 named invitation for Krish to review and 1 work task. Nothing was sent or published.",
+      "evidence_url": null
+    },
+    {
+      "line": "Weekly production agents: 1. Weekly median trusted reads per active account: 0.5. Mainnet agent revenue USD: 0; testnet volume is never counted as revenue.",
+      "evidence_url": null
+    },
+    {
+      "line": "Distribution inventory holds 1 verified opportunity, 1 uncovered.",
+      "evidence_url": null
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_id": "legibility:invite:831930818f6096f7:manual-email",
+      "title": "Send a researched cold invitation to a builder prospect",
+      "why": "Scored 80 of 100 against the approved buyer definition, from a signal observed 2026-10-17T12:00:00Z. If Krish approves these exact words he sends them himself; the engine never sends.",
+      "kind": "prepared",
+      "wall": "send",
+      "amount_usd": null,
+      "channel": "manual-email",
+      "objective_key": "activated",
+      "exact_payload": "I read Synthetic Commerce Lab's Synthetic procurement agent experiment about typed catalogue inputs. Legibility exposes product data with calibrated confidence over REST and MCP; structured pages, Shopify and barcodes are its current scope. Would a five-input compatibility test help the integration experiment?",
+      "payload_sha256": "3dea89156af21c44567f186874d2f7008b12eea14b3263179f8be0b4be0e0dd5",
+      "evidence": [
+        {
+          "label": "Cited source",
+          "url": "https://example.org/synthetic-project"
+        }
+      ],
+      "close_condition": {
+        "event": "invitation_sent",
+        "reference": "candidate:831930818f6096f7"
+      },
+      "expires_at": "2026-10-20T12:00:00.000Z"
+    },
+    {
+      "proposal_id": "legibility:work:opportunity-93e02e726581063f:prepare_distribution_asset",
+      "title": "Prepare distribution asset for one integration distribution lead",
+      "why": "Prepare a sourced distribution asset after checking the destination rules; obtain separate approval before publication. About 30 minutes.",
+      "kind": "advice",
+      "wall": "none",
+      "amount_usd": null,
+      "channel": null,
+      "objective_key": "activated",
+      "exact_payload": null,
+      "payload_sha256": "630c030ef5de5ce7475dc1f7a1e1e035ddf5e73b828488a30cfbd3c127785d7a",
+      "evidence": [
+        {
+          "label": "Cited source",
+          "url": "https://example.org/synthetic-project"
+        },
+        {
+          "label": "Cited source",
+          "url": "https://example.org/synthetic-recipe"
+        }
+      ],
+      "close_condition": {
+        "event": "distribution_asset_prepared",
+        "reference": "opportunity:93e02e726581063f"
+      },
+      "expires_at": null
+    },
+    {
+      "proposal_id": "legibility:constraint:activate_campaign",
+      "title": "Verify the live test-to-API path and record the campaign activation time",
+      "why": "The campaign clock has not started. Verify the live test-to-API path and record the campaign activation time.",
+      "kind": "advice",
+      "wall": "strategy",
+      "amount_usd": null,
+      "channel": null,
+      "objective_key": "activated",
+      "exact_payload": null,
+      "payload_sha256": "c3d66980a938714d1a313f0f35e2c14aa1fbbbf0d6e121543d95922307b5b91a",
+      "evidence": [],
+      "close_condition": {
+        "event": "constraint_resolved",
+        "reference": "activate_campaign"
+      },
+      "expires_at": null
+    }
+  ],
+  "events": [],
+  "holds": [],
+  "payload_sha256": "841e58e762cee4ba9f1f4fb70b3f3faf93b4474bee4affbc4d1af9a16e8f45f9"
+}

@@ -4,7 +4,7 @@
   "artifacts": [
     {
       "path": "src/guards/wire.mjs",
-      "sha256": "ce54a3d5f5b0e412a39785e903a8d4c765251e68e98c4dbd8ee37536ce2793dc"
+      "sha256": "2457034030c5a59a3499aa333b80c120ef62353be69ef2523e3268b304d42f37"
     },
     {
       "path": "src/stages/measure.mjs",
@@ -25,6 +25,10 @@
     {
       "path": "contracts/example-report.json",
       "sha256": "d0da147ad99f28b0efe953cb717bcf608c0e4e8932a8c7038efc098493c7c786"
+    },
+    {
+      "path": "contracts/example-engine-report.json",
+      "sha256": "80d8a57ae77d82dc54d8a1cc619588cfac0aae5544794b9b6560b4ed83475800"
     }
   ]
 }

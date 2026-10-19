@@ -12,4 +12,4 @@ Reports are private. Only publicSummary() is designed for presentation outside t
 payload_sha256 hashes canonical sorted JSON excluding that field. run_id binds normalized source, policy, clock and corpus revision.
 Idempotent delivery uses the same immutable report. A changed clock produces a new observation/run, never a second copy of the same frozen report.
 
-The receiver contract in docs/CONTROL-CENTER-HANDOFF.md is a proposed new consumer. Existing growth/packs and attribution routes are incompatible.
+What travels to Control Center is the protocol 1.0.0 envelope (docs/control-center/engine-report.schema.json), built by engineReport() in src/orchestrator.mjs and checked by validateEngineReport() in src/guards/wire.mjs. contracts/example-engine-report.json is the frozen envelope for the synthetic fixture; npm run check rebuilds both examples and fails on drift. The private report above never leaves the runtime spool. Existing growth/packs and attribution routes are incompatible.

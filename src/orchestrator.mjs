@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { validateReport, sha256, VERSION } from './guards/wire.mjs';
+import { validateReport, validateEngineReport, sha256, VERSION } from './guards/wire.mjs';
 import { capture } from './capture.mjs';
 import { measure } from './stages/measure.mjs';
 import { prepare } from './stages/prepare.mjs';
@@ -38,4 +38,132 @@ export function loadJson(path) {
   const bytes = readFileSync(path);
   if (bytes.length > 20*1024*1024) throw new Error('input_size_limit');
   return JSON.parse(bytes.toString('utf8'));
+}
+
+// Control Center protocol 1.0.0: the private report above is flattened into the one envelope every growth engine sends.
+// The private report stays in the ignored runtime spool; only this envelope travels.
+const OBJECTIVES = [
+  { key:'activated', metric:'first_trusted_reads', target:'activated', unit:'builders' },
+  { key:'returning', metric:'seven_day_returning', target:'returning', unit:'builders' },
+  { key:'net', metric:'qualified_enrolments', target:'net', unit:'founding_members' },
+];
+const clip = (text, max) => text.length <= max ? text : `${text.slice(0, max - 3).trimEnd()}...`;
+const short = value => sha256(String(value)).slice(0, 16);
+const httpsEvidence = refs => [...new Set(refs ?? [])].filter(u => /^https:\/\/\S+$/.test(u)).slice(0, 12).map(url => ({ label:'Cited source', url }));
+const objectiveFor = code => /enrol|referral|report_to/.test(code) ? 'net' : /return/.test(code) ? 'returning' : 'activated';
+
+export function protocolRunId(command, at, discriminator) {
+  const id = `legibility:${new Date(at).toISOString().slice(0, 10)}:${command}:${discriminator}`;
+  if (!/^[A-Za-z0-9][A-Za-z0-9:._-]{0,119}$/.test(id)) throw new Error('run_id_invalid');
+  return id;
+}
+
+export function directiveActivity(directive) {
+  if (!directive) return null;
+  const next = directive.next_action?.proposal_id ? `next action ${directive.next_action.proposal_id}` : 'no named proposal as the next action';
+  return { line: clip(`Pulled directive ${directive.directive_id} for ${directive.for_date}, with ${next}. Worked inside the walls: nothing was sent, posted, spent or deleted.`, 500), evidence_url: null };
+}
+
+function seal(body) { return validateEngineReport({ ...body, payload_sha256: sha256(body) }); }
+
+function constraintProposal(rec) {
+  const strategy = rec.code === 'activate_campaign';
+  return {
+    proposal_id:`legibility:constraint:${rec.code}`, title:clip(rec.action, 160), why:clip(`${rec.reason}. ${rec.action}.`, 1000),
+    kind:'advice', wall:strategy ? 'strategy' : 'none', amount_usd:null, channel:null, objective_key:objectiveFor(rec.code),
+    exact_payload:null, payload_sha256:sha256({ code:rec.code, action:rec.action, reason:rec.reason }), evidence:[],
+    close_condition:{ event:'constraint_resolved', reference:rec.code }, expires_at:null,
+  };
+}
+
+function actionProposal(a) {
+  if (a.status === 'pending_human') {
+    // Krish approves these exact words for this target on this channel; the id binds target and channel, the digest binds the words.
+    const target = short(a.candidate_id);
+    const channel = String(a.candidate.channel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'channel';
+    return {
+      proposal_id:`legibility:invite:${target}:${channel}`,
+      title:clip(`Send a researched ${a.candidate.relationship?.kind ?? 'named'} invitation to a ${a.candidate.pool} prospect`, 160),
+      why:clip(`Scored ${a.score} of 100 against the approved buyer definition, from a signal observed ${a.lineage.signal_observed_at}. If Krish approves these exact words he sends them himself; the engine never sends.`, 1000),
+      kind:'prepared', wall:'send', amount_usd:null, channel:clip(String(a.candidate.channel), 60), objective_key:'activated',
+      exact_payload:a.exact_text, payload_sha256:a.text_sha256, evidence:httpsEvidence(a.source_refs),
+      close_condition:{ event:'invitation_sent', reference:`candidate:${target}` }, expires_at:a.expires_at,
+    };
+  }
+  const subject = a.opportunity_id ? `opportunity:${short(a.opportunity_id)}` : `candidate:${short(a.candidate_id)}`;
+  const kindWord = a.opportunity_id ? `${a.kind} distribution` : `${a.candidate?.pool ?? 'candidate'} prospect`;
+  return {
+    proposal_id:`legibility:work:${subject.replace(':', '-')}:${a.type}`.slice(0, 120),
+    title:clip(`${a.type.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())} for one ${kindWord} lead`, 160),
+    why:clip(`${a.requested_work}${a.effort_minutes !== undefined ? ` About ${a.effort_minutes} minutes.` : ''}`, 1000),
+    kind:'advice', wall:'none', amount_usd:null, channel:null, objective_key:'activated', exact_payload:null,
+    payload_sha256:sha256(a), evidence:httpsEvidence(a.source_refs),
+    close_condition:{ event:a.opportunity_id ? 'distribution_asset_prepared' : 'prospect_work_done', reference:subject }, expires_at:null,
+  };
+}
+
+function protocolHolds(holds) {
+  const byCode = new Map();
+  for (const h of holds) {
+    const entry = byCode.get(h.code) ?? { detail:h.reason ?? h.next_action ?? null, count:0 };
+    entry.count++; byCode.set(h.code, entry);
+  }
+  return [...byCode].slice(0, 40).map(([code, { detail, count }]) => ({
+    reason:clip(String(code), 200), detail:detail ? clip(count > 1 ? `${detail} (${count} items)` : detail, 1000) : null,
+  }));
+}
+
+function fmt(m) { return m?.value === null || m?.value === undefined ? `unknown (${m?.reason ?? 'not measured'})` : `${m.value}`; }
+
+// Flatten a sealed private report into the protocol envelope. Unknown stays null with its reason, never zero.
+export function engineReport(report, { runId, directive = null, directiveHold = null }) {
+  validateReport(report);
+  const { campaign, metrics, recommendation } = report.scorecard;
+  const stale = report.holds.some(h => h.code === 'stale_snapshot');
+  const windowEnd = campaign.activated_at ? new Date(Math.min(Date.parse(report.observed_at), Date.parse(campaign.ends_at))).toISOString() : null;
+  const objectives = OBJECTIVES.map(({ key, metric, unit }) => {
+    const m = metrics[metric];
+    const base = { key, unit, window_start:campaign.activated_at, window_end:windowEnd, timezone:'UTC' };
+    if (!campaign.activated_at) return { ...base, value:null, availability:'missing', reason:'The Founding 200 campaign clock has not been activated, so there is no campaign window to count in; observations are baseline only' };
+    if (m.value === null) return { ...base, value:null, availability:'missing', reason:clip(m.reason ?? 'Not measured', 500) };
+    if (stale) return { ...base, value:m.value, availability:'stale', reason:'The source snapshot is older than the policy freshness limit' };
+    return { ...base, value:m.value, availability:'measured', reason:null };
+  });
+  const pending = report.actions.filter(a => a.status === 'pending_human').length;
+  const activity = [
+    directiveActivity(directive),
+    { line:clip(`Measured the Founding 200 funnel from a ${report.mode} source snapshot captured ${report.source.captured_at} (digest ${report.source.snapshot_sha256.slice(0, 12)}).`, 500), evidence_url:null },
+    { line:clip(`Recommended constraint: ${recommendation.action}.`, 500), evidence_url:null },
+    { line:`Prepared ${pending} named invitation${pending === 1 ? '' : 's'} for Krish to review and ${report.actions.length - pending} work task${report.actions.length - pending === 1 ? '' : 's'}. Nothing was sent or published.`, evidence_url:null },
+    { line:clip(`Weekly production agents: ${fmt(metrics.production_agents_weekly)}. Weekly median trusted reads per active account: ${fmt(metrics.weekly_median_trusted_reads_per_active_account)}. Mainnet agent revenue USD: ${fmt(metrics.mainnet_agent_revenue_usd)}; testnet volume is never counted as revenue.`, 500), evidence_url:null },
+    { line:`Distribution inventory holds ${report.opportunities.length} verified opportunit${report.opportunities.length === 1 ? 'y' : 'ies'}, ${report.opportunities.filter(o => o.status === 'uncovered').length} uncovered.`, evidence_url:null },
+  ].filter(Boolean);
+  const proposals = [...report.actions.map(actionProposal), constraintProposal(recommendation)].slice(0, 10);
+  const holds = protocolHolds(report.holds);
+  if (directiveHold) holds.push(directiveHold);
+  const status = report.status === 'ready' && directiveHold ? 'degraded' : report.status;
+  return seal({
+    schema_version:VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
+    observed_at:report.observed_at, source:{ revision:report.source.snapshot_sha256, captured_at:report.source.captured_at },
+    status, objectives, activity, proposals, events:[], holds,
+  });
+}
+
+// A run with no source snapshot still reports, honestly: held, nothing measured, and the missing inputs named.
+export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null }) {
+  const inactive = !policy?.campaign?.activated_at;
+  const reason = `No source snapshot from the Legibility app reached this run, so nothing was measured.${inactive ? ' The campaign clock has not been activated either.' : ''}`;
+  const objectives = OBJECTIVES.map(({ key, unit }) => ({ key, value:null, unit, window_start:policy?.campaign?.activated_at ?? null, window_end:null, timezone:'UTC', availability:'missing', reason }));
+  const holds = [
+    { reason:'source_snapshot_missing', detail:'The runner has no authenticated export from the app (accounts, server-metered reads, events, settlements). Measurement and preparation stay held until the source owner supplies one with --snapshot.' },
+    { reason:'icp_not_current_approved', detail:'No current approved Legibility buyer definition from Control Center product_icp reached this run, so prospecting stays held. Control Center still owes the narrow product_icp read path.' },
+  ];
+  if (directiveHold) holds.push(directiveHold);
+  const rec = { code:'restore_measurement', action:'Connect the app snapshot export and the product_icp read path to this runner', reason:'Unknown observations cannot establish funnel performance or justify outreach' };
+  return seal({
+    schema_version:VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode, observed_at:at,
+    source:{ revision:String(revision).slice(0, 128), captured_at:at }, status:'held', objectives,
+    activity:[directiveActivity(directive), { line:'Held measurement and preparation: no source snapshot or canonical ICP reached the runner. No objective was guessed and nothing was sent.', evidence_url:null }].filter(Boolean),
+    proposals:[constraintProposal(rec)], events:[], holds,
+  });
 }

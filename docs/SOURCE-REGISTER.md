@@ -5,6 +5,7 @@ Reviewed 18 October 2026. These are source-code observations, not proof of produ
 | Source | Pinned revision / integrity | What it establishes |
 |---|---|---|
 | User attachment, preserved in _corpus | _corpus/manifest.json SHA-256 | Founding 200 strategy, proposed ICP, targets, tripwires and approval model |
+| Copywriting, Offers and Demand Corpus 1.0 (full and summary), received 2026-10-19, preserved in _corpus | _corpus/manifest.json `sources[]` SHA-256 and bytes | Reference corpus, not execution authority: persuasion chain, awareness and sophistication, offers, proof, testing and the review rubric. Applied in docs/COPY-DOCTRINE.md; repository rules override it |
 | [Legibility README](https://github.com/KrishanRaja/legibility/blob/f3c6b77965b0c654fe8eac3611d2d2dfe5a2077e/README.md) | f3c6b77965b0c654fe8eac3611d2d2dfe5a2077e | Official URL, REST/MCP tools, 0.7 gate, honest coverage and testnet scope |
 | [Product North Star](https://github.com/KrishanRaja/legibility/blob/f3c6b77965b0c654fe8eac3611d2d2dfe5a2077e/docs/NORTH_STAR.md) | Same app revision | March 2027 mainnet-agent revenue ambition and 100 weekly production agents |
 | [Trusted-read measures](https://github.com/KrishanRaja/legibility/blob/f3c6b77965b0c654fe8eac3611d2d2dfe5a2077e/docs/KILL-CRITERIA.md) | Same app revision | Trusted reads per active account; trust-rate alert versus deliberate eight-week thesis review |

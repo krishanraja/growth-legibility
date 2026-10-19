@@ -18,7 +18,7 @@ Coverage flags must reflect full pagination and reconciliation. Missing sources 
 
 ## Approval and suppression
 
-Only exact supplied, checked drafts become pending_human packets. The engine can return specific research, source-lineage or draft-production work without fabricating prose. Each pending packet binds candidate, channel, exact text hash and source revision. It expires after 48 hours. The private consumer must re-read the current ICP, source evidence, global suppression and contact history immediately before human review and execution.
+Drafts and distribution assets are written and reviewed under [COPY-DOCTRINE.md](COPY-DOCTRINE.md): awareness-matched lead, one promise and one action, cited proof, no invented urgency or warmth, and the adapted rubric before handoff. The doctrine guides the writer; it grants no approval. Only exact supplied, checked drafts become pending_human packets. The engine can return specific research, source-lineage or draft-production work without fabricating prose. Each pending packet binds candidate, channel, exact text hash and source revision. It expires after 48 hours. The private consumer must re-read the current ICP, source evidence, global suppression and contact history immediately before human review and execution.
 
 A work_required task is not an outbound approval. An old approval flag in input grants no authority. No endpoint in this repository sends, publishes, spends or approves. The human acts from the exact reviewed destination, using their existing approved tools. The source owner records observed delivery and reply outcomes for the next run.
 

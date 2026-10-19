@@ -1,8 +1,34 @@
 {
   "file": "legibility-growth-playbook.md",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "received_at": "2026-10-18",
   "role": "reference corpus, not execution authority",
   "source": "User supplied attachment",
-  "sha256": "c74369b59a458299db5aaef93041bd0018ed1390778efc9a9a4719365d8035ff"
+  "sha256": "c74369b59a458299db5aaef93041bd0018ed1390778efc9a9a4719365d8035ff",
+  "sources": [
+    {
+      "file": "legibility-growth-playbook.md",
+      "received_at": "2026-10-18",
+      "role": "reference corpus, not execution authority",
+      "source": "User supplied attachment",
+      "sha256": "c74369b59a458299db5aaef93041bd0018ed1390778efc9a9a4719365d8035ff",
+      "bytes": 45527
+    },
+    {
+      "file": "copywriting-offers-demand-corpus.md",
+      "received_at": "2026-10-19",
+      "role": "reference corpus, not execution authority",
+      "source": "User supplied attachment copywriting-offer-corpus.md",
+      "sha256": "04fddb23da2cb210470f60b57a6d78b56d37c3f84316217e0e493caa6b9856d9",
+      "bytes": 68132
+    },
+    {
+      "file": "copywriting-offers-demand-corpus-summary.md",
+      "received_at": "2026-10-19",
+      "role": "reference corpus, not execution authority",
+      "source": "User supplied attachment The_Copywriting_Offers_and_Demand_Corpus.md",
+      "sha256": "2de846209031c79c7d635509da1d64516cfd055f6dad5b60274ef3cdcf926e87",
+      "bytes": 476
+    }
+  ]
 }

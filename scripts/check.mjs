@@ -10,6 +10,17 @@ validatePolicy(json('config/policy.json'));
 validateSnapshot(json('fixtures/snapshot.json'),'2026-10-18T12:00:00Z');
 const c=json('_corpus/manifest.json');
 if(createHash('sha256').update(readFileSync(join(root,'_corpus',c.file))).digest('hex')!==c.sha256)throw new Error('corpus_integrity_failed');
+// Every preserved source is verified by actual bytes. The top-level entry stays the playbook, whose digest seals reports.
+const sources=c.sources??[{file:c.file,sha256:c.sha256,received_at:c.received_at}];
+if(!sources.some(s=>s.file===c.file&&s.sha256===c.sha256&&s.received_at===c.received_at))throw new Error('corpus_primary_unlisted');
+if(new Set(sources.map(s=>s.file)).size!==sources.length)throw new Error('corpus_duplicate_source');
+for(const s of sources){
+  if(!/^[A-Za-z0-9][A-Za-z0-9._-]*\.md$/.test(s.file??'')||!/^[a-f0-9]{64}$/.test(s.sha256??'')||!/^\d{4}-\d{2}-\d{2}$/.test(s.received_at??''))throw new Error(`corpus_source_invalid:${s.file}`);
+  const bytes=readFileSync(join(root,'_corpus',s.file));
+  if(s.bytes!==undefined&&bytes.length!==s.bytes)throw new Error(`corpus_integrity_failed:${s.file}`);
+  if(createHash('sha256').update(bytes).digest('hex')!==s.sha256)throw new Error(`corpus_integrity_failed:${s.file}`);
+}
+for(const f of readdirSync(join(root,'_corpus')))if(!['README.md','manifest.json'].includes(f)&&!sources.some(s=>s.file===f))throw new Error(`corpus_unregistered_file:${f}`);
 if(existsSync(join(root,'contracts/manifest.json'))){
   for(const entry of json('contracts/manifest.json').artifacts){
     if(createHash('sha256').update(readFileSync(join(root,entry.path))).digest('hex')!==entry.sha256)throw new Error(`contract_digest_mismatch:${entry.path}`);
@@ -33,5 +44,5 @@ function walk(dir){for(const f of readdirSync(join(root,dir),{withFileTypes:true
   if(path.endsWith('.mjs')){const r=spawnSync(process.execPath,['--check',join(root,path)],{encoding:'utf8'});if(r.status!==0)throw new Error(`syntax_failed:${path}`);files++;}
 }}
 walk('');
-for(const path of ['docs/BRIEF.md','docs/OPERATIONS.md','docs/CONTROL-CENTER-HANDOFF.md','docs/SOURCE-REGISTER.md','README.md'])if(!existsSync(join(root,path)))throw new Error(`required_document_missing:${path}`);
-console.log(`PASS: ${files} executable files parse; policy, snapshot, corpus digest, source privacy scan and required documents checked.`);
+for(const path of ['docs/BRIEF.md','docs/OPERATIONS.md','docs/COPY-DOCTRINE.md','docs/CONTROL-CENTER-HANDOFF.md','docs/SOURCE-REGISTER.md','README.md'])if(!existsSync(join(root,path)))throw new Error(`required_document_missing:${path}`);
+console.log(`PASS: ${files} executable files parse; policy, snapshot, ${sources.length} corpus source digests, source privacy scan and required documents checked.`);

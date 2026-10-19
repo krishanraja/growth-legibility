@@ -1,2 +1,4 @@
 * text=auto eol=lf
 _corpus/legibility-growth-playbook.md -text whitespace=-blank-at-eol
+_corpus/copywriting-offers-demand-corpus.md -text whitespace=-blank-at-eol
+_corpus/copywriting-offers-demand-corpus-summary.md -text whitespace=-blank-at-eol

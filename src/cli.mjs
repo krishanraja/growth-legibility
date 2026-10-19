@@ -45,6 +45,18 @@ function corpus() {
   const bytes=readFileSync(join(root,'_corpus',register.file));
   return {register,bytes};
 }
+// Every preserved reference source must match its registered bytes. None of them is execution authority.
+function verifySources(register,createHash) {
+  const sources=register.sources??[{file:register.file,sha256:register.sha256,received_at:register.received_at}];
+  if(!sources.some(s=>s.file===register.file&&s.sha256===register.sha256&&s.received_at===register.received_at)) throw new Error('corpus_primary_unlisted');
+  if(new Set(sources.map(s=>s.file)).size!==sources.length) throw new Error('corpus_duplicate_source');
+  for(const s of sources) {
+    if(!/^[A-Za-z0-9][A-Za-z0-9._-]*\.md$/.test(s.file??'')||!/^[a-f0-9]{64}$/.test(s.sha256??'')) throw new Error('corpus_source_invalid');
+    const bytes=readFileSync(join(root,'_corpus',s.file));
+    if((s.bytes!==undefined&&bytes.length!==s.bytes)||createHash('sha256').update(bytes).digest('hex')!==s.sha256) throw new Error(`corpus_integrity_failed:${s.file}`);
+  }
+  return sources.map(s=>({file:s.file,received_at:s.received_at,integrity:'pass'}));
+}
 async function main() {
   const opts=args(process.argv.slice(2));
   const policy=loadJson(opts.policy?resolve(opts.policy):join(root,'config','policy.json'));
@@ -53,8 +65,9 @@ async function main() {
   const c=corpus();
   const corpusSha=createHash('sha256').update(c.bytes).digest('hex');
   if(corpusSha!==c.register.sha256) throw new Error('corpus_integrity_failed');
+  const corpusSources=verifySources(c.register,createHash);
   if(opts.command==='doctor') {
-    console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',policy:'pass',source_review_due:policy.source_review_due,
+    console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',corpus_sources:corpusSources,policy:'pass',source_review_due:policy.source_review_due,
       campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY)}},null,2));
     return;
   }

@@ -4,7 +4,7 @@
   "artifacts": [
     {
       "path": "src/guards/wire.mjs",
-      "sha256": "2457034030c5a59a3499aa333b80c120ef62353be69ef2523e3268b304d42f37"
+      "sha256": "20b546280a6e433f051cc1dae56690d8f187df2a1f946c274698e46c01d392f9"
     },
     {
       "path": "src/stages/measure.mjs",

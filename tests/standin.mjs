@@ -36,7 +36,8 @@ export function schemaErrors(value, schema, path = '$', errors = []) {
 }
 
 export const DIRECTIVE = {
-  schema_version:'1.0.0', directive_id:'legibility:2026-10-19', engine_id:'growth-legibility', for_date:'2026-10-19',
+  // Control Center serves its newest 1.x; this engine still sends 1.0.0, which it accepts.
+  schema_version:'1.2.0', directive_id:'legibility:2026-10-19', engine_id:'growth-legibility', for_date:'2026-10-19',
   aim:'Synthetic aim for the stand-in', objectives:[{ key:'activated', label:'Activated builders', target:75, unit:'builders', window:'campaign', timezone:'UTC', latest:null, availability:'unreported' }],
   next_action:{ proposal_id:null, instruction:'Propose your best move on the widest gap.', why:'Nothing is proposed yet.', close_condition:null },
   decisions_since:[], constraints:{ walls:'Nothing sends, posts, spends, deletes or changes a permission without a decision from Krish whose payload_sha256 matches what you are about to do.', spend_cap_usd:0, max_actions:5 },
@@ -58,7 +59,7 @@ export async function standIn(t, options = {}) {
     const send = (status, value) => { res.statusCode = status; res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(value)); };
     const area = route?.split('/')[1]?.split('?')[0];
     if (req.headers.authorization !== `Bearer ${TOKEN}` || unauthorized.includes(area) || unauthorized.includes('all')) return send(401, { error:'unauthorized' });
-    if (route === '/capabilities') return send(200, { schema_version:'1.0.0', engine_id:'growth-legibility', product_slug:wrongCapability ? 'other' : 'legibility', idempotency:true, activation:{ state:'active', activated_on:'2026-10-18' }, features:{ directive:true } });
+    if (route === '/capabilities') return send(200, { schema_version:'1.2.0', schema_versions:['1.0.0','1.1.0','1.2.0'], engine_id:'growth-legibility', product_slug:wrongCapability ? 'other' : 'legibility', idempotency:true, activation:{ state:'active', activated_on:'2026-10-18' }, features:{ directive:true } });
     if (route === '/directive' && req.method === 'GET') return directiveStatus === 200 ? send(200, { ok:true, chosen_by:'rule', directive }) : send(directiveStatus, { error:'unavailable' });
     if (route === '/decisions' && req.method === 'GET') return send(200, { ok:true, decisions });
     if (route === '/attempts' && req.method === 'POST') {

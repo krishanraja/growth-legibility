@@ -1,6 +1,14 @@
 import { createHash } from 'node:crypto';
 
 export const VERSION = '1.0.0';
+// Control Center only ever adds within 1.x (ENGINE-PROTOCOL.md, "Versions"), so what it
+// serves may be any 1.x while this engine sends 1.0.0. On 2026-10-19 it began serving 1.1.0
+// and an exact match here stopped every run with receiver_contract_mismatch.
+export const SERVED = /^1\.\d+\.\d+$/;
+/** Whether Control Center takes the version this engine sends. */
+export function receiverTakes(cap) {
+  return Array.isArray(cap?.schema_versions) ? cap.schema_versions.includes(VERSION) : cap?.schema_version === VERSION;
+}
 export function canonical(value) {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
   if (value !== null && typeof value === 'object') {
@@ -198,7 +206,7 @@ export function validateAttempt(a) {
   return a;
 }
 export function validateDirective(d) {
-  fail(d && typeof d === 'object' && d.schema_version === VERSION && typeof d.directive_id === 'string' && d.directive_id.startsWith(`${PROTOCOL.slug}:`), 'directive_identity');
+  fail(d && typeof d === 'object' && SERVED.test(d.schema_version ?? '') && typeof d.directive_id === 'string' && d.directive_id.startsWith(`${PROTOCOL.slug}:`), 'directive_identity');
   fail(d.engine_id === PROTOCOL.engine_id && /^\d{4}-\d{2}-\d{2}$/.test(d.for_date ?? ''), 'directive_engine');
   fail(Array.isArray(d.objectives) && Array.isArray(d.decisions_since) && d.constraints && typeof d.constraints.walls === 'string', 'directive_shape');
   const n = d.next_action;

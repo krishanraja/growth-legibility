@@ -1,4 +1,4 @@
-import { PROTOCOL, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
+import { PROTOCOL, receiverTakes, SERVED, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
 
 // The one Control Center client for this engine: protocol 1.0.0 (ADR-038, docs/control-center/ENGINE-PROTOCOL.md).
 // HTTPS to the approved origin only, no redirects, bounded timeouts, JSON only. The bearer is read by the caller at run
@@ -45,8 +45,9 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     const res = await request('/capabilities');
     if (!res.ok) { await discard(res); throw fault('receiver_not_ready'); }
     const cap = await jsonResponse(res);
-    // The response also carries activation and features; only the identity is compared.
-    if (cap?.schema_version !== '1.0.0' || cap.engine_id !== PROTOCOL.engine_id || cap.product_slug !== PROTOCOL.product_slug) throw fault('receiver_contract_mismatch');
+    // The response also carries activation and features; only the identity, and that the
+    // receiver still takes the 1.0.0 reports this engine sends, are compared.
+    if (!SERVED.test(cap?.schema_version ?? '') || !receiverTakes(cap) || cap.engine_id !== PROTOCOL.engine_id || cap.product_slug !== PROTOCOL.product_slug) throw fault('receiver_contract_mismatch');
     return { activation:cap.activation?.state ?? null };
   }
 

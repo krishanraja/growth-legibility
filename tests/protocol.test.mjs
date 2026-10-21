@@ -202,3 +202,14 @@ test('decisions match by proposal and exact payload digest only', () => {
   assert.equal(DIRECTIVE.engine_id, 'growth-legibility');
   assert.ok(readdirSync(new URL('../.github/workflows', import.meta.url)).includes('operate.yml'));
 });
+
+test('Control Center may serve any 1.x: a directive and capabilities are taken while it still takes our 1.0.0, and nothing else', async () => {
+  const { receiverTakes, SERVED, validateDirective } = await import('../src/guards/wire.mjs');
+  const { DIRECTIVE } = await import('./standin.mjs');
+  for (const v of ['1.0.0', '1.1.0', '1.2.0']) assert.doesNotThrow(() => validateDirective({ ...DIRECTIVE, schema_version: v }), v);
+  for (const v of ['2.0.0', '1.2', '', undefined]) assert.throws(() => validateDirective({ ...DIRECTIVE, schema_version: v }), /directive_identity/, String(v));
+  assert.equal(SERVED.test('1.2.0'), true);
+  assert.equal(receiverTakes({ schema_version: '1.2.0', schema_versions: ['1.0.0', '1.1.0', '1.2.0'] }), true);
+  assert.equal(receiverTakes({ schema_version: '1.2.0', schema_versions: ['1.1.0', '1.2.0'] }), false, 'a receiver that stopped taking 1.0.0 is a mismatch');
+  assert.equal(receiverTakes({ schema_version: '1.0.0' }), true, 'an older receiver with no list is taken on its one version');
+});

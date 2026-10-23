@@ -12,6 +12,34 @@ Set by Krish on 18 October 2026. It is not reached yet. It is what every session
 
 This repository serves [Legibility's North Star](https://github.com/krishanraja/legibility/blob/main/docs/NORTH_STAR.md). The lines above are this repository's part of it.
 
+## The number
+
+**Builders making trusted reads every week**: 300 by 28 December 2026, on a front-loaded weekly ladder. Checkpoints: 16 Nov 2026: 19; 14 Dec 2026: 135; 28 Dec 2026: 300.
+
+```yaml north-star-metric
+metric: "Builders making trusted reads every week"
+unit: count
+direction: up
+target: 300
+deadline: 2026-12-28
+ladder_shape: front-loaded
+source: "Supabase legibility: weekly active keys with a trusted read, excluding Krish's own"
+status: active
+ladder:
+  - [2026-10-26, 1]
+  - [2026-11-02, 5]
+  - [2026-11-09, 10]
+  - [2026-11-16, 19]
+  - [2026-11-23, 33]
+  - [2026-11-30, 55]
+  - [2026-12-07, 88]
+  - [2026-12-14, 135]
+  - [2026-12-21, 203]
+  - [2026-12-28, 300]
+```
+
+Urgency (U1 to U5) is worked out every week from where the number stands against that week's target, by [the harness contract](https://github.com/krishanraja/ai-harness/blob/main/contract/north-star-metric.md). Set by Krish on 23 October 2026.
+
 ## How to use it
 
 - Read it before any work, every session.

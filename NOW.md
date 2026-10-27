@@ -30,6 +30,8 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
 
+- 2026-10-27 **The app contract brief is written** ([handoff/APP-PHASE-1.md](docs/handoff/APP-PHASE-1.md)): A1 to A8 for a session in the Legibility app repository, each with its reason, behaviour, data shape, acceptance tests and what Krish approves, in the order A1, A2, A4, then A6 and A7 by 5 Nov, then A3 and A8. Its A4 export matches this engine's snapshot contract, proved by composing a synthetic export and running `validateSnapshot` and measure on it. It carries Krish's 27 Oct rulings that bind the app (commercial leaders first with the introduced engineer as the key holder, the Founding 200 offer, reply to book, drafts in his mindmake.co mailbox). Nothing is built or deployed.
+
 - 2026-10-27 **Krish chose the commercial-leader route** ([ENGINE-ARCHITECTURE.md](docs/ENGINE-ARCHITECTURE.md), decisions 12 to 19; [history/LOG.md](docs/history/LOG.md)).
   - From Wave 1, go in through commercial leaders at companies that buy product data for their own agents or products. Retailers and brands are a separate, later pool, never in the same wave.
   - "Test and learn what works": Wave 1's one variable is the impact angle (cost and speed, revenue from agents, trust and risk), with the audience and the offer fixed, and only claims the pilot can measure.
@@ -74,6 +76,8 @@ Lifecycle: building. The detail is in `README.md`.
 - North Star check (2026-10-27, Mindmake ruling): holds. This protects the quality of each invitation; it does not move the number by itself.
 - North Star check (2026-10-27, Mindmake variant approved): holds. People reached for Mindmake can now be invited once the reader lands; it does not move the number by itself.
 - North Star check (2026-10-27): holds; commercial-leader route chosen; the number still unmeasured (U4).
+- **Single next step for the app contract:** Krish opens a session in the Legibility app repository and points it at [handoff/APP-PHASE-1.md](docs/handoff/APP-PHASE-1.md); it starts with the read-only source review read (its section 11) and A1, and asks him once per deploy.
+- North Star check (2026-10-27, app brief): holds. A1, A2 and A4 are the critical path to measuring the number; the brief moves it only once they are deployed.
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
 

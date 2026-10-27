@@ -30,10 +30,11 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
 
-- 2026-10-27 **Ruling (Krish, 2026-10-27): someone already reached for Mindmake hears of Legibility as a Mindmake product.** His words: "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product."
+- 2026-10-27 **Ruling (Krish, 2026-10-27): to someone Krish already reached for Mindmake, Legibility is positioned as a partner product.** His words: "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product."
   - The snapshot now carries each person's Mindmake record (`contact.prior_mindmake`), copied from Control Center ([contracts/README.md](contracts/README.md)).
-  - The engine holds an invitation whose record is unknown, open, a Mindmake client or under 14 days old. It holds everyone reached for Mindmake until Krish approves the opening words, never names Mindmake to anyone else, and links the record in each invitation.
-  - Items prepared by hand, such as Wave 0, pass `npm run check:invitation` first.
+  - Krish approved the opening words the same day ([OUTREACH-TEMPLATE.md](docs/OUTREACH-TEMPLATE.md), "Variant: someone Krish has already reached for Mindmake"). Someone reached for Mindmake reaches his list only with the two lines for their record, with its month; visibility notes (podcast pitches, guest invites, press, a colleague's visibility notes) do not count, so those people get the plain 21 October opener. Contacts other teams hold are excluded only while an item about them is open.
+  - The engine holds an invitation whose record is unknown, open, a Mindmake client or under 14 days old, and never names Mindmake to anyone else. The send proposal Krish sees says what the record shows and links it in its evidence; the words sent never carry the link.
+  - Items prepared by hand, such as Wave 0, pass `npm run check:invitation` first: prepare's whole per-candidate gate, on the real clock, against records read that day.
 
 - 2026-10-27 **The engine has an approved architecture and Phase 0 is built.**
   - Ruling (Krish, 2026-10-27): the plan in [ENGINE-ARCHITECTURE.md](docs/ENGINE-ARCHITECTURE.md) is approved. The engine is aimed at alpha conversations and a qualified Founding 200 waitlist, with the weekly number as the scoreboard.
@@ -61,10 +62,11 @@ Lifecycle: building. The detail is in `README.md`.
   - create the Calendly "Legibility alpha test" event by hand (settings in the same folder);
   - run the Cowork brand-kit prompt;
   - review and merge the Phase 0 pull request.
-- **Single next step for the Mindmake ruling:** Krish approves the opening words for people already reached for Mindmake (GET-GOING step 0b). Wave 0 items for those people wait on his words. Control Center's reader, route and one-list hold (ENGINE-ARCHITECTURE section 11, Phase 1 asks) are the other half; until the reader exists, each Wave 0 record comes from owner-approved gateway reads, and doubt reads as unknown.
-- **Also waiting on Krish:** whether contacts that People, Advisory, Visibility or Events hold are excluded only while an item about them is open (ENGINE-ARCHITECTURE section 0, item 8).
+- **Single next step for the Mindmake ruling:** Control Center's prior-outreach reader, its route and the one-list hold (ENGINE-ARCHITECTURE section 11, Phase 1 asks 1 to 3, one Control Center pull request). They unblock the Wave 0 refresh for people reached for Mindmake: the record comes only from that reader, never from a session's own reads, so until it exists every Wave 0 item holds as `mindmake_history_unknown`. Krish's words are approved (GET-GOING step 0b).
+- **Also waiting on Krish:** the hello mailbox. Control Center's `api/_mailboxes.ts` says it is connected read-only and is never a drafts box, so the Draft press would place Legibility drafts in his own box unless he connects it for drafts (ENGINE-ARCHITECTURE, assumption ledger). His decision, not made here.
 - North Star check (2026-10-27): holds.
 - North Star check (2026-10-27, Mindmake ruling): holds. This protects the quality of each invitation; it does not move the number by itself.
+- North Star check (2026-10-27, Mindmake variant approved): holds. People reached for Mindmake can now be invited once the reader lands; it does not move the number by itself.
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
 

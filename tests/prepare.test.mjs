@@ -284,14 +284,10 @@ test('rejects ambiguous clocks and invalid policy limits', () => {
   assert.throws(() => prepare(snapshot(), AT, { max_candidate_age_days: 0 }), /Policy limits/);
 });
 
-// Ruling (Krish, 2026-10-27): someone already reached for Mindmake hears of Legibility as a Mindmake product, only in words
-// Krish approves; everyone else never sees the name. These are synthetic words that exercise the lint. They are not approved
-// copy: MINDMAKE_COPY stays null until Krish approves the real words.
-const COPY = {
-  bridge: { sent: 'I wrote to you in {month} about Mindmake.', replied: 'Thanks for your reply in {month} about Mindmake.', met: 'Thanks for talking with me in {month} about Mindmake.' },
-  shared: 'This is a separate note about Legibility, one of the products we build at Mindmake.',
-  intro: ["I'm Krish.", 'Legibility is one of the products we build at Mindmake.'],
-};
+// Ruling (Krish, 2026-10-27): "if I've already reached out to this person for MindMake, legibility is positioned as a partner
+// product", only in the words Krish approved on 27 October 2026 (MINDMAKE_COPY, the variant in docs/OUTREACH-TEMPLATE.md);
+// everyone else never sees the name. The lint tests run on those approved words.
+const COPY = MINDMAKE_COPY;
 const DAY = 86_400_000;
 const touched = (state, by, stateAt = '2026-09-10T09:00:00.000Z', lastTouchAt = '2026-09-12T09:00:00.000Z') => ({ state, by, state_at: stateAt, last_touch_at: lastTouchAt, record_url: RECORD });
 const TOUCHED = [['sent', 'krish'], ['replied', 'krish'], ['met', 'krish'], ['drafted', null], ['sent', 'other'], ['replied', 'other']];
@@ -322,7 +318,7 @@ test('an absent or unknown Mindmake record holds the invitation as mindmake_hist
   const missingKey = { ...NONE };
   delete missingKey.by;
   for (const prior of [undefined, null, [], 'none', { ...NONE, state: 'unknown', record_url: null }, { ...NONE, state: 'unknown' }, { ...NONE, by: 7 }, missingKey, { ...NONE, state: 'pending' },
-    { ...NONE, record_url: 'http://example.com/cc/person/builder-1' }, { ...NONE, record_url: 'https://user:pass@example.com/cc/person/builder-1' }, { ...NONE, state_at: '2026-09-10T09:00:00.000Z' },
+    { ...NONE, record_url: 'http://example.com/cc/person/builder-1' }, { ...NONE, record_url: 'https://example.com/cc person' }, { ...NONE, record_url: 'https://user:pass@example.com/cc/person/builder-1' }, { ...NONE, state_at: '2026-09-10T09:00:00.000Z' },
     touched('sent', null), touched('met', 'other'), touched('drafted', 'krish'), touched('sent', 'krish', '2026-10-19T00:00:00.000Z', '2026-10-19T00:00:00.000Z'),
     touched('sent', 'krish', '2026-09-12T09:00:00.000Z', '2026-09-10T09:00:00.000Z'), touched('sent', 'krish', null, null), { ...touched('open', null), state_at: 'not a date' }]) {
     const contact = { status: 'clear', last_sent_at: null, followups: 0 };
@@ -362,22 +358,49 @@ test('a Mindmake touch under 14 days old holds as mindmake_touch_too_recent and 
   }
 });
 
-test('while the Mindmake variant words await Krish, everyone reached for Mindmake is held as partner_framing_missing', () => {
-  assert.equal(MINDMAKE_COPY, null);
+test('someone reached for Mindmake reaches Krish only with the approved lines for their record', () => {
+  assert.notEqual(MINDMAKE_COPY, null);
   for (const [state, by] of TOUCHED) {
     const record = touched(state, by);
-    for (const text of [TEMPLATE, letter(linesFor(record, 'September').join(' ')), letter(COPY.intro.join(' '))]) {
-      const result = prepare(snapshot({ candidates: [reached(record, text)] }), AT);
-      assert.equal(result.actions.length, 1, `${state} ${by}`);
-      const [task] = result.actions;
-      assert.equal(task.type, 'draft_direct_invitation');
-      assert.equal(task.status, 'work_required');
-      assert.ok(task.risk_flags.includes('partner_framing_missing') && task.risk_flags.includes('prior_mindmake_outreach'));
-      assert.ok(codes(result).includes('partner_framing_missing'));
-      assert.equal('exact_text' in task, false);
-      assert.equal(JSON.stringify(result).includes('pilot mode'), false);
+    // The right lines, month and citation reach Krish, flagged so he sees the person was reached for Mindmake.
+    const opened = letter(linesFor(record, 'September').join(' '));
+    const result = prepare(snapshot({ candidates: [reached(record, opened)] }), AT);
+    assert.deepEqual(codes(result), [], `${state} ${by}`);
+    assert.equal(result.actions.length, 1, `${state} ${by}`);
+    const [action] = result.actions;
+    assert.equal(action.status, 'pending_human', `${state} ${by}`);
+    assert.equal(action.exact_text, opened);
+    assert.ok(action.risk_flags.includes('prior_mindmake_outreach'), `${state} ${by}`);
+    assert.ok(action.source_refs.includes(RECORD), `${state} ${by}`);
+    // A record from an earlier year names the year too; the identity lines carry no month.
+    const lastYear = touched(state, by, '2025-09-10T09:00:00.000Z', '2025-09-12T09:00:00.000Z');
+    assert.equal(prepare(snapshot({ candidates: [reached(lastYear, letter(linesFor(lastYear, 'September 2025').join(' ')))] }), AT).actions[0].status, 'pending_human', `${state} ${by} 2025`);
+    if (by === 'krish') assert.ok(codes(prepare(snapshot({ candidates: [reached(lastYear, opened)] }), AT)).includes('mindmake_claim_unsupported'), `${state} ${by} 2025`);
+    // Without the record cited, it is held.
+    assert.ok(codes(prepare(snapshot({ candidates: [reached(record, opened, {}, ['https://example.com/launch'])] }), AT)).includes('mindmake_record_not_cited'), `${state} ${by}`);
+    // The 21 October opener, the other record's lines, or the lines out of order are held as partner_framing_missing.
+    const wrong = by === 'krish' ? COPY.intro.join(' ') : `${COPY.bridge.sent.replace('{month}', 'September')} ${COPY.shared}`;
+    for (const text of [TEMPLATE, letter(wrong), letter([...linesFor(record, 'September')].reverse().join(' '))]) {
+      const heldBack = prepare(snapshot({ candidates: [reached(record, text)] }), AT);
+      assert.ok(codes(heldBack).includes('partner_framing_missing'), `${state} ${by}`);
+      assert.equal(heldBack.actions.length, 1, `${state} ${by}`);
+      assert.equal(heldBack.actions[0].status, 'work_required');
+      assert.equal(heldBack.actions[0].type, 'draft_direct_invitation');
+      assert.ok(heldBack.actions[0].risk_flags.includes('prior_mindmake_outreach'));
+      assert.equal('exact_text' in heldBack.actions[0], false);
+      assert.equal(JSON.stringify(heldBack).includes('pilot mode'), false);
     }
+    // A Legibility follow-up sent after the last Mindmake contact keeps the template; one sent before it owes the lines.
+    const after = prepare(snapshot({ candidates: [reached(record, TEMPLATE, { last_sent_at: '2026-10-01T12:00:00.000Z' })] }), AT);
+    assert.equal(after.actions[0].status, 'pending_human', `${state} ${by} follow-up`);
+    assert.ok(after.actions[0].risk_flags.includes('prior_mindmake_outreach') && after.actions[0].risk_flags.includes('single_followup_only'));
+    assert.deepEqual(codes(prepare(snapshot({ candidates: [reached(record, TEMPLATE, { last_sent_at: '2026-09-01T12:00:00.000Z' })] }), AT)), ['partner_framing_missing'], `${state} ${by} follow-up`);
   }
+  // The hints now point at the approved lines.
+  const hinted = prepare(snapshot({ candidates: [reached(touched('sent', 'krish'), letter(COPY.intro.join(' '), 'I wrote to you last week.'))] }), AT).holds;
+  assert.deepEqual(hinted.map(hold => hold.code), ['mindmake_claim_unsupported', 'partner_framing_missing', 'prior_contact_claim_unsupported']);
+  for (const hold of hinted) assert.match(hold.next_action, /approved line|docs\/OUTREACH-TEMPLATE\.md/, hold.code);
+  // Someone never reached for Mindmake keeps the 21 October words, with no Mindmake flag.
   const none = prepare(snapshot({ candidates: [reached(NONE)] }), AT);
   assert.equal(none.actions[0].status, 'pending_human');
   assert.equal(none.actions[0].exact_text, TEMPLATE);
@@ -393,8 +416,14 @@ test('the opening must be the lines for the record state, in order, with the rec
     assert.ok(mindmakeProblems(reached(record, letter([...lines].reverse().join(' '))), AT, COPY).includes('partner_framing_missing'), `${state} ${by}`);
     // A curly apostrophe reads as a straight one.
     assert.deepEqual(mindmakeProblems(reached(record, letter(lines.join(' ').replaceAll("'", String.fromCharCode(0x2019)))), AT, COPY), [], `${state} ${by} curly`);
-    // A Legibility follow-up is not a first touch, so it needs no opening lines.
+    // A Legibility follow-up sent after the last Mindmake contact needs no opening lines; one whose Mindmake contact came
+    // after the last Legibility note does, as does one whose last note has no readable date.
     assert.deepEqual(mindmakeProblems(reached(record, TEMPLATE, { last_sent_at: '2026-10-01T12:00:00.000Z' }), AT, COPY), [], `${state} ${by}`);
+    assert.deepEqual(mindmakeProblems(reached(record, TEMPLATE, { last_sent_at: '2026-09-12T09:00:00.000Z' }), AT, COPY), [], `${state} ${by} same instant`);
+    for (const lastSent of ['2026-09-11T09:00:00.000Z', 'not a date']) {
+      assert.deepEqual(mindmakeProblems(reached(record, TEMPLATE, { last_sent_at: lastSent }), AT, COPY), ['partner_framing_missing'], `${state} ${by} ${lastSent}`);
+      assert.deepEqual(mindmakeProblems(reached(record, letter(lines.join(' ')), { last_sent_at: lastSent }), AT, COPY), [], `${state} ${by} ${lastSent}`);
+    }
     if (by !== 'krish') continue;
     for (const month of ['August', 'September 2025', 'september']) {
       assert.ok(mindmakeProblems(reached(record, letter(linesFor(record, month).join(' '))), AT, COPY).includes('mindmake_claim_unsupported'), `${state} ${month}`);
@@ -409,7 +438,8 @@ test('a sentence naming Mindmake that the record does not support is held, and a
   const sent = touched('sent', 'krish');
   const opening = linesFor(sent, 'September').join(' ');
   for (const extra of [COPY.bridge.met.replace('{month}', 'September'), COPY.shared, 'Legibility is Mindmake-backed.', 'Read more at mindmake.co today.',
-    'Legibility is a Mindmaker LLC company.', 'I reached out about Mindmake last week.', 'We work in partnership with MINDMAKE.', 'The mind/make team built it.']) {
+    'Legibility is a Mindmaker LLC company.', 'I reached out about Mindmake last week.', 'We work in partnership with MINDMAKE.', 'The mind/make team built it.',
+    `${String.fromCharCode(0x4d)}ind${String.fromCharCode(0x2013)}make's team built it.`]) {
     assert.ok(mindmakeProblems(reached(sent, letter(opening, extra)), AT, COPY).includes('mindmake_claim_unsupported'), extra);
   }
   const other = touched('sent', 'other');
@@ -418,6 +448,19 @@ test('a sentence naming Mindmake that the record does not support is held, and a
   for (const text of [letter("I'm Krish, building Legibility.", COPY.shared), letter("I'm Krish, building Legibility.", 'Legibility comes from the MindMake team.'), letter(COPY.intro.join(' '))]) {
     assert.ok(mindmakeProblems(reached(NONE, text), AT, COPY).includes('mindmake_named_without_touch'), text.slice(0, 120));
   }
+  // Other spellings: dashes, dots, an underscore, invisible characters, look-alike letters, accents and other word forms.
+  const c = code => String.fromCharCode(code);
+  for (const name of [`Mind${c(0x2013)}Make`, `Mind${c(0x2014)}make`, `Mind${c(0x2010)}make`, `Mind${c(0x2212)}make`, 'Mind.make', 'Mind_make', 'Mind \\ make', `Mind${c(0x200b)}make`, `Mind${c(0xad)}make`,
+    `Mind${c(0x2060)}make`, `M${c(0x456)}ndmake`, `${c(0x41c)}indmake`, `Mi${c(0x301)}ndmake`, `${c(0xff2d)}indmake`, `Mind${c(0xa0)}make`, 'mindmaking', 'Mindmakes']) {
+    assert.ok(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", `We build it at ${name}.`)), AT, COPY).includes('mindmake_named_without_touch'), name);
+    assert.ok(prepare(snapshot({ candidates: [reached(NONE, letter("I'm Krish, building Legibility.", `We build it at ${name}.`))] }), AT).holds.some(hold => hold.code === 'mindmake_named_without_touch'), name);
+  }
+  // The subject line and the greeting are read too.
+  const subject = TEMPLATE.replace(/^Subject: .*$/m, 'Subject: Legibility, from Mindmake');
+  assert.notEqual(subject, TEMPLATE);
+  assert.deepEqual(mindmakeProblems(reached(NONE, subject), AT, COPY), ['mindmake_named_without_touch']);
+  assert.deepEqual(mindmakeProblems(reached(NONE, TEMPLATE.replace('Hi there,', 'Hi Mindmake friend,')), AT, COPY), ['mindmake_named_without_touch']);
+  assert.deepEqual(mindmakeProblems(reached(sent, subject.replace(TEMPLATE.split('\n\n')[2].split('. ')[0] + '.', opening)), AT, COPY), ['mindmake_claim_unsupported']);
   assert.deepEqual(mindmakeProblems(reached(NONE, TEMPLATE), AT, COPY), []);
   assert.deepEqual(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", 'It would remind makers of a test harness.')), AT, COPY), []);
 });
@@ -425,11 +468,22 @@ test('a sentence naming Mindmake that the record does not support is held, and a
 test('a first invitation may claim earlier contact only through the approved line for the record', () => {
   const sent = touched('sent', 'krish');
   const opening = linesFor(sent, 'September').join(' ');
-  for (const claim of ['I wrote to you last week about your agent.', 'Thanks for your reply.', 'In case you missed my last note, here it is again.', 'I reached out in the spring.', 'This is circling back on my earlier email.']) {
+  for (const claim of ['I wrote to you last week about your agent.', 'Thanks for your reply.', 'In case you missed my last note, here it is again.', 'I reached out in the spring.', 'This is circling back on my earlier email.',
+    "I've written to you before.", 'I contacted you in September.', 'I had reached out before.', 'Following-up on my note.', `Following${String.fromCharCode(0x2011)}up on my note.`, 'Just checking in.',
+    'Thanks so much for replying.', 'As I mentioned before, it is ready.', 'As promised in September, more.', 'Thanks again for your time last month.', 'Since we last spoke, things moved.']) {
     assert.ok(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", claim)), AT, COPY).includes('prior_contact_claim_unsupported'), claim);
     assert.deepEqual(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", claim), { last_sent_at: '2026-10-01T12:00:00.000Z' }), AT, COPY), [], claim);
   }
   assert.ok(mindmakeProblems(reached(sent, letter(opening, 'Just following up.')), AT, COPY).includes('prior_contact_claim_unsupported'));
+  assert.ok(mindmakeProblems(reached(sent, letter(opening, 'As promised in September, more.')), AT, COPY).includes('prior_contact_claim_unsupported'));
+  // The subject line is read too.
+  const subject = letter(opening).replace(/^Subject: .*$/m, 'Subject: Following up on Legibility');
+  assert.deepEqual(mindmakeProblems(reached(sent, subject), AT, COPY), ['prior_contact_claim_unsupported']);
+  assert.deepEqual(mindmakeProblems(reached(NONE, TEMPLATE.replace(/^Subject: .*$/m, 'Subject: Following up on Legibility')), AT, COPY), ['prior_contact_claim_unsupported']);
+  // Ordinary first-note words are not claims of earlier contact.
+  for (const plain of ['Thanks for your time.', 'I wrote the integration guide myself.', 'As mentioned in your launch post, the agent compares prices.', 'Keep in mind, makers can test it free.']) {
+    assert.deepEqual(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", plain)), AT, COPY), [], plain);
+  }
   assert.deepEqual(mindmakeProblems(reached(sent, letter(opening)), AT, COPY), []);
   assert.deepEqual(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", 'I wrote a test harness for your catalogue.')), AT, COPY), []);
   const warm = candidate('warm', {
@@ -443,12 +497,26 @@ test('a Legibility draft never carries Mindmake offer words', () => {
   const sent = touched('sent', 'krish');
   const opening = linesFor(sent, 'September').join(' ');
   for (const offer of ['It comes with a thirty-day proof.', 'It comes with a 30-day proof.', 'It comes with a 30 day paid proof.', 'Think of it as a paid pilot.', 'Think of it as a paid proof.',
-    'It feeds your AI brain.', 'It is part of the AI GTM work.', 'See mindmake.co for the offer.']) {
+    'It feeds your AI brain.', 'It is part of the AI GTM work.', 'See mindmake.co for the offer.', 'It pairs with our AI-GTM work.', 'Ask about our AI brains.', 'A paid-pilot is available.',
+    'We run paid pilots.', 'It comes with a 30-day paid-proof.', `It comes with a 30${String.fromCharCode(0x2013)}day proof.`]) {
     assert.ok(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", offer)), AT, COPY).includes('mindmake_offer_mentioned'), offer);
     assert.ok(mindmakeProblems(reached(sent, letter(opening, offer)), AT, COPY).includes('mindmake_offer_mentioned'), offer);
   }
   assert.deepEqual(mindmakeProblems(reached(NONE, TEMPLATE), AT, COPY), []);
   assert.deepEqual(mindmakeProblems(reached(sent, letter(opening)), AT, COPY), []);
+  // The subject line is read too.
+  assert.deepEqual(mindmakeProblems(reached(NONE, TEMPLATE.replace(/^Subject: .*$/m, 'Subject: A paid pilot for Example Commerce')), AT, COPY), ['mindmake_offer_mentioned']);
+});
+
+test('a Legibility draft never calls Legibility a partner or a partnership', () => {
+  const sent = touched('sent', 'krish');
+  const opening = linesFor(sent, 'September').join(' ');
+  for (const line of ['Legibility is a partner product.', 'It is a partner product of Mindmake.', 'We work in partnership with Mindmake.', 'Mindmake partnered with us on it.', 'Our Partners include several retailers.']) {
+    assert.ok(mindmakeProblems(reached(sent, letter(opening, line)), AT, COPY).includes('partner_wording'), line);
+    assert.ok(mindmakeProblems(reached(NONE, letter("I'm Krish, building Legibility.", line)), AT, COPY).includes('partner_wording'), line);
+  }
+  assert.deepEqual(mindmakeProblems(reached(sent, letter(opening)), AT, COPY), []);
+  assert.deepEqual(mindmakeProblems(reached(NONE, TEMPLATE), AT, COPY), []);
 });
 
 test('every invitation cites the person record in Control Center', () => {

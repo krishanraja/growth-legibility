@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, cpSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { buildReport, publicSummary } from '../src/orchestrator.mjs';
 import { validateSnapshot, validateReport, sha256 } from '../src/guards/wire.mjs';
+import { checkInvitations } from '../scripts/check-invitation.mjs';
+import { MINDMAKE_COPY } from '../src/stages/prepare.mjs';
 const fixture=()=>JSON.parse(readFileSync(new URL('../fixtures/snapshot.json',import.meta.url)));
 const policy=()=>JSON.parse(readFileSync(new URL('../config/policy.json',import.meta.url)));
 const at='2026-10-18T12:00:00Z', corpus='a'.repeat(64);
@@ -111,30 +113,94 @@ test('a Mindmake record carries a sender, dates and a record link only where its
   assert.doesNotThrow(()=>validateSnapshot(withRecord(mm('sent','krish',DATED[0],'2026-10-18T12:00:00Z')),at));
 });
 // The check runs from a byte copy in the OS temp directory, so its private input never lands in this repository's runtime/.
-// The child gets only Windows' SystemRoot from the environment, and removal retries and never throws (docs/FAILURES.md F27).
+// It runs on the real clock, so every date here is set from now. The child gets only Windows' SystemRoot from the
+// environment, and removal retries and never throws (docs/FAILURES.md F27).
 test('the invitation check prints only opaque ids and hold codes and fails when any item is held',t=>{
   const repo=fileURLToPath(new URL('..',import.meta.url)), dir=mkdtempSync(join(tmpdir(),'growth-legibility-invite-'));
-  t.after(()=>{try{rmSync(dir,{recursive:true,force:true,maxRetries:5,retryDelay:100});}catch{}});
-  for(const part of ['package.json','src']) cpSync(join(repo,part),join(dir,part),{recursive:true});
+  const links=mkdtempSync(join(tmpdir(),'growth-legibility-link-'));
+  t.after(()=>{for(const d of [links,dir]){try{rmSync(d,{recursive:true,force:true,maxRetries:5,retryDelay:100});}catch{}}});
+  for(const part of ['package.json','src','config']) cpSync(join(repo,part),join(dir,part),{recursive:true});
   mkdirSync(join(dir,'scripts')); cpSync(join(repo,'scripts','check-invitation.mjs'),join(dir,'scripts','check-invitation.mjs'));
   mkdirSync(join(dir,'runtime','input'),{recursive:true});
-  const f=fixture(), clear=f.candidates[0], unknown={...structuredClone(clear),id:'candidate-unknown-history'};
+  const DAY=86_400_000, now=Date.now(), iso=ms=>new Date(Math.floor(ms/1000)*1000).toISOString(), captured_at=iso(now-3_600_000);
+  const base=fixture().candidates[0];
+  const person=(id,patch={})=>{const c=structuredClone(base); c.id=id; c.current_signal.observed_at=iso(now-DAY); return {...c,...patch};};
+  const clear=person('candidate-example'), unknown=person('candidate-unknown-history'), record=base.contact.prior_mindmake.record_url;
   delete unknown.contact.prior_mindmake;
-  writeFileSync(join(dir,'runtime','input','mixed.json'),JSON.stringify({captured_at:f.captured_at,candidates:[clear,unknown]}));
-  writeFileSync(join(dir,'runtime','input','clear.json'),JSON.stringify({captured_at:f.captured_at,candidates:[clear]}));
+  const sentByKrish={state:'sent',by:'krish',state_at:iso(now-30*DAY),last_touch_at:iso(now-20*DAY),record_url:record};
   const env=process.env.SystemRoot?{SystemRoot:process.env.SystemRoot}:{};
-  const check=input=>spawnSync(process.execPath,[join(dir,'scripts','check-invitation.mjs'),'--input',input,'--at',at],{cwd:dir,env,encoding:'utf8',timeout:30000});
-  const mixed=check('runtime/input/mixed.json');
+  const write=(name,body)=>{writeFileSync(join(dir,'runtime','input',name),JSON.stringify(body)); return `runtime/input/${name}`;};
+  const check=(input,extra=[],script=join(dir,'scripts','check-invitation.mjs'))=>spawnSync(process.execPath,[script,'--input',input,...extra],{cwd:dir,env,encoding:'utf8',timeout:30000});
+  const codes=candidates=>{const r=check(write('case.json',{captured_at,candidates})); return {status:r.status,codes:JSON.parse(r.stdout).items.map(i=>i.codes)};};
+  const refused=(input,code,extra=[])=>{const r=check(input,extra); assert.equal(r.status,1,code); assert.equal(r.stderr,`${code}\n`); assert.equal(r.stdout,'',code);};
+  const mixed=check(write('mixed.json',{captured_at,candidates:[clear,unknown]}));
   assert.equal(mixed.status,1,mixed.stderr);
   assert.deepEqual(JSON.parse(mixed.stdout),{checked:2,held:1,items:[{item:sha256(clear.id).slice(0,16),codes:[]},{item:sha256(unknown.id).slice(0,16),codes:['mindmake_history_unknown']}]});
   for(const secret of [clear.id,unknown.id,clear.company,clear.project,'calibrated confidence','https','example.']) assert.ok(!`${mixed.stdout}${mixed.stderr}`.includes(secret),secret);
-  const ok=check('runtime/input/clear.json');
+  const ok=check(write('clear.json',{captured_at,candidates:[clear]}));
   assert.equal(ok.status,0,ok.stderr); assert.equal(JSON.parse(ok.stdout).held,0);
-  // A person who opted out is held whatever their Mindmake record says.
-  writeFileSync(join(dir,'runtime','input','opted-out.json'),JSON.stringify({captured_at:f.captured_at,candidates:[{...clear,contact:{...clear.contact,status:'opt_out'}}]}));
-  const optedOut=check('runtime/input/opted-out.json');
-  assert.equal(optedOut.status,1); assert.deepEqual(JSON.parse(optedOut.stdout).items[0].codes,['contact_status_unknown']);
-  // Input outside the private spool is refused before it is read.
-  const outside=check('package.json');
-  assert.equal(outside.status,1); assert.equal(outside.stderr,'input_must_be_private_runtime\n'); assert.equal(outside.stdout,'');
+  // The same person reached for Mindmake by Krish 20 days ago: words without the opening are held on a first note, and the
+  // approved lines for the record pass. A Legibility follow-up sent after that touch needs no opening.
+  assert.deepEqual(codes([person('reached',{contact:{...clear.contact,prior_mindmake:sentByKrish}})]),{status:1,codes:[['partner_framing_missing']]});
+  const month=new Date(Date.parse(sentByKrish.state_at)), monthName=month.toLocaleString('en-US',{month:'long',timeZone:'UTC'})+(month.getUTCFullYear()===new Date(now).getUTCFullYear()?'':` ${month.getUTCFullYear()}`);
+  const opening=`${MINDMAKE_COPY.bridge.sent.replace('{month}',monthName)} ${MINDMAKE_COPY.shared}`;
+  const bridged={...clear.draft,text:`${opening} ${clear.draft.text}`};
+  assert.deepEqual(codes([person('reached',{contact:{...clear.contact,prior_mindmake:sentByKrish},draft:bridged})]),{status:0,codes:[[]]});
+  assert.deepEqual(codes([person('reached',{contact:{...clear.contact,prior_mindmake:sentByKrish,last_sent_at:iso(now-10*DAY)}})]),{status:0,codes:[[]]});
+  // The draft checks run: Mindmake named, and its offer, to a person never reached for it.
+  const named=person('named',{draft:{...clear.draft,text:`${clear.draft.text} It is part of the paid pilot at mindmake.co.`}});
+  assert.deepEqual(codes([named]),{status:1,codes:[['mindmake_named_without_touch','mindmake_offer_mentioned']]});
+  // Prepare's whole gate runs, so the check holds what prepare would hold.
+  const variants=[
+    [person('opted-out',{contact:{...clear.contact,status:'opt_out'}}),'suppressed'],
+    [person('followups',{contact:{...clear.contact,followups:3}}),'followup_limit_or_invalid_history'],
+    [person('used-followup',{contact:{...clear.contact,prior_mindmake:sentByKrish,last_sent_at:iso(now-10*DAY),followups:9}}),'followup_limit_or_invalid_history'],
+    [person('kind',{relationship:{...clear.relationship,kind:'banana'}}),'invalid_candidate'],
+    [person('pool',{pool:'zzz'}),'invalid_candidate'],
+    [person('warm',{relationship:{kind:'warm',evidence:null,url:null}}),'relationship_not_evidenced'],
+    [person('stale',{current_signal:{...clear.current_signal,observed_at:iso(now-60*DAY)}}),'signal_not_current_verified_reference'],
+    [person('channel',{channel:''}),'missing_channel'],
+    [person('low',{scores:{...clear.scores,fit:0,project:0}}),'research_below_threshold'],
+    [person('recent',{contact:{...clear.contact,prior_mindmake:{...sentByKrish,last_touch_at:iso(now-3*DAY)}}}),'mindmake_touch_too_recent'],
+  ];
+  for(const [c,code] of variants) assert.deepEqual(codes([c]),{status:1,codes:[[code]]},code);
+  // A malformed candidate is held with the wire's code, and an id that is not one is named.
+  assert.deepEqual(codes([{...clear,exporter_note:'x'}]).codes,[['invalid_contract:unknown_fields_candidate']]);
+  assert.deepEqual(codes([person('bad id')]).codes,[['invalid_candidate_id']]);
+  // Every item that shares an id is held: the same item twice, or two versions of it.
+  assert.deepEqual(codes([clear,clear]).codes,[['duplicate_candidate_id'],['duplicate_candidate_id']]);
+  assert.deepEqual(codes([clear,{...named,id:clear.id}]).codes,[['conflicting_candidate'],['conflicting_candidate','mindmake_named_without_touch','mindmake_offer_mentioned']]);
+  // The input itself: a capture in the future or over a day old, an extra key, too many items, and a clock of its own.
+  refused(write('future.json',{captured_at:iso(now+DAY),candidates:[clear]}),'invalid_input_capture');
+  refused(write('old.json',{captured_at:iso(now-2*DAY),candidates:[clear]}),'input_stale_capture');
+  refused(write('extra.json',{captured_at,candidates:[clear],note:'x'}),'invalid_input');
+  refused(write('many.json',{captured_at,candidates:Array.from({length:101},(_,i)=>person(`p-${i}`))}),'invalid_input_candidates');
+  refused('runtime/input/clear.json','invalid_cli_arguments',['--at',iso(now)]);
+  // The limits come from config/policy.json, as they do for run; a policy the wire refuses stops the check.
+  const policyFile=join(dir,'config','policy.json'), kept=readFileSync(policyFile,'utf8');
+  writeFileSync(policyFile,JSON.stringify({...JSON.parse(kept),max_candidate_age_days:1}));
+  assert.deepEqual(codes([person('two-days',{current_signal:{...clear.current_signal,observed_at:iso(now-2*DAY)}})]),{status:1,codes:[['signal_not_current_verified_reference']]});
+  writeFileSync(policyFile,JSON.stringify({...JSON.parse(kept),max_followups:2}));
+  refused('runtime/input/clear.json','policy_unreadable');
+  writeFileSync(policyFile,kept);
+  // Input outside the private spool is refused before it is read, and so is a link inside the spool that points out of it.
+  refused('package.json','input_must_be_private_runtime');
+  try { symlinkSync(join(dir,'package.json'),join(dir,'runtime','input','link.json')); } catch { t.diagnostic('symlinks not permitted here; link cases skipped'); return; }
+  refused('runtime/input/link.json','input_must_be_private_runtime');
+  // Started through a linked folder, the check still runs and still fails closed.
+  symlinkSync(dir,join(links,'repo'),'junction');
+  const linked=check('runtime/input/mixed.json',[],join(links,'repo','scripts','check-invitation.mjs'));
+  assert.equal(linked.status,1,linked.stderr); assert.equal(JSON.parse(linked.stdout).held,1);
+  const linkedClear=check('runtime/input/clear.json',[],join(links,'repo','scripts','check-invitation.mjs'));
+  assert.equal(linkedClear.status,0,linkedClear.stderr); assert.equal(JSON.parse(linkedClear.stdout).held,0);
+});
+test('the invitation check prints a code, never an error message, and refuses a clock or policy it cannot use',()=>{
+  const c=structuredClone(fixture().candidates[0]), input={captured_at:'2026-10-18T11:00:00Z',candidates:[c]};
+  assert.deepEqual(checkInvitations(input,at).items[0].codes,[]);
+  // A policy the gate refuses throws a sentence; the item is held under one code that quotes nothing.
+  assert.deepEqual(checkInvitations(input,at,{max_followups:-1}).items[0].codes,['candidate_check_failed']);
+  assert.throws(()=>checkInvitations(input,'2026-10-18'),/^Error: invalid_clock$/);
+  assert.throws(()=>checkInvitations(input,at,{max_snapshot_age_hours:48}),/^Error: invalid_policy$/);
+  assert.throws(()=>checkInvitations(input,'2026-10-19T11:00:01Z'),/^Error: input_stale_capture$/);
+  assert.equal(checkInvitations(input,'2026-10-19T11:00:00Z').held,0);
 });

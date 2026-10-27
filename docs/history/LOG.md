@@ -26,7 +26,11 @@ One line per ruling, in date order, with where it is recorded. NOW.md points her
 | 2026-10-27 | Google Analytics comes from Control Center, which already reads it; no Google credential in this repository | same |
 | 2026-10-27 | The 7 expired outreach items are refreshed and resubmitted as Wave 0 | same |
 | 2026-10-27 | The engine architecture plan (docs/ENGINE-ARCHITECTURE.md) is approved: "Approve, start now" | same |
-| 2026-10-27 | "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product." | PR 8; docs/COPY-DOCTRINE.md (item 11); docs/FAILURES.md F29 to F32. The opening words for such a person wait on his approval in docs/OUTREACH-TEMPLATE.md |
+| 2026-10-27 | "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product." | PR 8; docs/COPY-DOCTRINE.md (item 11); docs/FAILURES.md F29 to F32 |
+| 2026-10-27 | The opening for someone he already reached for Mindmake, approved exactly, with no word "partner": his note went, "I wrote to you in [month] about Mindmake."; they replied, "Thanks for your reply in [month] about Mindmake."; they talked, "Thanks for talking with me in [month] about Mindmake."; each then "This is a separate note about Legibility, one of the products we build at Mindmake." Any other Mindmake touch: "I'm Krish. Legibility is one of the products we build at Mindmake." | docs/OUTREACH-TEMPLATE.md (Variant); `MINDMAKE_COPY` in src/stages/prepare.mjs; docs/FAILURES.md F29 |
+| 2026-10-27 | Visibility notes are not reaching out for Mindmake: podcast pitches, guest invites, press, and the notes a colleague sends for his visibility. Those people get the plain 21 October opener | docs/OUTREACH-TEMPLATE.md (Variant, Use); docs/ENGINE-ARCHITECTURE.md (Phase 1, the reader) |
+| 2026-10-27 | All three holds stay: an open Mindmake item, 14 days after the last Mindmake touch, and never prepare for a Mindmake client | src/stages/prepare.mjs; docs/FAILURES.md F31 |
+| 2026-10-27 | Contacts held by People, Advisory, Visibility or Events are excluded only while an item about them is open | docs/ENGINE-ARCHITECTURE.md (Invitation Researcher, G2, Phase 2 accept) |
 
 ## Events
 

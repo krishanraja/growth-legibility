@@ -214,8 +214,8 @@ test('Control Center may serve any 1.x: a directive and capabilities are taken w
   assert.equal(receiverTakes({ schema_version: '1.0.0' }), true, 'an older receiver with no list is taken on its one version');
 });
 
-// Ruling (Krish, 2026-10-27): someone already reached for Mindmake hears of Legibility as a Mindmake product, so a snapshot
-// that cannot say whether they were is held, never read as "never reached".
+// Ruling (Krish, 2026-10-27): "if I've already reached out to this person for MindMake, legibility is positioned as a partner
+// product", so a snapshot that cannot say whether they were is held, never read as "never reached".
 test('a snapshot with no Mindmake record sends no invitation to Krish', () => {
   const f = fixture(); delete f.candidates[0].contact.prior_mindmake;
   const r = buildReport(f, policy(), AT, 'a'.repeat(64));
@@ -250,6 +250,19 @@ test('a send proposal says what Control Center records about Mindmake, links the
   const { payload_sha256:_old, ...body } = r;
   const touched = engineReport({ ...body, payload_sha256:sha256(body) }, { runId:'legibility:2026-10-18:run:touched' }).proposals.find(p => p.wall === 'send');
   assert.match(touched.why, /Control Center records Mindmake contact with them \(a note Krish sent, September 2026\), so the note opens with the approved Mindmake lines/);
+  // A note someone else sent for Krish, or one only drafted, is never put in Krish's name.
+  for (const [state, by, words] of [['sent', 'other', 'a note sent for Krish'], ['replied', 'other', 'a reply to a note sent for Krish'], ['replied', 'krish', 'a reply to a note Krish sent'],
+    ['drafted', null, 'a note drafted, not shown as sent'], ['met', 'krish', 'a conversation with Krish']]) {
+    r.actions.find(a => a.status === 'pending_human').candidate.contact.prior_mindmake = { state, by, state_at:'2026-09-10T09:00:00Z', last_touch_at:'2026-09-12T09:00:00Z', record_url:record };
+    const { payload_sha256:_was, ...again } = r;
+    const why = engineReport({ ...again, payload_sha256:sha256(again) }, { runId:`legibility:2026-10-18:run:${state}-${by}` }).proposals.find(p => p.wall === 'send').why;
+    assert.ok(why.includes(`(${words}, September 2026)`), `${state} ${by}: ${why}`);
+  }
+  // A record link that is not https is never put in front of Krish.
+  r.actions.find(a => a.status === 'pending_human').candidate.contact.prior_mindmake = { state:'none', by:null, state_at:null, last_touch_at:null, record_url:'http://example.com/cc/person/x' };
+  const { payload_sha256:_plain, ...plain } = r;
+  const unsafe = engineReport({ ...plain, payload_sha256:sha256(plain) }, { runId:'legibility:2026-10-18:run:plain-link' }).proposals.find(p => p.wall === 'send');
+  assert.equal(unsafe.evidence.some(x => x.label === 'Their Mindmake record in Control Center' || x.url.startsWith('http:')), false);
   assert.equal(touched.payload_sha256, send.payload_sha256);
   assert.deepEqual(touched.evidence[0], send.evidence[0]);
 });

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
 import { checkDocs, checkRelativeLinks, checkRegisters, checkEmails, checkStatusWords, checkDenyList, REQUIRED_DENY } from '../scripts/check-docs.mjs';
 
 const root = resolve(import.meta.dirname, '..');
@@ -89,4 +90,30 @@ test('the operate gate does not run the docs check', () => {
   assert.doesNotMatch(operate, /check:docs|check-docs/);
   assert.doesNotMatch(pkg.scripts.check, /check-docs/);
   assert.match(ci, /npm run check:docs/);
+});
+
+// Ruling (Krish, 2026-10-27): the variant for someone already reached for Mindmake is in his approved words, and the 21 October
+// template above it is untouched. docs/FAILURES.md F29.
+test('the 21 October template is byte-identical and the Mindmake variant lines are the code constants', async () => {
+  const { MINDMAKE_COPY } = await import('../src/stages/prepare.mjs');
+  const doc = readFileSync(join(root, 'docs/OUTREACH-TEMPLATE.md'), 'utf8').replace(/\r\n/g, '\n');
+  const cut = doc.indexOf('\n## Variant: someone Krish has already reached for Mindmake\n');
+  assert.ok(cut > 0, 'variant heading');
+  assert.equal(createHash('sha256').update(doc.slice(0, cut)).digest('hex'), 'e0d19803df6bce6519c2f07d46e88491eebe1cfadd8695214fbf4a5d4cd11df7');
+  const variant = doc.slice(cut);
+  // The approved variant is pinned as Krish approved it on 27 Oct: a change to its words needs his yes and a new digest.
+  assert.equal(createHash('sha256').update(variant).digest('hex'), '403518e6cf90a02a07422a762b101c26ee4663e6f89f9552c3e3bb9c391d5ded');
+  assert.match(variant, /Approved by Krish on 27 October 2026/);
+  const header = '| What Control Center records | The two opening sentences |';
+  const lines = variant.split('\n');
+  const start = lines.indexOf(header);
+  assert.ok(start > 0, 'variant table');
+  const rows = [];
+  for (const line of lines.slice(start + 2)) { if (!line.startsWith('|')) break; rows.push(line.split('|').map(cell => cell.trim())[2]); }
+  const month = line => line.replaceAll('{month}', '[month]');
+  const { bridge, shared, intro } = MINDMAKE_COPY;
+  assert.deepEqual(rows, [`${month(bridge.sent)} ${shared}`, `${month(bridge.replied)} ${shared}`, `${month(bridge.met)} ${shared}`, intro.join(' ')]);
+  // The worked example opens with the approved lines for a note Krish sent.
+  assert.ok(variant.includes(`\n${month(bridge.sent)} ${shared} It gives AI shopping agents`));
+  assert.equal(doc.includes(String.fromCharCode(0x2014)), false);
 });

@@ -16,12 +16,12 @@ What travels to Control Center is the protocol 1.0.0 envelope (docs/control-cent
 
 ## Additions within producer contract 1.0.0 (27 October 2026)
 
-**`candidates[].contact.prior_mindmake`** (optional). Control Center's Mindmake record for the person, under Krish's ruling of 27 October 2026 that someone he already reached for Mindmake hears of Legibility as a Mindmake product. Its one source is Control Center's prior-outreach reader, and the exporter (or a session preparing items by hand) copies the reader's answer unchanged. This repository never derives it, and never matches a person by name, company or a guessed address.
+**`candidates[].contact.prior_mindmake`** (optional). Control Center's Mindmake record for the person, under Krish's ruling of 27 October 2026 that, to someone he already reached for Mindmake, Legibility is positioned as a partner product. Its one source is Control Center's prior-outreach reader, and the exporter (or a session preparing items by hand) copies the reader's answer unchanged. Until the reader exists there is no answer to copy, so every item holds as `mindmake_history_unknown`. This repository never derives it, and never matches a person by name, company or a guessed address.
 
 When present it is a closed object of exactly five keys, with no names, addresses, message words or figures:
 
 - `state`: `none`, `unknown`, `open`, `client`, `drafted`, `sent`, `replied` or `met`.
-- `by`: null, `krish` (Krish's own Mindmake note or conversation) or `other` (a note sent for him).
+- `by`: null, `krish` (Krish's own Mindmake note or conversation) or `other` (a Mindmake note sent for him). Visibility notes (podcast pitches, guest invites, press, the visibility notes a colleague sends for him) are not reaching out for Mindmake (Ruling, Krish, 2026-10-27): someone touched only by those reads `none`.
 - `state_at` and `last_touch_at`: null or a UTC instant at or before `captured_at`.
 - `record_url`: null or an https link to the person's Control Center record, with no credentials, at most 2000 characters.
 

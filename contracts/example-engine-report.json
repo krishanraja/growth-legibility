@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "engine_id": "growth-legibility",
   "product_slug": "legibility",
-  "run_id": "legibility:2026-10-18:run:3afe36d65baa622f",
+  "run_id": "legibility:2026-10-18:run:16df0aa30873a4c7",
   "mode": "synthetic",
   "observed_at": "2026-10-18T12:00:00Z",
   "source": {
@@ -140,5 +140,5 @@
   ],
   "events": [],
   "holds": [],
-  "payload_sha256": "148161a2065259609e9d5e4443a576a12625f1c5d2294e8295b367c808b7d60b"
+  "payload_sha256": "c83588f380c4fcb0d2bd6ef8b40154a4c47550f5084b790448ee70f277594743"
 }

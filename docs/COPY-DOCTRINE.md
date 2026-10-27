@@ -121,7 +121,7 @@ Match proof to claim (Part IV, Phase 6). For Legibility, in order of strength:
 5. Process proof: the mechanism, the gate, the coverage statement.
 6. Unsupported assertion: never in a draft.
 
-Testimonials and logos require source-owned consent and are representative of nothing beyond themselves. Every factual claim in a draft carries a proof card's fields in the draft's `source_refs` and research notes: claim, source URL, method, context, limitation, approved wording, review date. The source register's revisions and 17 November 2026 review date apply to product claims; a stale source means the claim waits.
+Testimonials and logos require source-owned consent and are representative of nothing beyond themselves. Every factual claim in a draft carries a proof card's fields in the draft's `source_refs` and research notes: claim, source URL, method, context, limitation, approved wording, review date. The source register's revisions and its review date (`source_review_due`, 26 November 2026 since the 27 October review) apply to product claims; a stale source means the claim waits.
 
 **Testnet versus mainnet.** x402 runs on Base Sepolia. Say "testnet". Any "live on mainnet" wording fails as `mainnet_claim`, and Sepolia volume is never revenue. Only reviewed live evidence, recorded in the source register, changes this.
 

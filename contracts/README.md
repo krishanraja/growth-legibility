@@ -73,7 +73,7 @@ Ruling (Krish, 2026-10-27): "Legibility drafts land in Krish's mindmake.co mailb
 
 **When.** `operate` asks the capabilities only when an invitation could be one, and sends 1.12.0 only when they say `features.draft_press: true`, serve 1.12.0 or later (`schema_version`) and take a 1.12.0 report (`schema_versions`). The feature absent or false, an older version, a failed read or an unreadable template all send the 1.0.0 envelope, byte for byte the one sent before. Delivery checks again that the receiver takes the report's own version, and refuses `receiver_contract_mismatch` before any write. `run` and `check:invitation` never ask Control Center, so they stay 1.0.0. The run's printed summary names the outcome in counts and codes only (`draft_press`: `served`, `not_served`, `unavailable` or `not_needed`).
 
-**The action.** Each approved invitation (`pending_human`) whose candidate carries both `contact.contact_id` and `contact.prior_mindmake`, on an email channel (`email` or `manual-email`), whose approved words open with a `Subject:` line, travels as its `exact_payload`, the canonical JSON of exactly:
+**The action.** Each prepared invitation (`pending_human`, before his Clear) whose candidate carries both `contact.contact_id` and `contact.prior_mindmake`, on an email channel (`email` or `manual-email`), whose approved words open with a `Subject:` line, travels as its `exact_payload`, the canonical JSON of exactly:
 
 - `version: 2`, `channel: "email"`, `form: null`;
 - `recipient_contact_id`: the candidate's `contact.contact_id`;

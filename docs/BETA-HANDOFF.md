@@ -16,7 +16,7 @@ Later on 27 October Krish also decided (`docs/history/LOG.md`; [ENGINE-ARCHITECT
 - From Wave 1, go in through commercial leaders at companies that buy product data, testing which commercial impact lands. Wave 0 keeps its audience and the approved template. The commercial template is approved (27 Oct): [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), "Commercial-leader version".
 - The 25-minute call ends with a test report on their own product pages, then an introduction to the engineer who gets the trial key.
 - Drafts land in his mindmake.co mailbox, not the hello mailbox. Booking is "reply to book", with no booking link.
-- Scheduled research, drafting and posting run only in the runner (`operate.yml`). No interactive session holds the engine token (one did on 27 Oct; removing it is on NOW.md's Waiting on Krish list).
+- Scheduled research, drafting and posting run only in the runner (`operate.yml`). No interactive session may hold the engine token (one did on 27 Oct; removing it is on NOW.md's Waiting on Krish list).
 
 ## Completed and where to find it
 

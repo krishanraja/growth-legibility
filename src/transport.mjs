@@ -60,7 +60,13 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     // Only the features this engine reads leave, and only as true or false. The Draft press counts only when the receiver
     // serves 1.12.0 or later and takes a 1.12.0 report; otherwise the engine sends 1.0.0 exactly as before.
     const draftPress = cap.features?.draft_press === true && atLeast(cap.schema_version, DRAFT_PRESS_VERSION) && receiverTakes(cap, DRAFT_PRESS_VERSION);
-    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress } };
+    // 1.13.0: the directive carries Legibility's buyer (icp), and the research desk is open to this engine. The desk's
+    // kinds and daily caps leave as names and counts only.
+    const research = cap.features?.research === true && plainObject(cap.research)
+      ? { kinds:(Array.isArray(cap.research.kinds) ? cap.research.kinds : []).filter(k => typeof k === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(k)).slice(0, 10),
+          per_day:Object.fromEntries(Object.entries(plainObject(cap.research.per_day) ? cap.research.per_day : {}).filter(([k, v]) => /^[a-z][a-z0-9_]{0,63}$/.test(k) && Number.isInteger(v) && v >= 0).slice(0, 10)) }
+      : null;
+    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress, icp:cap.features?.icp === true, research:research !== null }, research };
   }
 
   // 1.11.0: each person's Mindmake record, for 1 to 50 distinct contact ids. Only the asked ids leave this function, each

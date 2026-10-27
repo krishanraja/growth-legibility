@@ -3,6 +3,7 @@ import { buildReport, engineReport, heldEngineReport, protocolRunId } from './or
 import { captureExport, exportHold } from './lib/export-client.mjs';
 import { readPriorMindmake } from './lib/prior-outreach.mjs';
 import { emailAction, templateRevision } from './lib/draft-press.mjs';
+import { applyIcp, readIcp, researchAvailability } from './lib/cc-signals.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
 // inside the walls, report and read back, read Krish's decisions, close the attempt. Nothing here sends, posts,
@@ -57,6 +58,21 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       directiveHold = { reason:'directive_unavailable', detail:`Control Center did not return a readable directive (${errorCode(e)}); the run continued inside the walls.` };
     }
     summary.directive = directive ? { directive_id:directive.directive_id, next_action:directive.next_action?.proposal_id ?? null } : null;
+    // 1.13.0: the buyer from Control Center's product_icp, carried in the directive when the capabilities say so, and
+    // whether its research desk is open to this engine (recorded only: no research step runs before Phase 2). Any doubt
+    // leaves the buyer absent, which holds exactly as before; it never stops the run.
+    phase = 'icp';
+    let served = { icp:null, state:'not_served', reason:'icp_not_served' };
+    try {
+      const cap = await client.capabilities();
+      served = readIcp(directive, cap.features, attempt.started_at);
+      summary.research = researchAvailability(cap.features, cap.research);
+    } catch (e) {
+      if (errorCode(e) === 'receiver_unauthorized') throw e;
+      served = { icp:null, state:'unavailable', reason:errorCode(e) };
+      summary.research = { state:'unavailable', kinds:[], per_day:{} };
+    }
+    summary.icp = { state:served.state, reason:served.reason, revision:served.icp?.revision ?? null };
     phase = 'capture';
     let snapshot = loadSnapshot ? loadSnapshot() : null;
     let observedAt = attempt.started_at;
@@ -82,6 +98,12 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     }
     phase = 'plan';
     let envelope;
+    if (snapshot && served.icp) {
+      // Control Center is the one source of the buyer: a served one replaces whatever the snapshot carried.
+      const applied = applyIcp(snapshot, served.icp);
+      snapshot = applied.snapshot;
+      if (applied.reason) summary.icp.reason = applied.reason;
+    }
     if (snapshot) {
       // Synthetic fixtures never count as live: they may only travel to a local stand-in.
       if (snapshot.mode !== 'live' && !client.local) throw Object.assign(new Error('synthetic_snapshot_refused'), { code:'synthetic_snapshot_refused' });
@@ -115,7 +137,7 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       phase = 'plan';
       envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress });
     } else {
-      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds });
+      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp });
     }
     outbox.put(envelope);
     summary.report = { status:envelope.status, mode:envelope.mode, payload_sha256:envelope.payload_sha256,

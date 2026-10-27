@@ -53,7 +53,7 @@ test('the record Control Center serves is copied unchanged, and the invitation r
   assert.equal(standInLink(id), personLink(id));
   const env = await standIn(t, { priorOutreach:{ [id]:NONE(id) } });
   // Control Center serves 1.11.0, and this engine, which sends 1.0.0, takes it.
-  assert.deepEqual(await client(env).capabilities(), { activation:'active', features:{ prior_outreach:true, draft_press:false } });
+  assert.deepEqual(await client(env).capabilities(), { activation:'active', features:{ prior_outreach:true, draft_press:false, icp:false, research:false }, research:null });
   assert.doesNotThrow(() => validateDirective({ ...DIRECTIVE, schema_version:'1.11.0' }));
   const input = fixture();
   delete input.candidates[0].contact.prior_mindmake;

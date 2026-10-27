@@ -63,7 +63,7 @@ const withAction = change => (e, p) => { const a = JSON.parse(p.exact_payload); 
 
 test('a served Draft press sends the invitation as a version 2 email action that Control Center takes and its press drafts', async t => {
   const env = await standIn(t, { priorOutreach:{ [ID]:CONTACT.prior_mindmake }, draftPress:true });
-  assert.deepEqual(await client(env).capabilities(), { activation:'active', features:{ prior_outreach:true, draft_press:true } });
+  assert.deepEqual(await client(env).capabilities(), { activation:'active', features:{ prior_outreach:true, draft_press:true, icp:false, research:false }, research:null });
   const { summary, stored } = await run(t, env);
   assert.equal(summary.status, 'succeeded');
   assert.deepEqual(summary.draft_press, { state:'served', reason:null, actions:1 });

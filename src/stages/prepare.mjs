@@ -423,6 +423,11 @@ export function candidateGate(candidate, now, policy = {}) {
  * This pure stage never fetches, drafts copy, approves, publishes, or sends anything.
  * A source reference proves lineage to the snapshot, not independent source verification.
  */
+/** Whether a buyer is Legibility's current approved one from Control Center product_icp, reviewed in the last 30 days. */
+export function icpCurrent(icp, at) {
+  const now = typeof at === 'number' ? at : timestamp(at);
+  return icp?.product_slug === 'legibility' && icp?.source === 'control-center:product_icp' && icp?.status === 'approved' && present(icp?.buyer_definition) && present(icp?.revision) && fresh(icp?.reviewed_at, now, 30);
+}
 export function prepare(snapshot, at, policy = {}) {
   const now = timestamp(at);
   if (!Number.isFinite(now)) throw new TypeError('at must be an ISO timestamp with an explicit timezone.');
@@ -433,7 +438,7 @@ export function prepare(snapshot, at, policy = {}) {
   const opportunities = [];
   const candidateActions = [];
   const distributionActions = [];
-  const icpReady = snapshot.icp?.product_slug === 'legibility' && snapshot.icp?.source === 'control-center:product_icp' && snapshot.icp?.status === 'approved' && present(snapshot.icp?.buyer_definition) && present(snapshot.icp?.revision) && fresh(snapshot.icp?.reviewed_at, now, 30);
+  const icpReady = icpCurrent(snapshot.icp, now);
   const lineageReady = present(snapshot.snapshot_id) && fresh(snapshot.captured_at, now, maxAge) && present(snapshot.app_revision);
   const suppressed = new Set((snapshot.suppressions ?? []).map(item => item.candidate_id));
   if (!icpReady) holds.push(makeHold('icp_not_current_approved', {}, 'Obtain a current approved Legibility buyer definition from Control Center product_icp, with its product binding, source and revision, before preparing prospecting.'));

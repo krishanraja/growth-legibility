@@ -8,6 +8,8 @@ The original [Founding 200 playbook](_corpus/legibility-growth-playbook.md) is p
 
 ## Run it
 
+Resuming beta acquisition? Read the [beta outreach and onboarding handoff](docs/BETA-HANDOFF.md) and [approved outreach template](docs/OUTREACH-TEMPLATE.md) first. The handoff separates completed private drafts from expired outreach, historical demo evidence and trial provisioning still to verify.
+
 Node **24+**, npm, no runtime dependencies or paid services required.
 
 ```sh

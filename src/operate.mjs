@@ -1,5 +1,6 @@
 import { deliver } from './transport.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId } from './orchestrator.mjs';
+import { captureExport, exportHold } from './lib/export-client.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
 // inside the walls, report and read back, read Krish's decisions, close the attempt. Nothing here sends, posts,
@@ -32,8 +33,10 @@ export function matchDecisions(decisions, envelope) {
   return tally;
 }
 
+// appExport is exportFromEnv()'s answer (src/lib/export-client.mjs). Absent, the run holds exactly as it did before the
+// export client existed, and the summary names attribution_export_missing; a --snapshot file takes precedence.
 export async function operate({ client, outbox, policy, corpusSha, at = new Date().toISOString(), loadSnapshot = null, invocation,
-  synthetic = false, revision = 'unversioned-local', directiveDate = null, clock = () => new Date().toISOString() }) {
+  synthetic = false, revision = 'unversioned-local', directiveDate = null, clock = () => new Date().toISOString(), appExport = { state:'absent' } }) {
   const command = 'operate';
   const runId = protocolRunId(command, at, invocation);
   const attempt = { attempt_id:runId, command, run_id:runId, status:'started', phase:'start', error_code:null, started_at:new Date(at).toISOString() };
@@ -52,16 +55,37 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     }
     summary.directive = directive ? { directive_id:directive.directive_id, next_action:directive.next_action?.proposal_id ?? null } : null;
     phase = 'capture';
-    const snapshot = loadSnapshot ? loadSnapshot() : null;
+    let snapshot = loadSnapshot ? loadSnapshot() : null;
+    let observedAt = attempt.started_at;
+    const extraHolds = [];
+    if (!snapshot) {
+      const source = appExport ?? { state:'absent' };
+      if (source.state === 'ready') {
+        // F4: a loopback export is synthetic by construction, and never travels to the live origin. Refused before it is read.
+        if (source.client.local && !client.local) throw Object.assign(new Error('synthetic_export_refused'), { code:'synthetic_export_refused' });
+        try {
+          ({ snapshot, at:observedAt } = await captureExport(source.client, { at:attempt.started_at, policy, clock }));
+          summary.export = { state:'read', reason:null };
+        } catch (e) {
+          const hold = exportHold({ state:'failed', code:errorCode(e), detail:e?.detail ?? null });
+          extraHolds.push(hold); summary.export = { state:'held', reason:hold.reason };
+        }
+      } else if (source.state === 'absent') {
+        summary.export = { state:'absent', reason:'attribution_export_missing' };
+      } else {
+        const hold = exportHold(source);
+        extraHolds.push(hold); summary.export = { state:'held', reason:hold.reason };
+      }
+    }
     phase = 'plan';
     let envelope;
     if (snapshot) {
       // Synthetic fixtures never count as live: they may only travel to a local stand-in.
       if (snapshot.mode !== 'live' && !client.local) throw Object.assign(new Error('synthetic_snapshot_refused'), { code:'synthetic_snapshot_refused' });
-      privateReport = buildReport(snapshot, policy, attempt.started_at, corpusSha);
+      privateReport = buildReport(snapshot, policy, observedAt, corpusSha);
       envelope = engineReport(privateReport, { runId, directive, directiveHold });
     } else {
-      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold });
+      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds });
     }
     outbox.put(envelope);
     summary.report = { status:envelope.status, mode:envelope.mode, payload_sha256:envelope.payload_sha256,

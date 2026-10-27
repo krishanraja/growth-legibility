@@ -13,6 +13,17 @@ const median = (values) => {
 const unique = (rows) => [...new Map(rows.map((row) => [row.id, row])).values()];
 const safeSource = (source) => /^[a-z0-9][a-z0-9._:-]{0,79}$/i.test(source ?? '') ? source : 'unattributed';
 
+// The Monday 00:00:00 UTC that starts the ISO week holding `time`, and that week's ISO label (2026-W53 and the like).
+export function isoWeek(time) {
+  const day = new Date(time);
+  const monday = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()) - ((day.getUTCDay() + 6) % 7) * DAY;
+  const thursday = new Date(monday + 3 * DAY);
+  const year = thursday.getUTCFullYear();
+  // Week 1 holds the year's first Thursday, so the Thursday's day of the year fixes the week number.
+  const week = Math.floor((thursday - Date.UTC(year, 0, 1)) / (7 * DAY)) + 1;
+  return { start: monday, label: `${year}-W${String(week).padStart(2, '0')}` };
+}
+
 function calibrationLabel(version) {
   return `sha256:${createHash('sha256').update(String(version ?? '')).digest('hex')}`;
 }
@@ -206,6 +217,15 @@ export function measure(snapshot, at, policy) {
   metrics.weekly_median_trusted_reads_per_active_account = weekMetric(median([...weeklyTrustedCounts.values()]), 'trusted_reads/account', weeklyCounts.size ? undefined : 'No active accounts');
   metrics.production_agents_weekly = weekMetric(new Set(weekReads.filter((read) => trusted(read) && index.byCanonical.get(read.canonical).productionAgent).map((read) => read.canonical)).size);
 
+  // The engine's North Star number: builders with at least one trusted read in the ISO week to date, as of the
+  // window's end, internal accounts excluded. Counted per account until the export carries key ids. Not tied to the
+  // campaign clock: the number runs on its own weekly ladder.
+  const asOf = Math.min(now, end);
+  const builderWeek = isoWeek(asOf);
+  const buildersMissing = missing('accounts', 'reads') ?? (start > builderWeek.start ? 'Reporting window does not cover the ISO week to date' : null);
+  metrics.weekly_builders = buildersMissing ? metric(null, 'builders', buildersMissing)
+    : metric(new Set(apiReads.filter((read) => trusted(read) && Date.parse(read.occurred_at) >= builderWeek.start).map((read) => read.canonical)).size, 'builders');
+
   const remaining = activated === null ? null : Math.max(0, policy.campaign.duration_days - Math.max(0, (now - activated) / DAY));
   metrics.campaign_days_remaining = remaining === null ? metric(null, 'days', 'Campaign has not been activated') : metric(round(remaining), 'days');
   const need = metrics.qualified_enrolments.value === null ? null : Math.max(0, policy.campaign.targets.net - metrics.qualified_enrolments.value);
@@ -319,6 +339,7 @@ export function measure(snapshot, at, policy) {
   const north_star = {
     targets: { weekly_median_trusted_reads_per_active_account: 7, production_agents_weekly: 100, agent_revenue_share_strictly_greater_than: 0.5 },
     observation: 'Usage includes zero-trust active accounts; testnet volume is excluded from revenue. Targets require human interpretation and never trigger automatic retirement.',
+    weekly_builders_window: { iso_week: builderWeek.label, week_start: new Date(builderWeek.start).toISOString(), as_of: new Date(asOf).toISOString(), counted_per: 'account' },
   };
   return { mode: snapshot.mode, measured_at: new Date(now).toISOString(), campaign, north_star, metrics, funnel, channels, benchmark, tripwires, recommendation };
 }

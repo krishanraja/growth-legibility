@@ -29,6 +29,9 @@ jobs:
         env:
           CONTROL_CENTER_ENGINE_TOKEN: ${{ secrets.CONTROL_CENTER_ENGINE_TOKEN }}
           CONTROL_CENTER_URL: ${{ vars.CONTROL_CENTER_URL }}
+          # Optional until Krish adds them: with neither set the run holds exactly as before (attribution_export_missing).
+          LEGIBILITY_EXPORT_TOKEN: ${{ secrets.LEGIBILITY_EXPORT_TOKEN }}
+          LEGIBILITY_EXPORT_URL: ${{ vars.LEGIBILITY_EXPORT_URL }}
           # The dispatch payload is untrusted input: passed as data and checked by the CLI, never pasted into a script.
           CC_DIRECTIVE_ID: ${{ github.event.client_payload.directive_id }}
           CC_ENGINE_ID: ${{ github.event.client_payload.engine_id }}

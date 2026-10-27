@@ -73,7 +73,13 @@
         "production_agents_weekly": 100,
         "agent_revenue_share_strictly_greater_than": 0.5
       },
-      "observation": "Usage includes zero-trust active accounts; testnet volume is excluded from revenue. Targets require human interpretation and never trigger automatic retirement."
+      "observation": "Usage includes zero-trust active accounts; testnet volume is excluded from revenue. Targets require human interpretation and never trigger automatic retirement.",
+      "weekly_builders_window": {
+        "iso_week": "2026-W42",
+        "week_start": "2026-10-12T00:00:00.000Z",
+        "as_of": "2026-10-18T12:00:00.000Z",
+        "counted_per": "account"
+      }
     },
     "metrics": {
       "verified_enrolments": {
@@ -208,6 +214,10 @@
       "production_agents_weekly": {
         "value": 1,
         "unit": "count"
+      },
+      "weekly_builders": {
+        "value": 1,
+        "unit": "builders"
       },
       "campaign_days_remaining": {
         "value": null,
@@ -435,5 +445,5 @@
       "visibility": "private"
     }
   ],
-  "payload_sha256": "15ee1f27166f53876f5421577ca06a049359b1ccda5e83fa44a81eab01dac1ea"
+  "payload_sha256": "ccac767c5af24fb64f75b9c34aa594a7de2216838f3a1b0b180f094d7b04e447"
 }

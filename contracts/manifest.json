@@ -8,7 +8,7 @@
     },
     {
       "path": "src/stages/measure.mjs",
-      "sha256": "5baec4b9be6c2637c2a9e0abbf945b768a273503aca4b3b987abaa7fee94ca66"
+      "sha256": "da31eff9e6d3cf36a40474f0bc3c79fd0bf4065b4edd1152d5dd3e605320ab07"
     },
     {
       "path": "src/stages/prepare.mjs",
@@ -24,11 +24,11 @@
     },
     {
       "path": "contracts/example-report.json",
-      "sha256": "60dce1e20dcca76d7f68f257781a31b4a468d2fd97f618e95f551d02416065f2"
+      "sha256": "b15594008982c898552390b112bdc1bda607214d3b186f8ece8892666df978f3"
     },
     {
       "path": "contracts/example-engine-report.json",
-      "sha256": "4d65c47814ed2a927f05fd87b8af2e6e2fb6f76be9d596aebba84867df1d7651"
+      "sha256": "fad2fd589966f0650e84e2128d291158c2683cdde9f85c2532d3290d27b584d3"
     }
   ]
 }

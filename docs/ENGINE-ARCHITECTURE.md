@@ -469,7 +469,7 @@ A run loads only the cards its spec names. **Wave 1 loads the five marked ★, p
   - a denied tool entry removed from settings fails check.
 
 **Phase 1. Measure and attribute, plus the registry track (GET-GOING step 2).**
-- **1A. App contract.** A handoff document is written here and built by a Legibility-repo session, with Krish's approval for each deploy. This repo never edits the app.
+- **1A. App contract.** A handoff document is written here and built by a Legibility-repo session, with Krish's approval for each deploy. This repo never edits the app. The brief: [handoff/APP-PHASE-1.md](handoff/APP-PHASE-1.md) (27 Oct), with each item's reason, behaviour, data shape, acceptance tests, approvals and order, the export matched to `validateSnapshot`, and the source review read for 1E.
   - **A1:** an internal list kept in the app, not git, covering every Krish account, the engine's key, the testbench, the directory test account, registry keys, and CI, demo and smoke keys. Plus `northstar_weekly_keys`: by key, ISO week, internal excluded.
   - **A2:** capture invitation id, `utm_*`, referrer, directory referrer and MCP client and User-Agent, at enrolment and key creation, including the trial key an introduced engineer receives (so the engineer's first read traces to the commercial leader's invitation). Booking is by reply, so it happens outside the app. GA4 events alongside PostHog: `generate_lead`, `sign_up`, test run.
   - **A3: run-first Founding 200 page.**

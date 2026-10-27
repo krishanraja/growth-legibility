@@ -10,7 +10,7 @@ Coverage flags must reflect full pagination and reconciliation. Missing sources 
 
 ## Cycle
 
-1. Export source-owned accounts, server reads, events, canonical ICP, private candidate evidence, contact/suppression state, each candidate's Mindmake record (`contact.prior_mindmake`, copied unchanged from Control Center's reader; contracts/README.md), partner distribution, feedback, settled payments and actual source coverage. Protect the export under runtime/input/.
+1. Export source-owned accounts, server reads, events, canonical ICP, private candidate evidence, contact/suppression state, each candidate's Control Center contact id (`contact.contact_id`) and Mindmake record (`contact.prior_mindmake`, copied unchanged from Control Center's reader; contracts/README.md; `operate` reads it itself by contact id and drops any record the input carried), partner distribution, feedback, settled payments and actual source coverage. Protect the export under runtime/input/.
 2. Run `node src/cli.mjs run --snapshot runtime/input/snapshot.json --out runtime/live`. Inspect the emitted mode, status, unknown reasons, recommended constraint and pending actions in the private report.
 3. Source gaps, overdue reviews, partial windows, stale live snapshots and detected paid media hold actionable work. Repair the owning source rather than editing the output to look successful.
 4. Deliver through the Control Center growth engine protocol: `node src/cli.mjs deliver --run-id CONTROL_CENTER_RUN_ID --out runtime/live`, with `CONTROL_CENTER_ENGINE_TOKEN` injected at run time. The outbox holds the protocol envelope, not the private report. Do not point the engine at growth/packs, dashboard APIs or a generic table-write endpoint.

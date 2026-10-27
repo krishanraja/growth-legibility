@@ -125,16 +125,12 @@ const recordLink = v => {
   if (!text(v, 2000) || !/^https:\/\/\S+$/.test(v)) return false;
   try { const u = new URL(v); return u.protocol === 'https:' && !u.username && !u.password; } catch { return false; }
 };
-export function validateCandidate(c, before) {
-  keys(c,['id','account_id','pool','company','project','channel','current_signal','relationship','scores','draft','contact','partner_id'],'candidate');
-  keys(c.current_signal,['text','url','observed_at'],'candidate_signal');
-  keys(c.relationship,['kind','evidence','url'],'candidate_relationship');
-  keys(c.scores,['fit','project','relationship','distribution','timing'],'candidate_scores');
-  keys(c.contact,['status','last_sent_at','followups','prior_mindmake'],'candidate_contact');
-  if(c.draft!==null)keys(c.draft,['text','source_refs'],'candidate_draft');
-  fail(date(c.current_signal.observed_at) && (c.contact.last_sent_at===null||before(c.contact.last_sent_at)), 'candidate_dates');
-  if(!Object.hasOwn(c.contact,'prior_mindmake')) return c;
-  const m=c.contact.prior_mindmake;
+// contact.contact_id is the person's Control Center contact id, the only key the runner reads their Mindmake record by
+// (src/lib/prior-outreach.mjs). Optional: absent, no record can be read and the candidate holds as unknown. A lowercase
+// uuid only, never a name, an address or a guess.
+export const isContactId = v => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(v);
+/** One Mindmake record, by the rules of the table in contracts/README.md; `before` bounds its dates by the capture. */
+export function validateMindmakeRecord(m, before) {
   keys(m,MINDMAKE_RECORD,'candidate_prior_mindmake');
   fail(MINDMAKE_RECORD.every(k=>Object.hasOwn(m,k)), 'candidate_prior_mindmake_shape');
   fail(allowed(m.state,MINDMAKE_STATES), 'candidate_prior_mindmake_state');
@@ -144,6 +140,18 @@ export function validateCandidate(c, before) {
     : ['open','client'].includes(m.state) ? (m.state_at===null||before(m.state_at)) && (m.last_touch_at===null||before(m.last_touch_at))
     : before(m.state_at) && before(m.last_touch_at);
   fail(sender && dated && (m.state_at===null||m.last_touch_at===null||Date.parse(m.last_touch_at)>=Date.parse(m.state_at)), 'candidate_prior_mindmake_shape');
+  return m;
+}
+export function validateCandidate(c, before) {
+  keys(c,['id','account_id','pool','company','project','channel','current_signal','relationship','scores','draft','contact','partner_id'],'candidate');
+  keys(c.current_signal,['text','url','observed_at'],'candidate_signal');
+  keys(c.relationship,['kind','evidence','url'],'candidate_relationship');
+  keys(c.scores,['fit','project','relationship','distribution','timing'],'candidate_scores');
+  keys(c.contact,['status','last_sent_at','followups','contact_id','prior_mindmake'],'candidate_contact');
+  if(c.draft!==null)keys(c.draft,['text','source_refs'],'candidate_draft');
+  fail(date(c.current_signal.observed_at) && (c.contact.last_sent_at===null||before(c.contact.last_sent_at)), 'candidate_dates');
+  fail(!Object.hasOwn(c.contact,'contact_id') || isContactId(c.contact.contact_id), 'candidate_contact_id');
+  if(Object.hasOwn(c.contact,'prior_mindmake')) validateMindmakeRecord(c.contact.prior_mindmake, before);
   return c;
 }
 export function validateReport(r) {

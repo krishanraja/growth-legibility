@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "engine_id": "growth-legibility",
   "product_slug": "legibility",
-  "run_id": "gl_16df0aa30873a4c7d505557aac2d4ba020df724b1e9badc8acb228341ceec82d",
+  "run_id": "gl_90fa45b575d8983bd859d2877684ce154a8bafb8c74a907eb0b9a4d5c76ed9c2",
   "mode": "synthetic",
   "observed_at": "2026-10-18T12:00:00Z",
   "source": {
     "snapshot_id": "synthetic-2026-10-18",
-    "snapshot_sha256": "ed03d2f65c2b4c8043a1863d6d3ea41d79ce5acf7315a05f2b9d4c4a0e85f1c5",
+    "snapshot_sha256": "c5f75dae0ab80ec2c95908c60d6cc1b8f31883db1999ebd6161024c71d313844",
     "captured_at": "2026-10-18T12:00:00Z",
     "app_revision": "synthetic-fixture-not-production",
     "corpus_sha256": "c74369b59a458299db5aaef93041bd0018ed1390778efc9a9a4719365d8035ff"
@@ -346,7 +346,7 @@
   },
   "actions": [
     {
-      "id": "approval_e673f4b940404faebca1a90f",
+      "id": "approval_39ca3eedb28128f1bacca8d2",
       "type": "direct_invitation",
       "status": "pending_human",
       "visibility": "private",
@@ -373,12 +373,13 @@
           "status": "clear",
           "last_sent_at": null,
           "followups": 0,
+          "contact_id": "00000000-0000-4000-8000-000000000001",
           "prior_mindmake": {
             "state": "none",
             "by": null,
             "state_at": null,
             "last_touch_at": null,
-            "record_url": "https://example.com/cc/person/candidate-example"
+            "record_url": "https://controlcenter.krishraja.com/#/people?person=00000000-0000-4000-8000-000000000001"
           }
         },
         "partner_id": null
@@ -390,10 +391,10 @@
         "app_revision": "synthetic-fixture-not-production",
         "icp_revision": "synthetic-icp-v1",
         "signal_observed_at": "2026-10-17T12:00:00Z",
-        "candidate_sha256": "c8573c7db6d0bf9359f898e03f5c38f19eb0dafeb3b1cdc644bc37a2746ddaea"
+        "candidate_sha256": "73ecbfa13836f870ecc5611ce6ad2ddabfdee5fa8b6e8144261f9e050efc3ee5"
       },
       "source_refs": [
-        "https://example.com/cc/person/candidate-example",
+        "https://controlcenter.krishraja.com/#/people?person=00000000-0000-4000-8000-000000000001",
         "https://example.org/synthetic-project"
       ],
       "exact_text": "I read Synthetic Commerce Lab's Synthetic procurement agent experiment about typed catalogue inputs. Legibility exposes product data with calibrated confidence over REST and MCP; structured pages, Shopify and barcodes are its current scope. Would a five-input compatibility test help the integration experiment?",
@@ -402,7 +403,7 @@
         "named_cold_requires_human_review",
         "source_facts_require_human_review"
       ],
-      "payload_sha256": "e673f4b940404faebca1a90ffd0431057bc7f0c06d34ae0ef6dd4f02d4f4fe59",
+      "payload_sha256": "39ca3eedb28128f1bacca8d2feca1ec8086354c08004a11dcc46bad2150c0be0",
       "created_at": "2026-10-18T12:00:00.000Z",
       "expires_at": "2026-10-20T12:00:00.000Z"
     },
@@ -445,5 +446,5 @@
       "visibility": "private"
     }
   ],
-  "payload_sha256": "ccac767c5af24fb64f75b9c34aa594a7de2216838f3a1b0b180f094d7b04e447"
+  "payload_sha256": "dad32db40daa8c999ed8cb78110c36d7ab6a1a229880065b24aa916b7e80afc0"
 }

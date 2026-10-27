@@ -131,14 +131,18 @@ test('a dispatch with a synthetic snapshot reports the measured envelope and mat
     { proposal_id:'legibility:constraint:activate_campaign', decision:'approved', decided_at:'2026-10-18T20:00:00Z', payload_sha256:'0'.repeat(64) },
     { proposal_id:'legibility:old', decision:'declined', decided_at:'2026-10-18T20:00:00Z', payload_sha256:null },
   ];
-  const env = await standIn(t, { decisions });
+  // The fixture's record reaches the run only through Control Center's reader, as it would live.
+  const [{ contact }] = fixture().candidates;
+  const env = await standIn(t, { decisions, priorOutreach:{ [contact.contact_id]:contact.prior_mindmake } });
   const { summary, privateReport: report } = await run(t, env, { loadSnapshot:fixture });
   assert.equal(summary.status, 'succeeded');
   assert.equal(report.mode, 'synthetic');
   assert.deepEqual(summary.decisions, { approved_exact:1, approved_changed:1, approved_elsewhere:0, declined:1, done:0 });
   assert.ok(env.reports.get(summary.run_id).proposals.some(p => p.payload_sha256 === send.payload_sha256));
   // The engine has no send path: nothing but the protocol routes was called.
-  assert.ok(env.log.every(x => ['/attempts', '/directive', '/reports', '/decisions', '/capabilities'].some(r => x.route.startsWith(r))));
+  assert.ok(env.log.every(x => ['/attempts', '/directive', '/reports', '/decisions', '/capabilities', '/prior-outreach'].some(r => x.route.startsWith(r))));
+  assert.deepEqual(env.priorOutreachReads, [[contact.contact_id]]);
+  assert.equal(summary.prior_outreach.state, 'read');
 });
 
 test('a synthetic snapshot can never reach the live origin', async t => {

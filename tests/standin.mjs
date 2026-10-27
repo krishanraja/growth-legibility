@@ -1,11 +1,16 @@
-// A local, in-process stand-in for the Control Center growth engine routes (protocol 1.0.0).
-// Synthetic only: it listens on 127.0.0.1 and never reaches a live service.
+// A local, in-process stand-in for the Control Center growth engine routes (the engine sends protocol 1.0.0; with
+// `priorOutreach` set it serves 1.11.0 and its prior-outreach read). Synthetic only: it listens on 127.0.0.1 and never
+// reaches a live service.
 import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { validateEngineEnvelope } from '../src/guards/wire.mjs';
 
 export const PREFIX = '/api/growth/engines/legibility';
 export const TOKEN = 'synthetic-standin-bearer-canary';
+// Control Center's prior-outreach answers (api/_priorOutreach.ts): the unknown record, and the person link each record carries.
+export const UNKNOWN_RECORD = Object.freeze({ state:'unknown', by:null, state_at:null, last_touch_at:null, record_url:null });
+export const personLink = id => `https://controlcenter.krishraja.com/#/people?person=${id}`;
+const CONTACT_IDS = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 export const REPORT_SCHEMA = JSON.parse(readFileSync(new URL('../docs/control-center/engine-report.schema.json', import.meta.url)));
 
 // A small JSON Schema reader covering what engine-report.schema.json uses.
@@ -47,8 +52,10 @@ export async function standIn(t, options = {}) {
   const {
     persist = true, badAck = false, dropAfterPersist = false, wrongCapability = false, beforePost = null, extraReceipt = false,
     hideReadbacks = 0, conflictWith = null, inactive = false, unauthorized = [], directive = DIRECTIVE, directiveStatus = 200, decisions = [],
+    // { <contact id>: record } served as Control Center's reader would, or (ids) => a whole answer body; null serves no route.
+    priorOutreach = null, priorOutreachStatus = 200,
   } = options;
-  const reports = new Map(), attempts = new Map(), log = [];
+  const reports = new Map(), attempts = new Map(), log = [], priorOutreachReads = [];
   let posts = 0, hidden = 0;
   if (conflictWith) reports.set(conflictWith.run_id, conflictWith);
   const server = createServer(async (req, res) => {
@@ -59,7 +66,20 @@ export async function standIn(t, options = {}) {
     const send = (status, value) => { res.statusCode = status; res.setHeader('content-type', 'application/json'); res.end(JSON.stringify(value)); };
     const area = route?.split('/')[1]?.split('?')[0];
     if (req.headers.authorization !== `Bearer ${TOKEN}` || unauthorized.includes(area) || unauthorized.includes('all')) return send(401, { error:'unauthorized' });
-    if (route === '/capabilities') return send(200, { schema_version:'1.2.0', schema_versions:['1.0.0','1.1.0','1.2.0'], engine_id:'growth-legibility', product_slug:wrongCapability ? 'other' : 'legibility', idempotency:true, activation:{ state:'active', activated_on:'2026-10-18' }, features:{ directive:true } });
+    if (route === '/capabilities') {
+      const served = priorOutreach ? { schema_version:'1.11.0', schema_versions:['1.0.0','1.1.0','1.2.0','1.11.0'] } : { schema_version:'1.2.0', schema_versions:['1.0.0','1.1.0','1.2.0'] };
+      return send(200, { ...served, engine_id:'growth-legibility', product_slug:wrongCapability ? 'other' : 'legibility', idempotency:true, activation:{ state:'active', activated_on:'2026-10-18' }, features:{ directive:true, ...(priorOutreach ? { prior_outreach:true } : {}) } });
+    }
+    if (route === '/prior-outreach' && req.method === 'GET') {
+      if (!priorOutreach) return send(404, { ok:false, error:'prior_outreach_not_supported' });
+      // As Control Center parses it: 1 to 50 distinct lowercase uuids, comma separated, or 400 and nothing read.
+      const ids = (url.searchParams.get('contacts') ?? '').split(',');
+      if (url.searchParams.getAll('contacts').length !== 1 || ids.length > 50 || ids.some(id => !CONTACT_IDS.test(id)) || new Set(ids).size !== ids.length) return send(400, { ok:false, error:'contacts' });
+      priorOutreachReads.push(ids);
+      if (priorOutreachStatus !== 200) return send(priorOutreachStatus, { ok:false, error:'unavailable' });
+      if (typeof priorOutreach === 'function') return send(200, priorOutreach(ids));
+      return send(200, { ok:true, schema_version:'1.11.0', read_at:'2026-10-19T05:10:30.000Z', prior_outreach:Object.fromEntries(ids.map(id => [id, priorOutreach[id] ?? UNKNOWN_RECORD])) });
+    }
     if (route === '/directive' && req.method === 'GET') return directiveStatus === 200 ? send(200, { ok:true, chosen_by:'rule', directive }) : send(directiveStatus, { error:'unavailable' });
     if (route === '/decisions' && req.method === 'GET') return send(200, { ok:true, decisions });
     if (route === '/attempts' && req.method === 'POST') {
@@ -92,5 +112,5 @@ export async function standIn(t, options = {}) {
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   t.after(() => new Promise(resolve => server.close(resolve)));
-  return { base:`http://127.0.0.1:${server.address().port}`, testMode:true, token:TOKEN, posts:() => posts, reports, attempts, log };
+  return { base:`http://127.0.0.1:${server.address().port}`, testMode:true, token:TOKEN, posts:() => posts, reports, attempts, log, priorOutreachReads };
 }

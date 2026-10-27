@@ -273,6 +273,8 @@ function candidatePacket(candidate) {
       status: stringOrNull(candidate.contact.status),
       last_sent_at: stringOrNull(candidate.contact.last_sent_at),
       followups: Number.isInteger(candidate.contact.followups) ? candidate.contact.followups : null,
+      // The Control Center contact the Mindmake record was read for, bound into the approval with the record.
+      contact_id: stringOrNull(candidate.contact.contact_id),
       prior_mindmake: isRecord(candidate.contact.prior_mindmake) ? Object.fromEntries(MINDMAKE_RECORD.map(key => [key, stringOrNull(candidate.contact.prior_mindmake[key])])) : null,
     },
     partner_id: stringOrNull(candidate.partner_id),

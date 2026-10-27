@@ -37,3 +37,4 @@ One line per ruling, in date order, with where it is recorded. NOW.md points her
 | 2026-10-21 | Seven named outreach items and one onboarding item prepared in Control Center; none decided; outreach expired 23 Oct | docs/BETA-HANDOFF.md |
 | 2026-10-27 | Trial provisioning investigated (read-only): no trial exists; Free plan is the honest interim; app item A8 designed | docs/ENGINE-ARCHITECTURE.md, section 0 |
 | 2026-10-27 | The Windows CI leg hung on PR 8: a temp-folder removal threw on an open journal and skipped the server close. Fixed in the guard tests; the hung runs were cancelled | docs/FAILURES.md F27 |
+| 2026-10-27 | With the hang fixed, the Windows leg showed the docs check used Windows separators; its status-word rule had matched nothing there. Fixed to use '/' everywhere | docs/FAILURES.md F28 |

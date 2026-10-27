@@ -1,7 +1,7 @@
 // Documentation and register checks. CI only (.github/workflows/ci.yml): a docs defect must never stop the
 // daily Control Center run, so operate.yml keeps running `npm run check` alone (docs/FAILURES.md F21).
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
-import { join, resolve, dirname, relative } from 'node:path';
+import { join, resolve, dirname, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SKIP = new Set(['.git', 'node_modules', 'runtime', '_corpus']);
@@ -25,10 +25,12 @@ export const REQUIRED_DENY = [
   'mcp__n8n__call_agent', 'mcp__n8n__publish_agent',
 ];
 
+// Repository-relative paths always use '/', on Windows too: the rules below match on 'specs/' and friends, and
+// the errors name a file the same way on every runner (docs/FAILURES.md F28).
 function files(root, dir = '', out = []) {
   for (const e of readdirSync(join(root, dir), { withFileTypes: true })) {
     if (SKIP.has(e.name)) continue;
-    const p = join(dir, e.name);
+    const p = dir ? `${dir}/${e.name}` : e.name;
     if (e.isDirectory()) files(root, p, out); else out.push(p);
   }
   return out;
@@ -46,7 +48,7 @@ export function checkRelativeLinks(root) {
       if (!path) continue;
       const abs = resolve(root, dirname(f), path);
       const rel = relative(root, abs);
-      if (rel.startsWith('..') || !existsSync(abs)) errors.push(`relative_link_unresolved:${f}:${target}`);
+      if (rel.split(/[\\/]/)[0] === '..' || isAbsolute(rel) || !existsSync(abs)) errors.push(`relative_link_unresolved:${f}:${target}`);
     }
   }
   return errors;

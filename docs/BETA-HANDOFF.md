@@ -11,6 +11,13 @@ Recorded 27 October 2026. This is a sanitised continuation guide for the work co
 - Tailor every note to verified company context and the actual contact channel. Known introducers need a warm introduction request, not a customer pitch.
 - Prepare drafts and onboarding in Control Center. Nothing in this work authorised sending, scheduling, billing changes or account provisioning.
 
+Later on 27 October Krish also decided (`docs/history/LOG.md`; [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md), decisions 12 to 19):
+
+- From Wave 1, go in through commercial leaders at companies that buy product data, testing which commercial impact lands. Wave 0 keeps its audience and the approved template. A commercial template is [proposed](proposals/2026-10-27_commercial-outreach-template.md) and awaits his approval; it is not for use.
+- The 25-minute call ends with a test report on their own product pages, then an introduction to the engineer who gets the trial key.
+- Drafts land in his mindmake.co mailbox, not the hello mailbox. Booking is "reply to book", with no booking link.
+- Scheduled research, drafting and posting run only in the runner (`operate.yml`). No interactive session holds the engine token.
+
 ## Completed and where to find it
 
 In Control Center, open Home > Waiting on you at https://controlcenter.krishraja.com/#/home?waiting=1 and filter for Legibility. The exact private wording and source evidence belong there, not in this public repository.
@@ -28,7 +35,7 @@ Drafts, evidence links and compose payloads were independently read back after w
 
 ## Freshness check on 27 October
 
-Read-only queue metadata check: all seven outreach rows still have state `pending`, with no decision or completion timestamp. Their `expires_at` is **23 October 2026 at 12:45 UTC**, already past. Do not describe them as currently approved or sendable without refreshing contact/company evidence, suppression/contact history and expiry through the normal approval path. Do not silently extend expiry or infer authority from the pending state.
+Read-only queue metadata check: all seven outreach rows still have state `pending`, with no decision or completion timestamp. Their `expires_at` is **23 October 2026 at 12:45 UTC**, already past. Do not describe them as currently approved or sendable without refreshing contact/company evidence, suppression/contact history, each person's Mindmake record in Control Center (ruling of 27 October) and expiry through the normal approval path. Do not silently extend expiry or infer authority from the pending state.
 
 The onboarding item is pending with no expiry. It still requires recipient personalisation and per-account activation checks. No fresh product calls, account provisioning, trial enforcement test or North Star measurement were performed on 27 October.
 
@@ -61,11 +68,11 @@ Onboarding sequence already drafted:
 ## Next session
 
 1. Read AGENTS.md, docs/NORTH_STAR.md, NOW.md and this handoff. The current North Star is weekly real builders making trusted reads, with the weekly ladder in NORTH_STAR.md. The number remains unmeasured here, not zero.
-2. Read current Control Center directives, decisions, canonical ICP, outreach rows and contact history. Refresh expired outreach before proposing a send; preserve reserve priorities and recipient/channel caveats. Do not rebuild completed copy or ask Krish to repeat the brief.
+2. Read current Control Center directives, decisions, canonical ICP, outreach rows and contact history. Refresh expired outreach before proposing a send; preserve reserve priorities and recipient/channel caveats. The Wave 0 refresh runs in the runner once its propose step exists (Phase 2), using each person's Mindmake record from Control Center's prior-outreach reader; no interactive session holds the engine token or posts the items. Someone Krish already reached for Mindmake takes the variant opening Krish approved on 27 October 2026 ([OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), "Variant: someone Krish has already reached for Mindmake"); someone touched only by visibility notes (podcast pitches, guest invites, press, the visibility notes a colleague sends for Krish) takes the template's own opening; an item whose Mindmake record is unknown or open, a Mindmake client, or a Mindmake touch under 14 days old is not refreshed. Run `npm run check:invitation` on the refreshed items and resubmit only those with no code. Do not rebuild completed copy or ask Krish to repeat the brief.
 3. **Explicitly authorised next-session task (Krish, 27 October 2026):** inspect the Legibility app's access/quota/billing implementation and establish how to provision and enforce the promised 30-day free trial, so the team is ready when a prospect replies. Start this investigation next session without asking whether to continue. Verify the activation process, usage allowance, trial start/end dates, expiry behaviour and billing safeguards. This authorises the investigation and concrete implementation recommendation; account provisioning, access/billing changes and release actions retain their own authority boundaries. The investigation has not yet been performed. Krish explicitly ended the current session: do not continue it here or ask another continuation question.
-4. Once a real tester accepts, personalise the saved onboarding item, verify access and free usage, record dates, and measure their first trusted API read and return. Count only genuine external builder use.
+4. Once a real tester accepts, personalise the saved onboarding item, verify access and free usage, record dates, and measure their first trusted API read and return. On the commercial route the tester is the engineer a commercial leader introduces, and the read counts only from that engineer's own key. Count only genuine external builder use.
 5. Keep the existing GET-GOING engine build checklist separate. This handoff does not complete snapshot-export, ICP-read, autonomy-loop or campaign-clock implementation steps.
 
 ## Handoff validation
 
-On 27 October, `npm run check`, all 76 tests, `npm run conveyor`, `npm run demo` and `git diff --check` passed. The demo used synthetic fixtures only; it is not evidence of live adoption or trial provisioning. The queue metadata check was read-only. No engine implementation or North Star target was changed by this documentation update.
+On 27 October, `npm run check`, all tests, `npm run conveyor`, `npm run demo` and `git diff --check` passed. The demo used synthetic fixtures only; it is not evidence of live adoption or trial provisioning. The queue metadata check was read-only. No engine implementation or North Star target was changed by this documentation update.

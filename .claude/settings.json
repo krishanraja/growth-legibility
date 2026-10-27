@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "mcp__Instantly",
+      "mcp__plugin_sales_apollo",
+      "mcp__plugin_sales_fireflies",
+      "mcp__Buffer",
+      "mcp__Higgsfield",
+      "mcp__Runway",
+      "mcp__HeyGen",
+      "mcp__ElevenLabs",
+      "mcp__Shopify",
+      "mcp__Riverside",
+      "mcp__Gmail__send_message",
+      "mcp__Gmail__reply",
+      "mcp__Gmail__forward",
+      "mcp__Gmail__trash_message",
+      "mcp__Gmail__trash_thread",
+      "mcp__Gmail__delete_draft",
+      "mcp__Gmail__delete_label",
+      "mcp__Google_Drive__share_file",
+      "mcp__Google_Drive__trash_file",
+      "mcp__Canva__publish-brand-template",
+      "mcp__Calendly__event_types-create_event_type",
+      "mcp__Calendly__event_types-update_event_type",
+      "mcp__Calendly__event_types-update_event_type_availability_schedule",
+      "mcp__Calendly__meetings-cancel_event",
+      "mcp__Calendly__meetings-create_invitee",
+      "mcp__Calendly__scheduling_links-create_single_use_scheduling_link",
+      "mcp__Apify__call-actor",
+      "mcp__Slack__slack_send_message",
+      "mcp__Slack__slack_schedule_message",
+      "mcp__n8n__publish_workflow",
+      "mcp__n8n__unpublish_workflow",
+      "mcp__n8n__execute_workflow",
+      "mcp__n8n__call_agent",
+      "mcp__n8n__publish_agent"
+    ]
+  }
+}

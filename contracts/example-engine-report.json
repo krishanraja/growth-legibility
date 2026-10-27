@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_id": "growth-legibility",
   "product_slug": "legibility",
-  "run_id": "legibility:2026-10-18:run:15178fedbd8d7e81",
+  "run_id": "legibility:2026-10-18:run:3afe36d65baa622f",
   "mode": "synthetic",
   "observed_at": "2026-10-18T12:00:00Z",
   "source": {
-    "revision": "1d2b1e132127583ce70d40cf2c73326f608cc4cdfbf4bd3ff648f7d3bde7107c",
+    "revision": "ed03d2f65c2b4c8043a1863d6d3ea41d79ce5acf7315a05f2b9d4c4a0e85f1c5",
     "captured_at": "2026-10-18T12:00:00Z"
   },
   "status": "ready",
@@ -44,7 +44,7 @@
   ],
   "activity": [
     {
-      "line": "Measured the Founding 200 funnel from a synthetic source snapshot captured 2026-10-18T12:00:00Z (digest 1d2b1e132127).",
+      "line": "Measured the Founding 200 funnel from a synthetic source snapshot captured 2026-10-18T12:00:00Z (digest ed03d2f65c2b).",
       "evidence_url": null
     },
     {
@@ -68,7 +68,7 @@
     {
       "proposal_id": "legibility:invite:831930818f6096f7:manual-email",
       "title": "Send a researched cold invitation to a builder prospect",
-      "why": "Scored 80 of 100 against the approved buyer definition, from a signal observed 2026-10-17T12:00:00Z. If Krish approves these exact words he sends them himself; the engine never sends.",
+      "why": "Scored 80 of 100 against the approved buyer definition, from a signal observed 2026-10-17T12:00:00Z. Control Center has no Mindmake note to them on record, so the note does not name Mindmake; the record is linked in the evidence. If Krish approves these exact words he sends them himself; the engine never sends.",
       "kind": "prepared",
       "wall": "send",
       "amount_usd": null,
@@ -77,6 +77,10 @@
       "exact_payload": "I read Synthetic Commerce Lab's Synthetic procurement agent experiment about typed catalogue inputs. Legibility exposes product data with calibrated confidence over REST and MCP; structured pages, Shopify and barcodes are its current scope. Would a five-input compatibility test help the integration experiment?",
       "payload_sha256": "3dea89156af21c44567f186874d2f7008b12eea14b3263179f8be0b4be0e0dd5",
       "evidence": [
+        {
+          "label": "Their Mindmake record in Control Center",
+          "url": "https://example.com/cc/person/candidate-example"
+        },
         {
           "label": "Cited source",
           "url": "https://example.org/synthetic-project"
@@ -136,5 +140,5 @@
   ],
   "events": [],
   "holds": [],
-  "payload_sha256": "841e58e762cee4ba9f1f4fb70b3f3faf93b4474bee4affbc4d1af9a16e8f45f9"
+  "payload_sha256": "148161a2065259609e9d5e4443a576a12625f1c5d2294e8295b367c808b7d60b"
 }

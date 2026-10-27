@@ -24,6 +24,9 @@ const date = v => {
   if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(v) || !Number.isFinite(Date.parse(v))) return false;
   return new Date(v).toISOString() === (v.includes('.') ? v : v.replace('Z','.000Z'));
 };
+export { date as utcInstant };
+// A real UTC instant no later than the capture.
+export const capturedBy = capturedAt => v => date(v) && Date.parse(v) <= Date.parse(capturedAt);
 const num = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
 const id = v => typeof v === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_.:-]{0,159}$/.test(v);
 const bool = v => typeof v === 'boolean';
@@ -68,7 +71,7 @@ export function validateSnapshot(s, at) {
       s[k] = [...seen.values()];
     }
   }
-  const before = v => date(v) && Date.parse(v) <= Date.parse(s.captured_at);
+  const before = capturedBy(s.captured_at);
   for (const a of s.accounts) {
     keys(a,['id','canonical_id','email_verified','use_case','relevant_context','is_internal','enrolled_at','api_key_created_at','acquisition_source','production_agent'],'account');
     fail(bool(a.email_verified) && bool(a.relevant_context) && bool(a.is_internal) && bool(a.production_agent), 'account_flags');
@@ -109,18 +112,39 @@ export function validateSnapshot(s, at) {
   }
   fail(s.benchmark && typeof s.benchmark.selection_method === 'string' && bool(s.benchmark.consented), 'benchmark');
   keys(s.benchmark,['selection_method','consented'],'benchmark');
-  for(const c of s.candidates) {
-    keys(c,['id','account_id','pool','company','project','channel','current_signal','relationship','scores','draft','contact','partner_id'],'candidate');
-    keys(c.current_signal,['text','url','observed_at'],'candidate_signal');
-    keys(c.relationship,['kind','evidence','url'],'candidate_relationship');
-    keys(c.scores,['fit','project','relationship','distribution','timing'],'candidate_scores');
-    keys(c.contact,['status','last_sent_at','followups'],'candidate_contact');
-    if(c.draft!==null)keys(c.draft,['text','source_refs'],'candidate_draft');
-    fail(date(c.current_signal.observed_at) && (c.contact.last_sent_at===null||before(c.contact.last_sent_at)), 'candidate_dates');
-  }
+  for(const c of s.candidates) validateCandidate(c, before);
   for(const o of s.opportunities) {keys(o,['id','kind','title','url','evidence_url','observed_at','status','effort_minutes'],'opportunity');fail(date(o.observed_at),'opportunity_date');}
   for(const x of s.suppressions) {keys(x,['candidate_id','reason'],'suppression');fail(id(x.candidate_id)&&text(x.reason,500),'suppression');}
   return s;
+}
+// contact.prior_mindmake is Control Center's Mindmake record for the person, copied unchanged from its reader.
+// Absent means unknown, which prepare holds; null is refused, so a failed join can never read as none.
+const MINDMAKE_RECORD = ['state','by','state_at','last_touch_at','record_url'];
+const MINDMAKE_STATES = ['none','unknown','open','client','drafted','sent','replied','met'];
+const recordLink = v => {
+  if (!text(v, 2000) || !/^https:\/\/\S+$/.test(v)) return false;
+  try { const u = new URL(v); return u.protocol === 'https:' && !u.username && !u.password; } catch { return false; }
+};
+export function validateCandidate(c, before) {
+  keys(c,['id','account_id','pool','company','project','channel','current_signal','relationship','scores','draft','contact','partner_id'],'candidate');
+  keys(c.current_signal,['text','url','observed_at'],'candidate_signal');
+  keys(c.relationship,['kind','evidence','url'],'candidate_relationship');
+  keys(c.scores,['fit','project','relationship','distribution','timing'],'candidate_scores');
+  keys(c.contact,['status','last_sent_at','followups','prior_mindmake'],'candidate_contact');
+  if(c.draft!==null)keys(c.draft,['text','source_refs'],'candidate_draft');
+  fail(date(c.current_signal.observed_at) && (c.contact.last_sent_at===null||before(c.contact.last_sent_at)), 'candidate_dates');
+  if(!Object.hasOwn(c.contact,'prior_mindmake')) return c;
+  const m=c.contact.prior_mindmake;
+  keys(m,MINDMAKE_RECORD,'candidate_prior_mindmake');
+  fail(MINDMAKE_RECORD.every(k=>Object.hasOwn(m,k)), 'candidate_prior_mindmake_shape');
+  fail(allowed(m.state,MINDMAKE_STATES), 'candidate_prior_mindmake_state');
+  fail(m.state==='unknown' ? m.record_url===null : recordLink(m.record_url), 'candidate_prior_mindmake_record');
+  const sender = m.state==='met' ? m.by==='krish' : ['sent','replied'].includes(m.state) ? allowed(m.by,['krish','other']) : m.by===null;
+  const dated = ['none','unknown'].includes(m.state) ? m.state_at===null && m.last_touch_at===null
+    : ['open','client'].includes(m.state) ? (m.state_at===null||before(m.state_at)) && (m.last_touch_at===null||before(m.last_touch_at))
+    : before(m.state_at) && before(m.last_touch_at);
+  fail(sender && dated && (m.state_at===null||m.last_touch_at===null||Date.parse(m.last_touch_at)>=Date.parse(m.state_at)), 'candidate_prior_mindmake_shape');
+  return c;
 }
 export function validateReport(r) {
   keys(r,['schema_version','engine_id','product_slug','run_id','mode','observed_at','source','status','scorecard','actions','holds','opportunities','payload_sha256'],'report');

@@ -12,6 +12,12 @@ It serves the North Star directly: 75 builders with a first trusted read and 30 
 
 Krish's explicit copy correction governs the pilot invitations: introduce the sender and business, explain Legibility in plain English, say where it adds to or could replace existing extraction, state the intended benefit and test criteria, and offer a 30-day free trial for feedback. Use [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), tailoring the workflow and contact channel. Demo evidence supports the explanation; do not open with unexplained test prices or jargon. This overrides the demonstration-first ordering below for these invitations without weakening evidence requirements or authorising sends.
 
+### Commercial-leader route, 27 October 2026
+
+Krish chose to go in through commercial leaders (Ruling, Krish, 2026-10-27). Wave 1 writes to commercial leaders at companies that buy product data for their own agents or products; commercial leaders at retailers and brands are a separate, later pool with its own wording, never in the same wave, and brands wanting SEO or GEO consultancy are not prospected. The note leads with one commercial outcome the pilot will measure (cost and speed, revenue from agents, or trust and risk: "test and learn what works"), never a measured lift, then the one offer, and the one ask is to reply to book a 25-minute call. The call ends with the test report on their own product pages and an introduction to the engineer who gets the trial key; that engineer's first trusted read is what counts.
+
+The commercial template is a proposal awaiting Krish's approval: [proposals/2026-10-27_commercial-outreach-template.md](proposals/2026-10-27_commercial-outreach-template.md). It is not for use. Until he approves it, [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md) is the only approved template, and Wave 1 holds.
+
 The corpus closes on: identify a valuable change people already want, build a credible and differentiated way to achieve it, explain it in the form they are ready to understand, and measure whether they act and succeed. For Legibility that reads: a builder whose agent needs product data it can rely on, shown on their own products what Legibility can and cannot read, then measured by a first trusted read and a return, never by a reply.
 
 ## The market: high sophistication, proof hungry
@@ -47,6 +53,8 @@ Label awareness before choosing a lead (Great Leads, Operational rules; Part IV,
 | Warm builder with cited relationship evidence | Solution or product aware | Promise, only with the proof attached | Relationship URL must be cited; no invented familiarity |
 | Introducer or multiplier | Their audience's problem | Problem-Solution for their readers | One ask; publication or forwarding stays theirs |
 | Returning builder (first trusted read done) | Most aware | Offer: the next concrete step | One human-reviewed follow-up at most |
+| Someone Krish already reached for Mindmake, whose last Mindmake contact was 14 or more days ago | Aware of Krish, unaware of Legibility | The two opening sentences Krish approved on 27 October 2026 for their Control Center record, the variant in [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), then the 21 October template | Mindmake only in those sentences, with the month from the record, and the record cited. Never while a Mindmake item about them is open, for a Mindmake client, or when the record is unknown |
+| Commercial leader at a company that buys product data (Wave 1, 27 October 2026) | Aware of the problem, unaware of Legibility | Problem-Solution, led by the one commercial outcome the pilot will measure (one of the three impact angles), then one offer: the 30-day free trial for feedback plus the test report on their own product pages | One ask: reply to book a 25-minute call. No booking link. Outcomes, not URLs and barcodes. Every impact sentence says what the pilot will measure, never a result. Uses the commercial template only once Krish approves it ([proposal](proposals/2026-10-27_commercial-outreach-template.md)) |
 
 Avoid Proclamation and Story for cold builders: they spend attention before relevance, and Proclamation slides toward the banned hype patterns. A Promise lead is never used without the test or a sourced result beside it.
 
@@ -156,13 +164,13 @@ Score 0 to 4 on the corpus's twelve dimensions (Part VI, Evaluation Rubric) as a
 
 Audience (approved ICP and trigger), Desire (their stated or observed need), Awareness fit (lead matches the touch table), Differentiation (mechanism, not "unique"), Offer value (the test lowers delay and effort), Proof (claim-matched, cited, qualified), Clarity, Flow, Objections (coverage and integration doubts answered where they arise), Ethics (no invented warmth, urgency or proof), Action (one exact step), Measurement (outcome traced by source to first trusted read).
 
-Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total. A high score proves only that the draft is worth Krish's review, not that it will work.
+Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total. An unsupported Mindmake or earlier-contact claim scores 0 on Ethics. A high score proves only that the draft is worth Krish's review, not that it will work.
 
 ## Where this engine's rules change the corpus
 
 1. No sender, publisher, list buyer or payment executor. The corpus's distribution and follow-up advice ends at a prepared draft; Krish acts.
 2. Named drafts only, for builders in a current approved Legibility ICP from Control Center. No generic sequences, purchased or scraped lists, or the corpus's seven-email sequence. One message and at most one human-reviewed follow-up.
-3. No invented urgency, scarcity, guarantees, testimonials, statistics, customer language or warmth. The corpus allows real versions; here even real ones need source evidence or Krish's confirmation.
+3. No invented urgency, scarcity, guarantees, testimonials, statistics, customer language or warmth, including earlier contact, Mindmake or otherwise, that the record does not show. The corpus allows real versions; here even real ones need source evidence or Krish's confirmation.
 4. No mainnet or universal-coverage claims without reviewed live evidence. x402 is testnet.
 5. Synthetic runs, fixtures and demo output never count as live achievement or as test results.
 6. Price, bonuses, guarantees and offer changes are Krish and product decisions, surfaced as proposals, never drafted first.
@@ -170,3 +178,4 @@ Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total.
 8. Zero paid media. The corpus's paid channel is closed.
 9. Voice-of-customer and case material uses only source-owned, consented records. Never commit real people, drafts or private research; fixtures stay synthetic.
 10. No em dashes in new material.
+11. To someone Krish already reached for Mindmake, Legibility is positioned as a partner product (Ruling, Krish, 2026-10-27), only in the variant he approved on 27 October 2026, "Variant: someone Krish has already reached for Mindmake" in [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md): the two opening sentences for their record, then the template word for word. Any other opening is held (`partner_framing_missing`). Visibility notes (podcast pitches, guest invites, press, the visibility notes a colleague sends for Krish) are not reaching out for Mindmake; those people get the template's own opening. Whether someone was reached comes only from Control Center's record of the person (`contact.prior_mindmake`) as its prior-outreach reader answers it, never from a name, a company, a session's own reads or memory; until the reader exists, every record is unknown and holds. Mindmake is named to nobody else, and never as an offer, endorsement, link or second ask. Unknown history holds the draft.

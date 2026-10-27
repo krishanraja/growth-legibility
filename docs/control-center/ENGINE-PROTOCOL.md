@@ -1,7 +1,7 @@
-<!-- Copied from krishanraja/control-center docs/app/growth/ENGINE-PROTOCOL.md on 2026-10-21. Control Center's copy is authoritative. -->
-# The growth engine protocol, version 1.2.0
+<!-- Copied from krishanraja/control-center docs/app/growth/ENGINE-PROTOCOL.md at 2965e73 on 2026-10-27. Control Center's copy is authoritative. The two schema files beside this copy are the 1.2-era copies the tests validate against; Control Center's own schemas are authoritative for later fields. -->
+# The growth engine protocol, version 1.8.0
 
-Every growth engine reports into Control Center through this one protocol, and Control Center pushes each engine its next move through it (ADR-038 in Control Center). It replaces the per-engine receivers the handoffs asked for. The engines are:
+Every growth engine reports into Control Center through this one protocol, and Control Center pushes each engine its next move through it ([ADR-038](https://github.com/krishanraja/control-center/blob/2965e73c7bc836010da948c6ccb8722b3105345d/docs/DECISIONS/038-one-protocol-for-growth-engines.md)). It replaces the per-engine receivers the handoffs asked for. The engines are:
 
 | Engine | Slug in the path | `engine_id` | `product_slug` |
 |---|---|---|---|
@@ -20,7 +20,7 @@ Control Center only ever adds within 1.x: a new minor version adds fields, never
 
 - **Accept any 1.x** in what Control Center serves (the directive, capabilities, decisions), and ignore a field you do not know. Never require an exact version back.
 - **Send the version you speak.** `capabilities.schema_versions` lists every version Control Center takes; check that yours is in it.
-- **Raise yours only for a field you use.** 1.1.0 adds a proposal's `stage` and `parent_proposal_id`; 1.2.0 adds its `subject_ref`.
+- **Raise yours only for a field you use.** 1.1.0 adds a proposal's `stage` and `parent_proposal_id`; 1.2.0 adds its `subject_ref`; 1.4.0 adds the North Star number and urgency to the directive (below), and nothing to the report. 1.5.0 adds `taste`, Krish's approved voice rules, to the directive (below), and nothing to the report. 1.6.0 adds a proposal's `row`, `rank`, `reach`, `amplifier_kind`, `features`, `serves` and `source_revision`, a version 2 action, 40 proposals a report, `week_goals` and `rows_rule` in the directive, `carried_out` and `reason_code` in a decision, and the research desk (below). 1.7.0 adds a row proposal's `because` and `brief`, which a row then needs, and the context's `mindmake_fit`, `sells_competing_services`, `known_since`, `email_last` and `quiet_ties` (below). 1.8.0 adds a row proposal's `card`, the full card a tap opens, which a row then needs, and the context's `email_inbound`, `email_outbound`, `source_list` and `last_post_at` (below). 1.9.0 lets a visibility or events row's email action name Jonny's box (`mailbox`), which Control Center drafts each day with no press, and adds each stage's podcast facts and booking route and each pitch's outcome to the context (below).
 
 On 2026-10-19 Control Center began serving 1.1.0. Legibility required exactly 1.0.0 back from capabilities, and Mindmake from the directive, so both stopped on every run (`receiver_contract_mismatch`, `directive_invalid`) and reported nothing for two days. That is why this rule exists.
 
@@ -38,6 +38,7 @@ Each run, every engine does these five things, in this order:
 - Every day around 06:10 in London (the cron is `/api/growth/engines-dispatch` at 05:10 UTC), Control Center writes each active engine's directive.
 - Where dispatch is on, it also wakes the engine's repository with one `repository_dispatch` of type `cc-growth-directive`. The payload is `{ directive_id, engine_id }`, nothing else, and the engine pulls the rest with its own bearer.
 - An engine that does not run on GitHub Actions just pulls the directive at the start of its own run. The directive is the same either way.
+- Control Center may wake an engine again later the same day with the same payload (growth-mindmake, when a row of his widget runs low; at most once an hour). An engine treats it as another run of the same day: it pulls the directive again and reports with a new `run_id`.
 
 ## Auth
 
@@ -56,6 +57,78 @@ Each run, every engine does these five things, in this order:
 
 ## Routes
 
+### Scoped context and complete outcomes (1.3.0)
+
+Capabilities add `features.context`, `features.outcomes` and `features.exact_actions`.
+Each is false when the engine or deployment lacks the corresponding adapter.
+Older reports and clients remain valid. A catalog entry does not prove usable access.
+
+`GET /api/growth/engines/<slug>/context` returns `{ ok, context }` with
+engine/product identities, observation time, native records, selected Network
+identities, canonical warm paths, proof permissions and per-source coverage.
+Each coverage entry carries availability, completeness, row count, source date
+and reason. The Network selection is bounded and explicitly partial. Relationship
+warmth and consent classification have separate counts and definitions. These
+reads contain no raw correspondence, mailbox addresses, profiles or credentials.
+Correspondence, transcripts and connectors unverified through the engine bearer
+remain visibly unavailable. This is a scoped preparation read, not a new CRM.
+`work_context` reuses the existing version-1 selected-job contract and snapshot
+builder. Jobs come from native Advisory `growth_context.engine_jobs`, with
+their existing source identities; no parallel job table is created. That
+context runs the complete producer cycle before fresh campaign preparation,
+under the shared capacity. An unavailable context or missing source holds
+those jobs explicitly. Native replies without enough request context block
+fresh acquisition; engine plan declines are retained until a new review.
+
+`GET /api/growth/engines/<slug>/outcomes` returns `{ ok, outcomes }` with
+complete paginated native lifecycle records, source coverage, London-week and
+original first-30-day windows, and explicit definitions/unavailable measures.
+The read is independent of contact selection. Bookings never count as held calls;
+qualification remains human-owned. A paid timestamp without independent payment
+evidence cannot establish a verified paid proof. Missing coverage is unknown.
+Recognition, distribution, efficiency and free-pilot measures remain unknown until
+their native sources record complete evidence; never infer them from drafts.
+
+The initial adapter is Mindmake only. Other engines receive feature flags false
+and 404 for these reads, with their existing reports and directives unchanged.
+
+### Exact approved actions (1.3.0)
+
+`GET /api/growth/engines/<slug>/prepare-action/<plan_id>` prepares an action
+from an approved campaign plan and its current native record. It returns an
+existing unexpired child unchanged, or `completed`, before preparing anything
+new. Current proof permission and recipient eligibility are checked again.
+
+The action is the proposal's full JSON `exact_payload`: version, channel,
+recipient contact id and address, subject, body, assets, cost, not-before,
+expiry, source reference and source updated time. Its digest is SHA-256 of
+canonical JSON of the action. A go-live names the approved parent plan.
+An amendment is approved as the entire finished action and uses the existing
+amendment digest. Any native edit, changed address, suppression, closed window
+or invalid digest blocks execution. The two-London-day window accommodates
+the next daily dispatch, including the clock change.
+
+`POST /api/growth/engines/<slug>/execute/<proposal_id>` is the shared executor,
+separate from the proposal-only handler and all drafting surfaces. It accepts
+no action supplied in the request: the approved record is authoritative.
+Initially only plain zero-cost email with no assets and an Advisory source
+reference is supported. Unsupported channels, attachments, spend and direct
+Visibility execution are blocked. An institutional first message may use its
+linked native Advisory relationship; Visibility still owns the session and gates.
+
+A private service-only `growth_engine_actions` journal claims each proposal once,
+inside a transaction that checks both approvals and the current registry. A send
+acknowledgement is `submitted`. Only an independent Gmail GET with the matching
+recipient, subject, body and SENT label permits `verified`. Lost or ambiguous
+sends stay `claimed`/`unknown` and are never resent. Known provider ids can be
+reconciled with `POST .../execute/<id>` and `{ reconcile: true }` without
+another send. `GET .../execute/<id>` only reads the receipt.
+The existing `mail_sent` done check moves the native lifecycle from the verified
+receipt, preserving one completion system and its audit and Undo behavior.
+
+Never claim autonomy from configuration or a green run. Acceptance still requires
+an exact human-approved external action and a real independently verified receipt.
+
 | Method and path | Request | Response |
 |---|---|---|
 | `GET /api/growth/engines/<slug>/capabilities` | | `{ schema_version, schema_versions, autonomy, engine_id, product_slug, idempotency: true, activation: { state, activated_on }, features }` |
@@ -64,7 +137,9 @@ Each run, every engine does these five things, in this order:
 | `GET /api/growth/engines/<slug>/reports/<run_id>` | | `{ accepted: true, run_id, payload_sha256, mode, accepted_at, report }`, or 404 |
 | `POST /api/growth/engines/<slug>/attempts` | an attempt | `{ ok: true, attempt[, replayed] }` |
 | `GET /api/growth/engines/<slug>/attempts/<attempt_id>` | | `{ ok: true, attempt }`, or 404 |
-| `GET /api/growth/engines/<slug>/decisions[?since=<time>]` | | `{ ok, decisions: [{ proposal_id, decision: 'approved'\|'declined'\|'done', decided_at, payload_sha256, stage, amended[, exact_payload, amount_usd, amended_sha256] }] }` |
+| `GET /api/growth/engines/<slug>/decisions[?since=<time>]` | | `{ ok, decisions: [{ proposal_id, decision: 'approved'\|'declined'\|'done', decided_at, payload_sha256, stage, amended[, exact_payload, amount_usd, amended_sha256][, carried_out][, reason_code, reason_text] }] }` |
+| `POST /api/growth/engines/<slug>/research` | `{ requests: [...] }` (1.6.0, Mindmake) | `{ ok, research: [{ request_id, kind, subject_ref, query, why, status, evidence, answer, requested_at, answered_at }] }` |
+| `GET /api/growth/engines/<slug>/research[/<request_id>]` | | `{ ok, research }`, or 404 |
 
 **Errors.**
 - **400:** the report or attempt is malformed. The body names the field.
@@ -77,6 +152,85 @@ Each run, every engine does these five things, in this order:
 - **413:** the report is over 512 KB.
 - **429:** rate limited, with `Retry-After`.
 - **500 `store_failed`:** the store failed. This is redacted and carries no row or body.
+
+### The five rows: people in front of Krish (1.6.0)
+
+Ruling (Krish, 2026-10-26): growth-mindmake owns everything about growing Mindmake and connecting Krish to the right people: who, how far each one reaches, the words, and what it learns from his answers. Control Center holds the holistic view: the records, the walls, the press, and his home screen. It ranks nothing itself and never writes a Mindmake pitch ([ADR-041](https://github.com/krishanraja/control-center/blob/2965e73c7bc836010da948c6ccb8722b3105345d/docs/DECISIONS/041-the-engine-hunts-control-center-holds.md)).
+
+Every action should make him exponentially more visible, so the engine hunts amplifiers, people whose yes puts him in front of many others (`amplifier_kind`): `investor` (prolific investors), `connector` (well-connected people), `ai_capital` (people anywhere with inordinate money who want to shape AI and steer their investments to it), `ai_trainer`, `student_educator` and `ceo_educator` (those who teach AI, students or CEOs at scale), and `broadcaster` (mass broadcast and social channels on growing with AI).
+
+A proposal for his home screen carries, on top of 1.2.0:
+
+| Field | Meaning |
+|---|---|
+| `row` | `reach_out`, `network`, `visibility`, `events` or `partners`: where it shows. The ask decides the row (an intro or a portfolio session, getting closer, appearing on their channel, a talk or a session, co-delivering) |
+| `rank` | The engine's order within the row, 1 first. Control Center shows this order and never re-ranks it |
+| `reach` | `{ value, band, basis, source_url, as_of }`. A `value` is a claim, so it names its `source_url` and `as_of`, and its `band` matches it. Without a source give `value: null` and a band; `unknown` is said, never guessed |
+| `amplifier_kind`, `features` | The kind, and `{ sector, topic, seniority }` (lower-case words, seniority `c_suite`, `senior` or `other`), which his reasons for a No filter on |
+| `serves` | One of `week_goals`, word for word, or null |
+| `source_revision` | 1 to 8 `{ repo, path, sha }`: every file the words were written from, by its git blob SHA on the default branch. Before he acts, Control Center reads each SHA again; a file that moved or went makes the action stale (it shows the next one, and you write it again), and a repository it cannot read acts on nothing. It holds no venture fact itself |
+
+**Why him, why them (1.7.0).** Krish, 2026-10-27: "I have no idea whether I want to do those things or not. Or why I should do those things." At 1.7.0 a row proposal also carries, and needs:
+
+| Field | Meaning |
+|---|---|
+| `because` | 1 to 80 characters, the line under the title on his card (two lines of it): who they are and why them, so he can decide from the card alone ("Hosts a 6-year tech podcast. Known since 2021, last email Jun 2024."). With it, a 1.7.0 row's title is at most 56 characters, so both fit beside the presses whole |
+| `brief` | 2 to 6 lines of at most 200 characters, what he reads when he taps the card: who they are, how he knows them, why them, what a yes gets him (the goal), the reach and its basis, and the Mindmake fit. Control Center shows it above the exact words a press would carry out |
+
+A 1.6.0 row is still taken without them; its `why` stands in for the case.
+
+**The full card (1.8.0).** Krish, 2026-10-27: "I need to be fully in the know as to who they are, why I'm getting in touch with them, what benefit I would have, and what angles to take." At 1.8.0 a row proposal also carries, and needs, `card`, which a tap on the card opens in parts (the phone shows the 1.7.0 `brief` to an older app, so keep both, saying the same facts):
+
+| Part | Meaning |
+|---|---|
+| `who` | 1 to 320 characters: who they are and what their organisation does, from the record's `who` or their title and company |
+| `known` | 1 to 240: how he knows them, plainly: since when, through what (Gmail, LinkedIn connections, phone contacts), the emails each way and the last one. Never a claim the counts contradict ("You have written to each other" needs mail both ways) |
+| `why` | 1 to 3 whole sentences of at most 240: why them, and why now (their hook, their company's moment, a recent public post) |
+| `gain` | 1 to 3 whole sentences of at most 240: what he gets if they say yes, tied to the week goal it serves, a number only with its source |
+| `angles` | 1 to 3 `{ title, line }`: the angle to take, its title (at most 60) from the venture's own canon, its line (at most 240) tying that theme to this person |
+| `sources` | 0 to 6 `{ label, url }`: the public https pages the facts came from. Never a way to reach them: a LinkedIn profile, `mailto:`, `wa.me` or `tel:` link is refused |
+
+A card that cannot say who, why and what he gets is not one he can decide on: hold the suggestion and ask for the research that would fill it, rather than send a thin one. A 1.7.0 row is still taken without a card; the phone shows its brief.
+
+A row proposal is a prepared `send`, `stage: null` (Krish carries it out himself, so it is never a go-live the executor could send), with `subject_ref` set and `channel` equal to its action's. Its `title` is the line he reads on his phone, shown whole, so it is at most 72 characters of plain words. Its `exact_payload` is a **version 2 action**, with no address and no number: Control Center reads those from its own records when he presses.
+
+```json
+{ "version": 2, "channel": "email", "recipient_contact_id": "<uuid>", "subject": "One line", "body": "The words", "form": null, "mailbox": null }
+```
+
+`channel` is `email` (a subject, up to 7,000 characters), `x_message` or `whatsapp` (up to 1,000, opened for him with the words typed), or `form` (`recipient_contact_id` null, `form: { url, answers: [{ label, value }] }`, 1 to 40 answers). The recipient may differ from `subject_ref`: an introduction goes to the mutual and is about the person they introduce. A 1.6.0 report may carry 40 proposals, a ranked queue for each row.
+
+**His answer.** From his home screen widget, or from Clear on his one list (Krish, 2026-10-26: Clear on Home makes the draft too), the press carries it out and records how (`carried_out`: `draft`, a Gmail draft he sends himself; `message`, a message app opened with the words typed; `submit`, a form submitted on his tap). Never send or submit a proposal he carried out; the shared executor refuses it (`carried_out_by_krish`), and Control Center reports the closing event when it sees it. Purge carries `reason_code` (`wrong_person`, `not_now`, `already_in_touch`, `too_small`, `wrong_audience`, `not_my_topic`, `pitch_off`, `other`) and his own words in `reason_text`: offer better, and do not offer that person, or anything like it on that reason, again. The context's `feedback` carries every past answer with the row, subject, `amplifier_kind`, `features` and `reach` it was about, so a reason can be applied to what is like it and what he taught is never forgotten.
+
+**Context, 1.6.0** (Mindmake). On top of 1.3.0, `GET .../context` adds `amplifier_candidates` (up to 300 people on tiers 1 to 4 who read as reaching many, up to 200 close ties first and then 100 from the wider network, each by followers: a title tagged amplifier or multiplier, 5,000 followers or more, or a creator or influencer badge; a wide net, you judge), `routes` (per contact id, `{ email: verified|unchecked|none, x, linkedin, instagram, whatsapp }`, never the address; X only once the person's numeric X id is on file, since X's message link needs it; WhatsApp only for someone close), `companies` (`company_intel` for their domains), `research` (below; anyone a research row names, by `subject_ref` or as a commenter he already has, gets `routes` too) and `voices` (the people he follows for inspiration, as the content engine keeps them in `content_creators`: `{ slug, name, linkedin_url, why, last_post_url, last_post_at }`; who gathers under them is yours to find). Each part has its coverage line; a part that cannot be read says so and is never sent empty.
+
+**Context, 1.7.0.** Every row of `network`, `amplifier_candidates` and the new `quiet_ties` carries `mindmake_fit` (Control Center's own read of how well the person fits Mindmake, 0 to 100, or null when unscored, never another venture's score), `sells_competing_services` (true when they sell what Mindmake sells), `known_since` and `email_last` (the date of the last email between them, the one record of contact Control Center keeps: `last_touch_at` is never written). `quiet_ties` is up to 100 close ties (`1_reciprocated`, `2_core_network`) whose last email is more than 90 days old, best fit first, with their `routes`. Control Center ranks none of it; which are worth his time is yours.
+
+**Context, 1.8.0.** The same rows also carry what the full card is written from: `email_inbound` and `email_outbound` (how many emails each way), `source_list` (where he knows them from, by source name: `gmail_*`, `linkedin_export`, `phone_address_book`, `instagram_export`, `meta_export`; never an address), `last_post_at`, and `intent_summary` on every row (it was on `amplifier_candidates` only). `who`, `why_them` and `hook` were there already.
+
+**Jonny's pitches (1.9.0).** Krish, 2026-10-27: pitch as many podcasts as possible from Jonny's Gmail, "Drafted daily, no press", "For visibility Jonny sends". A version 2 email action may carry `mailbox`: `null` (his own box, as before), `krish`, or `jonny`, and `jonny` only on the `visibility` row (a podcast) or the `events` row (a stage to speak on). Write a `jonny` pitch in Jonny's voice for Krish ("I work with Krish Raja", Krish in the third person, signed Jonny: Ruling, Krish, 2026-10-20), about a stage Control Center holds (`subject_ref: target:<id>`), to the stage's `booking_contact_id`. Control Center drafts each one into Jonny's Gmail with no press, best rank first, at most 10 a day (`api/_pitchDrafts.ts`), only once Gmail answers as Jonny's own box, and records it as carried out as a draft, so it never reaches Krish's list or a press on his widget, and the executor never sends it. Jonny reads it and presses Send. An earlier report naming a mailbox is refused.
+
+**Context, 1.9.0.** Stages with no product are Krish's own visibility and are now in `visibility` beside Mindmake's. Each podcast carries what the daily walk read from its public feed (`api/_podcastFeeds.ts`): `feed_url`, `episodes`, `latest_episode_at`, and `booking_contact_id` with `booking_source` when the show publishes an address of its own (never the address). `drafts` carries each pitch's `proposal_id`, `visibility_target_id`, `mailbox` and what became of it, as Gmail and his calendar show it: `sent_at`, `replied_at`, `booked_at`, `recorded_at`, `published_at`. A show already pitched is not pitched again; learn from which ones answer. Each stage also carries the speaker call or guest form its own page links to (`cfp_url`) and, read from the form's own page by the daily walk, the fields it asks (`form_fields`: `[{ label, name, type, required, options }]`, `form_fields_at`; an empty list is a form drawn in script, which you leave alone). `visibility` carries each stage's `suggested_talk_title` and `audience_size`, and `guests` each guest's `invite_state` and `scheduled_at`; a guest's contact and a stage's booking contact get `routes`.
+
+**Guest invites (1.9.0).** An invite to a guest for one of his own shows (Signal & Noise or Make Your Mind Up) is a `jonny` email on the `visibility` row about the guest (`subject_ref: contact:<id>`, the guest's own `contact_id`). Control Center drafts it into Jonny's Gmail with the same daily cap, files it as a guest draft (`job: guests`, `show` the guest's show), marks the guest invited, and reads its outcome as for a pitch; booked is the calendar event that names the guest, which sets the guest's `scheduled_at`.
+
+**Forms on his tap (2026-10-27).** A version 2 `form` action (`recipient_contact_id: null`, `form: { url, answers: [{ label, value }] }`) on a stage (`subject_ref: target:<id>`) is now pressable: his **Submit** on the widget, or Clear on Home, fills the form in a browser with your answers, each in the field whose own label it names, and sends it (Ruling, Krish, 2026-10-26: "a form is filled for him and his tap submits it"). Write answers by the labels in `form_fields`, one for every required field. It submits only when every required field is filled and the page asks nothing only he can give: a CAPTCHA, a login, a payment, or a terms box (ticking one is a legal yes in his name). Otherwise nothing is sent and `forms` says why. `forms` carries each try (`proposal_id`, your own proposal id, `url`, `status`: `submitted`, `confirmed` when the page said it arrived, or `not_sent`; `filled`, `missing`, `blockers`, `unused` answers no field asked for, `after_url`, `after_title`, `submitted_at`; never the page's text or its picture). A `not_sent` form is yours to route again: answer what was missing, or fall to the next best route (a Jonny pitch to the stage's booking contact). A form is sent once per proposal; a stage it was sent for is marked applied.
+
+### The research desk (1.6.0)
+
+Control Center holds the tools; the engine decides what to look up. `POST /api/growth/engines/<slug>/research` with `{ requests: [{ request_id, kind, subject_ref, query, why }] }`, 1 to 10:
+
+- `kind` is `search` (an Exa web search: up to five results, each `{ title, url, snippet, published }`) or `question` (a Perplexity answer with its citations), or one of the three LinkedIn signal kinds below.
+- `query` is at most 400 characters and never carries an address or a phone number; `why` says what the answer decides.
+- Each `request_id` is answered once: the same id replays its stored answer, and the same id with different words is 409.
+- Status is `answered`, `empty`, `failed` or `over_cap`. The caps are per day: 40 searches (about $0.0025 each) and 20 questions (about $0.001 each), from measured unit costs; 6 `posts` (up to $0.02 each), 3 `post_engagers` (up to $0.08 each) and 8 `person_route` (up to $0.01 each), from the Apify actors' published prices, each run also capped in dollars at Apify. Every kind at its cap is about $0.56 a day. Over the cap nothing runs; ask again tomorrow under a new id. `GET .../capabilities` carries `research: { kinds, per_day }`.
+
+**Signals** (Krish, 2026-10-26: people who comment on posts like "AI's next job casualty could be your boss" are worth reaching, "but only if they're the right types of ICP: worried executives, as opposed to AI people"; the voices he follows "are talking to the people I want to talk to"; "the growth engine needs to think about those types of signals and relevant signals from the ICPs I want, and bring them to me for action"). Which signals matter, which posts to read and which commenter is his buyer are yours. Control Center only collects:
+
+- `posts`: `query` is topic words, or the profile link of a voice (`https://www.linkedin.com/in/<id>`). Up to ten posts from the last month, each a result with `engagement: { comments, reactions }`; `title` is the author and their headline.
+- `post_engagers`: `query` is one LinkedIn post link. Up to forty commenters, one result each, with `snippet` their comment as written and `person: { handle, name, headline, contact_id }`. `contact_id` is set when he already has them, which makes them warm. The post's author is left out, and so is anyone he marked do not contact or closed.
+- `person_route`: `query` is `li:<handle>` from a `post_engagers` result. Someone he already has costs nothing (`subject_ref` names them). Otherwise one profile read with an email search, and the person is filed as a cold, engaged contact (`origin_channel` `growth_signal`), so you can name them as `contact:<id>` and his press can draft to them. The answer says only `an address the search checked`, `only a guessed address, kept off the record` or `no address found`; an address the search did not check never reaches the record (`api/_ingestGate.ts`), and the same person is never searched twice or filed twice. The address never comes back to you.
+- `GET .../research[/<request_id>]` reads them back, and the next context carries the last 14 days.
 
 ## The report
 
@@ -146,15 +300,20 @@ The schema is [engine-directive.schema.json](engine-directive.schema.json).
 | `next_action` | `{ proposal_id, instruction, why, close_condition }`: the one thing to do |
 | `decisions_since[]` | His decisions in the last seven days, each as `GET .../decisions` gives it: the `payload_sha256` it was made on, the `stage`, and his version when `amended` |
 | `constraints` | `{ walls, autonomy, autonomy_rule, spend_cap_usd: 0, max_actions: 5 }`. `walls` is the rule above, word for word; `autonomy` and `autonomy_rule` say who acts once he approves, below, and end with the one-ask-at-a-time rule |
+| `aim_by`, `week_of`, `week_target`, `current`, `urgency`, `urgency_reason` | 1.4.0, optional. The parent product's North Star number from Control Center's daily refresh ([ADR-040](https://github.com/krishanraja/control-center/blob/2965e73c7bc836010da948c6ccb8722b3105345d/docs/DECISIONS/040-every-repository-chases-one-number.md)): its deadline, this week's rung of its weekly ladder, the latest reading, the urgency U1 to U5 by ai-harness `contract/north-star-metric.md`, and why. Mindmake's figures read `"private"`. Absent when no refresh has read the number |
+| `north_star` | 1.4.0, optional. `{ parent, own, intensity }`: the parent product's number and the engine's own (each `{ repo, metric, unit, aim_by, week_of, week_target, current, urgency, urgency_reason, read_on }`, or null), and `intensity { urgency, drafts_multiplier, rule }`, set by the more urgent of the two. U3 doubles draft output, U4 asks for a bold swing every day, U5 for three unconventional recovery plays. The walls, `spend_cap_usd` and `max_actions` never move with it |
+| `taste` | 1.5.0, optional. `{ rule, approved_voice_rules[] }`: Krish's approved voice rules (`taste_profile_form`, lane voice: approved or reworded by him only, form only, his words only while the answer they quote stands), each `{ layer, rule, his_words, what_it_means }`. Follow them for how anything you draft is written, never to choose what it is about, and never to judge, score or rank. An empty list means none approved yet: never invent one. Absent means they could not be read today (krishanraja/inspirationhouse `docs/TWO_WAY.md`, step 6) |
+| `week_goals` | 1.6.0, optional. His goals for this week in his own words, newest week, at most three. A row's `serves` quotes one exactly. Empty when he has set none; absent when they could not be read |
+| `rows_rule` | 1.6.0, Mindmake only, with `week_goals`: how to put people in front of him, word for word (the five rows, above) |
 | `in_house` | Mindmake only. `{ rule, counts }` says what Advisory (`pilot_deals`), Network (warm tiers) and Visibility (stages and rooms) did this week inside Control Center, as counts. A part that could not be read is `null`, never zero. These three drive Mindmake's growth already, so the engine proposes into them and never drafts a second note or pitch to someone they already hold |
 
 **How the next action is chosen, by rule** (Ruling, Krish, 2026-10-18), in order:
 
 1. Something Krish approved that the engine has not yet done, with the approved payload (his version when he amended it). For an autonomous engine, an approved plan says "build it up to go-live, then propose the go-live", and an approved go-live says "go live with exactly what he approved".
 2. If the engine is failing, unknown or stale: repair, naming what broke.
-3. The unwalled pending proposal that closes the widest gap to an objective. An objective that is not measured yet counts as a wide gap, and a proposal on no objective as a small one.
+3. The unwalled pending proposal that closes the widest gap to an objective. An objective that is not measured yet counts as a wide gap, and a proposal on no objective as a small one. Urgency raises the floor of every gap on an objective (U2 0.1, U3 0.4, U4 0.6, U5 0.8), so behind the number, a proposal that moves it comes first.
 4. If everything proposed is behind a wall: keep preparing, and do not act on what waits on Krish. He sees one of your asks at a time, so add no second ask of a kind that already waits on him.
-5. If nothing is proposed: propose your best move on the widest gap.
+5. If nothing is proposed: propose your best move on the widest gap; at U3 two experiments, at U4 one bold swing, at U5 three unconventional recovery plays, each different in kind.
 
 Krish can pick another unwalled proposal on Growth > Engines as tomorrow's push (`chosen_by: krish`). The rule never replaces his pick.
 
@@ -169,7 +328,7 @@ On his list, an engine's proposal that carries words (`exact_payload`) or, for a
 
 ## Autonomy: plan, then go-live
 
-Each engine is `handcrafted` or `autonomous` (`growth_engines.autonomy`, in the directive's `constraints` and in `capabilities`). Ruling (Krish, 2026-10-19): Full Time, Heartside, Legibility, Make Your Mind Up and AEO are autonomous; Mindmake is handcrafted. And: "Autonomy is given where it's deserved." Krish can switch any engine back to handcrafted.
+Each engine is `handcrafted` or `autonomous` (`growth_engines.autonomy`, in the directive's `constraints` and in `capabilities`). Ruling (Krish, 2026-10-22): Mindmake now prepares autonomously and executes only a supported, exact approved finished action with independent verification. This supersedes its 19 October handcrafted setting. Krish can switch any engine back to handcrafted.
 
 **Autonomous**, in two steps, each on his list:
 1. **The plan.** Propose what you are going to do as `stage: "plan"` behind a wall (usually `strategy`), with the plan in `exact_payload` so he can amend it. Wait for his yes.
@@ -188,6 +347,7 @@ Either way, the walls rule holds: nothing goes out without a decision whose dige
 Ruling (Krish, 2026-10-21), so the engines and the parts of Control Center that already queue things for him never put the same thing in front of him twice:
 
 - **One ask per engine at a time.** Of an engine's walled proposals, his list shows one: a go-live first, then a check-in, then a plan, then a spend, a send, a post and a strategy call, the oldest first within each. The rest wait their turn, each named, and the next comes forward when he answers (or bumps) the one shown. So never add a second ask of a kind that already waits; keep the one waiting current instead.
+- **Spends take turns by the ladder** (Ruling, Krish, 2026-10-22). Spends draw on the same prepaid credits, so while one venture's spend (not its plan or check-in) is on his list, a spend from a venture lower on the portfolio ladder is held, named (`waits_on_ladder`), and comes forward when the higher one is answered or bumped. That engine's next ask still comes forward in the meantime.
 - **One copy of a person, stage or room.** Advisory (`pilot_deals`), People, Visibility and Events already draft notes and pitches. A proposal whose `subject_ref` names someone or something they hold is left off his list, and theirs stays. It is not declined: it waits, and it lapses when it expires. Propose into them, never a second note.
 - **Who owns what.** Control Center's People and Visibility own outreach to shows and guests for Make Your Mind Up, so that engine proposes posts and measures, never a pitch, a swap or a partner note. A product with an active engine has that engine as its one strategy voice: the Sunday growth council writes no weekly move for it.
 
@@ -204,5 +364,6 @@ The states are `inactive`, `never_reported`, `healthy`, `held`, `degraded`, `fai
 | Each accepted live report | One `workflow_runs` row (`workflow_id` = `engine_id`, `agent_id` from the registry), so fleet health sees it |
 | A walled proposal | Home's one list, source `engine`, one per engine at a time and never beside Control Center's own copy of the same subject. Clear approves exactly that payload, Purge declines, Bump keeps it off until his next day (`api/_verbs.ts`, `actOnEngine`) |
 | An unwalled proposal | Growth > Engines, where he can pick it as tomorrow's push |
+| A row proposal (1.6.0) | His home screen widget, in the engine's rank within its row, and his one list like any walled proposal. On either, the press carries it out (`api/_rowPress.ts`): a Gmail draft in his box, or a message app opened with the words typed, recorded as `carried_out`. His No is recorded with its `reason_code` |
 | Objectives, activity, holds | Growth > Engines |
 | Media and copy to review | Growth > Packs, until packs join this protocol |

@@ -2,12 +2,12 @@
   "schema_version": "1.0.0",
   "engine_id": "growth-legibility",
   "product_slug": "legibility",
-  "run_id": "gl_15178fedbd8d7e8160b22f85e2f1af595eb8d105ef1ce68df906295ae00f8081",
+  "run_id": "gl_3afe36d65baa622f9d291b3fd62f6dc51597c1a909eb7a8eadbdaa37d73dfdd2",
   "mode": "synthetic",
   "observed_at": "2026-10-18T12:00:00Z",
   "source": {
     "snapshot_id": "synthetic-2026-10-18",
-    "snapshot_sha256": "1d2b1e132127583ce70d40cf2c73326f608cc4cdfbf4bd3ff648f7d3bde7107c",
+    "snapshot_sha256": "ed03d2f65c2b4c8043a1863d6d3ea41d79ce5acf7315a05f2b9d4c4a0e85f1c5",
     "captured_at": "2026-10-18T12:00:00Z",
     "app_revision": "synthetic-fixture-not-production",
     "corpus_sha256": "c74369b59a458299db5aaef93041bd0018ed1390778efc9a9a4719365d8035ff"
@@ -336,7 +336,7 @@
   },
   "actions": [
     {
-      "id": "approval_9bcc8e34e10819d4d625630c",
+      "id": "approval_e673f4b940404faebca1a90f",
       "type": "direct_invitation",
       "status": "pending_human",
       "visibility": "private",
@@ -362,7 +362,14 @@
         "contact": {
           "status": "clear",
           "last_sent_at": null,
-          "followups": 0
+          "followups": 0,
+          "prior_mindmake": {
+            "state": "none",
+            "by": null,
+            "state_at": null,
+            "last_touch_at": null,
+            "record_url": "https://example.com/cc/person/candidate-example"
+          }
         },
         "partner_id": null
       },
@@ -373,9 +380,10 @@
         "app_revision": "synthetic-fixture-not-production",
         "icp_revision": "synthetic-icp-v1",
         "signal_observed_at": "2026-10-17T12:00:00Z",
-        "candidate_sha256": "a52d4a929781c910fb5954c0107c11e0f8178c5195e4dcf93cc50d0b32418ff8"
+        "candidate_sha256": "c8573c7db6d0bf9359f898e03f5c38f19eb0dafeb3b1cdc644bc37a2746ddaea"
       },
       "source_refs": [
+        "https://example.com/cc/person/candidate-example",
         "https://example.org/synthetic-project"
       ],
       "exact_text": "I read Synthetic Commerce Lab's Synthetic procurement agent experiment about typed catalogue inputs. Legibility exposes product data with calibrated confidence over REST and MCP; structured pages, Shopify and barcodes are its current scope. Would a five-input compatibility test help the integration experiment?",
@@ -384,7 +392,7 @@
         "named_cold_requires_human_review",
         "source_facts_require_human_review"
       ],
-      "payload_sha256": "9bcc8e34e10819d4d625630c77b10d39ea3f5316a81d3fff1a596ffe9ed292d9",
+      "payload_sha256": "e673f4b940404faebca1a90ffd0431057bc7f0c06d34ae0ef6dd4f02d4f4fe59",
       "created_at": "2026-10-18T12:00:00.000Z",
       "expires_at": "2026-10-20T12:00:00.000Z"
     },
@@ -427,5 +435,5 @@
       "visibility": "private"
     }
   ],
-  "payload_sha256": "59a1205499a8618ae77ef273ff7e354294d4399963abe053e95ef0ec56a85747"
+  "payload_sha256": "3bd289c2c0f12d6ab4544b0972bbb4b22ec667095c89b71d774461a2506ceda7"
 }

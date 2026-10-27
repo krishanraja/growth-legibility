@@ -7,6 +7,7 @@ import { validatePolicy } from './guards/wire.mjs';
 import { Outbox } from './outbox.mjs';
 import { APPROVED_ORIGIN, controlCenter, deliver } from './transport.mjs';
 import { operate } from './operate.mjs';
+import { exportFromEnv } from './lib/export-client.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)),'..');
 function args(argv) {
@@ -68,7 +69,7 @@ async function main() {
   const corpusSources=verifySources(c.register,createHash);
   if(opts.command==='doctor') {
     console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',corpus_sources:corpusSources,policy:'pass',source_review_due:policy.source_review_due,
-      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY)}},null,2));
+      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY),legibility_export_url:Boolean(process.env.LEGIBILITY_EXPORT_URL),legibility_export_token:Boolean(process.env.LEGIBILITY_EXPORT_TOKEN)}},null,2));
     return;
   }
   if(opts.command==='help') {
@@ -99,7 +100,9 @@ async function main() {
       console.log(JSON.stringify({...summary,control_center_run_id:envelope.run_id},null,2));
     } else if(opts.command==='operate') {
       const {summary,privateReport}=await operate({client,outbox:db,policy,corpusSha,
-        loadSnapshot:opts.snapshot?()=>loadJson(resolve(opts.snapshot)):null,invocation:plan.invocation,revision:plan.revision,directiveDate:plan.date});
+        loadSnapshot:opts.snapshot?()=>loadJson(resolve(opts.snapshot)):null,invocation:plan.invocation,revision:plan.revision,directiveDate:plan.date,
+        // The app export is read only when both variables are set; neither set holds exactly as before (attribution_export_missing).
+        appExport:opts.snapshot?{state:'absent'}:exportFromEnv(process.env)});
       if(privateReport) writeJson(join(output,`${privateReport.run_id}.json`),privateReport);
       console.log(JSON.stringify(summary,null,2));
       if(summary.status!=='succeeded'||summary.journal!=='closed') process.exitCode=1;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { measure } from '../src/stages/measure.mjs';
+import { measure, isoWeek } from '../src/stages/measure.mjs';
 
 const AT = '2026-10-18T12:00:00.000Z';
 const policy = {
@@ -301,4 +301,42 @@ test('the stage is deterministic, side-effect free and rejects invalid time boun
   assert.deepEqual(input, before);
   assert.throws(() => measure(input, 'not-a-date', policy), /valid/);
   assert.throws(() => measure(snapshot({ accounts: [account('a', { canonical_id: 'b' }), account('b', { canonical_id: 'a' })] }), AT, policy), /Cyclic canonical/);
+});
+
+test('weekly builders count trusted reads in the ISO week to date, excluding internal, testbench and below-gate reads', () => {
+  // ISO weeks start Monday 00:00:00 UTC; 2026 has 53, and the ladder's last rung (28 December) opens 2026-W53.
+  assert.deepEqual(isoWeek(Date.parse('2026-10-25T23:59:59.999Z')), { start: Date.parse('2026-10-19T00:00:00Z'), label: '2026-W43' });
+  assert.deepEqual(isoWeek(Date.parse('2026-10-26T00:00:00.000Z')), { start: Date.parse('2026-10-26T00:00:00Z'), label: '2026-W44' });
+  assert.equal(isoWeek(Date.parse('2026-12-28T12:00:00Z')).label, '2026-W53');
+  assert.equal(isoWeek(Date.parse('2027-01-03T12:00:00Z')).label, '2026-W53');
+  assert.equal(isoWeek(Date.parse('2027-01-04T00:00:00Z')).label, '2027-W01');
+  assert.equal(isoWeek(Date.parse('2026-01-01T00:00:00Z')).label, '2026-W01');
+  const at = '2026-10-21T12:00:00.000Z';
+  const window = { start: '2026-10-01T00:00:00.000Z', end: at, complete: true };
+  const result = measure(snapshot({
+    window,
+    accounts: [account('a'), account('b'), account('c'), account('late'), account('internal', { is_internal: true }), account('alias', { canonical_id: 'a' })],
+    reads: [
+      read('r1', 'a', '2026-10-19T00:00:00.000Z'),
+      read('r2', 'alias', '2026-10-20T09:00:00.000Z'),
+      read('r3', 'b', '2026-10-18T23:59:59.999Z'),
+      read('r4', 'c', '2026-10-20T09:00:00.000Z', { confidence: 0.69 }),
+      read('r5', 'c', '2026-10-20T10:00:00.000Z', { interface: 'testbench' }),
+      read('r6', 'internal', '2026-10-20T09:00:00.000Z'),
+      read('r7', 'late', '2026-10-20T09:00:00.000Z', { calibration_version: '' }),
+    ],
+  }), at, policy);
+  // One builder: 'a' and its alias are one person; 'b' read last week; the rest never pass the trusted-read rule.
+  assert.equal(value(result, 'weekly_builders'), 1);
+  assert.deepEqual(result.north_star.weekly_builders_window, { iso_week: '2026-W43', week_start: '2026-10-19T00:00:00.000Z', as_of: at, counted_per: 'account' });
+  // Measured before the campaign clock starts: the number runs on its own weekly ladder.
+  const inactive = { ...policy, campaign: { ...policy.campaign, activated_at: null } };
+  assert.equal(value(measure(snapshot({ window, accounts: [account('a')], reads: [read('r1', 'a', '2026-10-20T00:00:00.000Z')] }), at, inactive), 'weekly_builders'), 1);
+  // Unknown stays unknown: a window that starts after Monday, or incomplete read coverage, is null with its reason.
+  const late = measure(snapshot({ window: { start: '2026-10-20T00:00:00.000Z', end: at, complete: true } }), at, policy);
+  assert.equal(value(late, 'weekly_builders'), null);
+  assert.match(late.metrics.weekly_builders.reason, /ISO week/);
+  const partial = measure(snapshot({ window, coverage: { ...snapshot().coverage, reads: false } }), at, policy);
+  assert.equal(value(partial, 'weekly_builders'), null);
+  assert.match(partial.metrics.weekly_builders.reason, /reads/);
 });

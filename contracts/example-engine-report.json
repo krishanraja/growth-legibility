@@ -48,6 +48,10 @@
       "evidence_url": null
     },
     {
+      "line": "weekly_builders: 1 builder with at least one trusted read in ISO week 2026-W42 to 2026-10-18T12:00:00.000Z, internal accounts excluded, counted per account until the export carries key ids.",
+      "evidence_url": null
+    },
+    {
       "line": "Recommended constraint: Verify the live test-to-API path and record the campaign activation time.",
       "evidence_url": null
     },
@@ -140,5 +144,5 @@
   ],
   "events": [],
   "holds": [],
-  "payload_sha256": "c83588f380c4fcb0d2bd6ef8b40154a4c47550f5084b790448ee70f277594743"
+  "payload_sha256": "2d86e7f0eb73f21cc77960b591496dd7c882c218cccaf816eca109672b730390"
 }

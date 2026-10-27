@@ -130,6 +130,15 @@ function protocolHolds(holds) {
 
 function fmt(m) { return m?.value === null || m?.value === undefined ? `unknown (${m?.reason ?? 'not measured'})` : `${m.value}`; }
 
+// The North Star number travels as an activity line, never as a fourth objective: Control Center's registry
+// objectives stay activated, returning and net until it registers weekly_builders.
+function weeklyBuildersLine(metric, window) {
+  const scope = window ? `in ISO week ${window.iso_week} to ${window.as_of}` : 'this ISO week';
+  const value = metric?.value === null || metric?.value === undefined ? `unknown (${metric?.reason ?? 'not measured'})`
+    : `${metric.value} builder${metric.value === 1 ? '' : 's'} with at least one trusted read`;
+  return { line:clip(`weekly_builders: ${value} ${scope}, internal accounts excluded, counted per account until the export carries key ids.`, 500), evidence_url:null };
+}
+
 // Flatten a sealed private report into the protocol envelope. Unknown stays null with its reason, never zero.
 export function engineReport(report, { runId, directive = null, directiveHold = null }) {
   validateReport(report);
@@ -148,6 +157,7 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
   const activity = [
     directiveActivity(directive),
     { line:clip(`Measured the Founding 200 funnel from a ${report.mode} source snapshot captured ${report.source.captured_at} (digest ${report.source.snapshot_sha256.slice(0, 12)}).`, 500), evidence_url:null },
+    weeklyBuildersLine(metrics.weekly_builders, report.scorecard.north_star?.weekly_builders_window),
     { line:clip(`Recommended constraint: ${recommendation.action}.`, 500), evidence_url:null },
     { line:`Prepared ${pending} named invitation${pending === 1 ? '' : 's'} for Krish to review and ${report.actions.length - pending} work task${report.actions.length - pending === 1 ? '' : 's'}. Nothing was sent or published.`, evidence_url:null },
     { line:clip(`Weekly production agents: ${fmt(metrics.production_agents_weekly)}. Weekly median trusted reads per active account: ${fmt(metrics.weekly_median_trusted_reads_per_active_account)}. Mainnet agent revenue USD: ${fmt(metrics.mainnet_agent_revenue_usd)}; testnet volume is never counted as revenue.`, 500), evidence_url:null },
@@ -165,13 +175,16 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
 }
 
 // A run with no source snapshot still reports, honestly: held, nothing measured, and the missing inputs named.
-export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null }) {
+// extraHolds name why an export that was configured did not arrive; with none, the report is exactly the one sent
+// before the export client existed.
+export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [] }) {
   const inactive = !policy?.campaign?.activated_at;
   const reason = `No source snapshot from the Legibility app reached this run, so nothing was measured.${inactive ? ' The campaign clock has not been activated either.' : ''}`;
   const objectives = OBJECTIVES.map(({ key, unit }) => ({ key, value:null, unit, window_start:policy?.campaign?.activated_at ?? null, window_end:null, timezone:'UTC', availability:'missing', reason }));
   const holds = [
     { reason:'source_snapshot_missing', detail:'The runner has no authenticated export from the app (accounts, server-metered reads, events, settlements). Measurement and preparation stay held until the source owner supplies one with --snapshot.' },
     { reason:'icp_not_current_approved', detail:'No current approved Legibility buyer definition from Control Center product_icp reached this run, so prospecting stays held. Control Center still owes the narrow product_icp read path.' },
+    ...extraHolds,
   ];
   if (directiveHold) holds.push(directiveHold);
   const rec = { code:'restore_measurement', action:'Connect the app snapshot export and the product_icp read path to this runner', reason:'Unknown observations cannot establish funnel performance or justify outreach' };

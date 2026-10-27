@@ -55,6 +55,8 @@ The run id is `legibility:<UTC date>:operate:gh<run>.<attempt>`, so a rerun is a
 
 ### What a dispatch can measure today
 
+With neither `LEGIBILITY_EXPORT_URL` nor `LEGIBILITY_EXPORT_TOKEN` set, the run is unchanged and its printed summary names `attribution_export_missing`. Once Krish adds both, the run reads the app's export through `src/lib/export-client.mjs` (contracts/README.md, "The app export"), measures it, and reports `weekly_builders` as an activity line; an export that cannot be read or is refused holds with its code (`export_unauthorized`, `export_timeout`, `export_contract_refused` and the like), and one of the two set alone holds as `attribution_export_incomplete`.
+
 The runner has no source snapshot from the app and no canonical ICP, so every dispatch today reports `status: held`, with `activated`, `returning` and `net` all `missing` and the reason, and holds `source_snapshot_missing` and `icp_not_current_approved`. Its one proposal, inside the walls, is to connect the snapshot export and the `product_icp` read path. Even with a snapshot, the three objectives stay `missing` until the campaign clock is activated in `config/policy.json`, because there is no campaign window to count in. Once both exist, the objectives report measured counts: builders with a first trusted read, mature seven-day returning builders, and qualified Founding members.
 
 ### Mapping

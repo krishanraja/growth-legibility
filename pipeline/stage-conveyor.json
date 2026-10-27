@@ -2,14 +2,14 @@
   "schema_version": 1,
   "pipeline_id": "legibility-growth-v1",
   "inventory": {"roots":["src"],"extensions":[".mjs"],"exclude":[]},
-  "external_inputs": ["source_snapshot","policy","run_clock","corpus_digest","delivery_options","directive"],
+  "external_inputs": ["source_snapshot","app_export","policy","run_clock","corpus_digest","delivery_options","directive"],
   "terminal_outputs": ["private_report","presentation_summary","attempt_journal","decision_tally"],
   "stages": [
     {
-      "id":"capture","owner":"source-contract-boundary","owned_paths":["src/capture.mjs"],
-      "inputs":["source_snapshot","policy","run_clock"],"outputs":["observed_snapshot"],"consumed_guards":["wire"],"side_effects":["none"],
+      "id":"capture","owner":"source-contract-boundary","owned_paths":["src/capture.mjs","src/lib/export-client.mjs"],
+      "inputs":["source_snapshot","app_export","policy","run_clock"],"outputs":["observed_snapshot"],"consumed_guards":["wire"],"side_effects":["read-only authenticated GET of the app's row-level export from the pinned origin; never a write"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Normalized source digest in immutable report","recovery_entrypoint":"capture-recovery"},
-      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs rejects invalid, contradictory and privacy-unsafe exports before consumption"}
+      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs rejects invalid, contradictory and privacy-unsafe exports before consumption; tests/export-client.test.mjs pins the export origin and refuses redirects, slow, oversized and non-JSON answers"}
     },
     {
       "id":"measure","owner":"growth-measurement","owned_paths":["src/stages/measure.mjs"],

@@ -24,10 +24,10 @@
       "completion":{"source":"independent_rederivation","evidence":"tests/prepare.test.mjs covers suppression, ICP, evidence and exact draft binding"}
     },
     {
-      "id":"plan","owner":"growth-orchestrator","owned_paths":["src/orchestrator.mjs","src/cli.mjs"],
+      "id":"plan","owner":"growth-orchestrator","owned_paths":["src/orchestrator.mjs","src/cli.mjs","src/lib/draft-press.mjs"],
       "inputs":["observed_snapshot","policy","run_clock","corpus_digest","scorecard","prepared_work","directive"],"outputs":["private_report","presentation_summary","engine_report"],"consumed_guards":["wire","outbox"],"side_effects":["private immutable report and local transport journal writes"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"runtime outbox row keyed by source, policy, clock and corpus seal","recovery_entrypoint":"plan-recovery"},
-      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs validates final private report digest, deduplicated scorecard and privacy projection; tests/protocol.test.mjs validates the protocol envelope against engine-report.schema.json and the worked-example digest"}
+      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs validates final private report digest, deduplicated scorecard and privacy projection; tests/protocol.test.mjs validates the protocol envelope against engine-report.schema.json and the worked-example digest; tests/draft-press.test.mjs shapes each approved invitation as a version 2 email action only when Control Center serves the Draft press, and sends 1.0.0 exactly as before otherwise"}
     },
     {
       "id":"deliver","owner":"growth-report-transport","owned_paths":["src/transport.mjs"],
@@ -37,7 +37,7 @@
     },
     {
       "id":"operate","owner":"growth-control-center-loop","owned_paths":["src/operate.mjs"],
-      "inputs":["verified_receipt","directive","delivery_options","run_clock"],"outputs":["attempt_journal","decision_tally"],"consumed_guards":["wire"],"side_effects":["attempt journal writes and directive and decision reads on the Control Center growth engine routes; never a send, post, spend or delete"],
+      "inputs":["verified_receipt","directive","delivery_options","run_clock"],"outputs":["attempt_journal","decision_tally"],"consumed_guards":["wire"],"side_effects":["attempt journal writes and directive, capabilities and decision reads on the Control Center growth engine routes; never a send, post, spend or delete"],
       "retry":{"mode":"idempotent","total_attempt_cap":2,"checkpoint":"Control Center attempt record keyed by attempt_id, read back before any second write","recovery_entrypoint":"operate-recovery"},
       "completion":{"source":"destination_readback","evidence":"tests/protocol.test.mjs proves started then terminal attempts, directive, report readback, decisions and 401 and 409 codes against a local stand-in"}
     }

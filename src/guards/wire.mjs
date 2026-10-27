@@ -1,13 +1,24 @@
 import { createHash } from 'node:crypto';
 
 export const VERSION = '1.0.0';
+// Control Center protocol 1.12.0: a send may carry a version 2 email action, which Krish's Clear drafts into his own Gmail
+// (ENGINE-PROTOCOL.md, "Legibility drafts in his own box"). This engine raises its report to 1.12.0 only for that field, only
+// when the capabilities serve it (features.draft_press), and otherwise sends 1.0.0 exactly as before.
+export const DRAFT_PRESS_VERSION = '1.12.0';
 // Control Center only ever adds within 1.x (ENGINE-PROTOCOL.md, "Versions"), so what it
 // serves may be any 1.x while this engine sends 1.0.0. On 2026-10-19 it began serving 1.1.0
 // and an exact match here stopped every run with receiver_contract_mismatch.
 export const SERVED = /^1\.\d+\.\d+$/;
-/** Whether Control Center takes the version this engine sends. */
-export function receiverTakes(cap) {
-  return Array.isArray(cap?.schema_versions) ? cap.schema_versions.includes(VERSION) : cap?.schema_version === VERSION;
+/** Whether Control Center takes the version this engine sends (1.0.0 unless another is named). */
+export function receiverTakes(cap, version = VERSION) {
+  return Array.isArray(cap?.schema_versions) ? cap.schema_versions.includes(version) : cap?.schema_version === version;
+}
+/** Is the 1.x version `v` at least `min`? Anything that is not 1.x.y is not. */
+export function atLeast(v, min) {
+  if (!SERVED.test(v ?? '') || !SERVED.test(min)) return false;
+  const [a, b] = [v, min].map(s => s.split('.').map(Number));
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return true;
 }
 export function canonical(value) {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
@@ -181,9 +192,58 @@ const line = (v, max) => str(v, max) && v.length > 0;
 const orNull = (v, test) => v === null || v === undefined || test(v);
 const https = v => typeof v === 'string' && /^https:\/\/\S+$/.test(v);
 const list = (v, max, label) => fail(v === undefined || (Array.isArray(v) && v.length <= max), label);
+
+// The version 2 email action (protocol 1.6.0 shape, 1.12.0 basis), exactly as Control Center's parseActionV2 reads it, and
+// stricter where this engine is: its own box, its contact, and the Mindmake record it was written from, always.
+export const ACTION_V2_KEYS = Object.freeze(['version','channel','recipient_contact_id','subject','body','form','mailbox','prior_mindmake']);
+// Only a record that lets an invitation through travels as a basis; unknown, open and client are held before this point.
+const BASIS_STATES = ['none','drafted','sent','replied','met'];
+/** The person's own record in Control Center, the one link its reader gives (api/_priorOutreach.ts). */
+export const controlCenterPersonLink = id => `https://controlcenter.krishraja.com/#/people?person=${id}`;
+/** Whether exact words are meant as a version 2 action (JSON naming version 2), as Control Center decides it. */
+export function isActionV2Text(v) {
+  if (typeof v !== 'string' || !v.trimStart().startsWith('{')) return false;
+  try { const a = JSON.parse(v); return a !== null && typeof a === 'object' && !Array.isArray(a) && a.version === 2; } catch { return false; }
+}
+// Control Center trims the subject and the words before it drafts; ours carry no edge whitespace, so what Krish sees is what
+// lands in Gmail.
+const trimmed = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v;
+/**
+ * One version 2 email action, as text. `capturedAt` bounds the record's dates by the snapshot's capture.
+ * Returns the parsed action; anything else is refused with an invalid_contract code.
+ */
+export function validateActionV2(text, capturedAt) {
+  fail(typeof text === 'string' && text.length <= 8000, 'action_v2_text');
+  let a; try { a = JSON.parse(text); } catch { a = null; }
+  keys(a, ACTION_V2_KEYS, 'action_v2');
+  fail(ACTION_V2_KEYS.every(k => Object.hasOwn(a, k)), 'action_v2_shape');
+  fail(a.version === 2 && a.channel === 'email' && a.form === null, 'action_v2_email');
+  fail(isContactId(a.recipient_contact_id), 'action_v2_recipient');
+  fail(trimmed(a.subject, 200) && !/[\r\n]/.test(a.subject), 'action_v2_subject');
+  fail(trimmed(a.body, 7000), 'action_v2_body');
+  fail(a.mailbox === 'krish', 'action_v2_mailbox');
+  fail(date(capturedAt), 'action_v2_capture');
+  validateMindmakeRecord(a.prior_mindmake, capturedBy(capturedAt));
+  fail(allowed(a.prior_mindmake.state, BASIS_STATES) && a.prior_mindmake.record_url === controlCenterPersonLink(a.recipient_contact_id), 'action_v2_basis');
+  return a;
+}
+// Every file the words were written from, by its git blob SHA on the default branch, as Control Center re-reads it before his
+// press (api/_sourceRevision.ts). Paths use '/' on every platform, never '..'.
+const REPO = /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/;
+export function validateSourceRevision(revs) {
+  fail(Array.isArray(revs) && revs.length >= 1 && revs.length <= 8, 'source_revision_count');
+  for (const s of revs) {
+    keys(s, ['repo','path','sha'], 'source_revision');
+    fail(typeof s.repo === 'string' && REPO.test(s.repo) && line(s.path, 300) && !/\\/.test(s.path) && !/(^|\/)\.\.(\/|$)/.test(s.path) && !s.path.startsWith('/') && /^[0-9a-f]{40}$/.test(s.sha ?? ''), 'source_revision_entry');
+  }
+  return revs;
+}
+const SUBJECT_REF = /^contact:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 export function validateEngineEnvelope(r) {
   keys(r,['schema_version','engine_id','product_slug','run_id','mode','observed_at','source','status','objectives','activity','proposals','events','holds','payload_sha256'],'engine_report');
-  fail(r.schema_version === VERSION && line(r.engine_id, 64) && line(r.product_slug, 64), 'engine_report_identity');
+  fail([VERSION, DRAFT_PRESS_VERSION].includes(r.schema_version) && line(r.engine_id, 64) && line(r.product_slug, 64), 'engine_report_identity');
+  const draftPress = r.schema_version === DRAFT_PRESS_VERSION;
   fail(protocolId(r.run_id) && allowed(r.mode,['live','synthetic']) && dateTime(r.observed_at), 'engine_report_run');
   fail(allowed(r.status,['ready','held','degraded']), 'engine_report_status');
   keys(r.source,['revision','captured_at'],'engine_report_source');
@@ -201,7 +261,21 @@ export function validateEngineEnvelope(r) {
   list(r.proposals, 10, 'engine_report_proposals');
   const proposalIds = new Set();
   for (const p of r.proposals ?? []) {
-    keys(p,['proposal_id','title','why','kind','wall','amount_usd','channel','objective_key','exact_payload','payload_sha256','evidence','close_condition','expires_at'],'engine_proposal');
+    keys(p,['proposal_id','title','why','kind','wall','amount_usd','channel','objective_key','exact_payload','payload_sha256','evidence','close_condition','expires_at',
+      ...(draftPress ? ['subject_ref','source_revision'] : [])],'engine_proposal');
+    // 1.12.0: a version 2 email action travels only at 1.12.0, only on a prepared send, naming the same person in subject_ref,
+    // with the files its words were written from, and its digest binding exactly that action. Nothing else carries these.
+    if (isActionV2Text(p.exact_payload)) {
+      fail(draftPress, 'engine_proposal_action_v2_needs_1_12_0');
+      fail(p.wall === 'send' && p.kind === 'prepared' && p.channel === 'email', 'engine_proposal_action_v2_send');
+      const action = validateActionV2(p.exact_payload, r.source?.captured_at);
+      fail(p.subject_ref === `contact:${action.recipient_contact_id}`, 'engine_proposal_action_v2_subject');
+      validateSourceRevision(p.source_revision);
+      fail(p.payload_sha256 === sha256(p.exact_payload), 'engine_proposal_action_v2_digest');
+    } else {
+      fail(p.subject_ref === undefined && p.source_revision === undefined, 'engine_proposal_v2_fields_without_action');
+    }
+    if (p.subject_ref !== undefined) fail(SUBJECT_REF.test(p.subject_ref), 'engine_proposal_subject_ref');
     fail(protocolId(p.proposal_id) && !proposalIds.has(p.proposal_id), 'engine_proposal_id'); proposalIds.add(p.proposal_id);
     fail(line(p.title, 160) && line(p.why, 1000) && allowed(p.kind,['advice','prepared','autonomous']) && allowed(p.wall,['none','spend','send','post','strategy']), 'engine_proposal_shape');
     fail(orNull(p.amount_usd, v => typeof v === 'number' && Number.isFinite(v) && v >= 0) && orNull(p.channel, v => str(v, 60)) && orNull(p.objective_key, snake) && orNull(p.exact_payload, v => str(v, 8000)), 'engine_proposal_fields');
@@ -214,6 +288,8 @@ export function validateEngineEnvelope(r) {
     keys(p.close_condition,['event','reference'],'engine_close_condition');
     fail(snake(p.close_condition.event) && orNull(p.close_condition.reference, v => str(v, 500)), 'engine_close_condition');
   }
+  // Raise the version only for the field it is for: a 1.12.0 report carries at least one version 2 email action.
+  fail(!draftPress || (r.proposals ?? []).some(p => isActionV2Text(p.exact_payload)), 'engine_report_1_12_0_without_action_v2');
   list(r.events, 40, 'engine_report_events');
   for (const e of r.events ?? []) { keys(e,['event','proposal_id','at','evidence_url'],'engine_event'); fail(snake(e.event) && orNull(e.proposal_id, v => typeof v === 'string') && dateTime(e.at) && orNull(e.evidence_url, https), 'engine_event'); }
   list(r.holds, 40, 'engine_report_holds');

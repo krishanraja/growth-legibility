@@ -148,7 +148,7 @@ test('a response body over the 20 MiB cap fails closed, and one at the cap is st
   const env = await scripted(t, () => ({ status:200, body:padded(size) }));
   assert.equal(await codeOf(client(env).capabilities()), 'receiver_response_too_large');
   size = CAP;
-  assert.deepEqual(await client(env).capabilities(), { activation:'active', features:{ prior_outreach:false } });
+  assert.deepEqual(await client(env).capabilities(), { activation:'active', features:{ prior_outreach:false, draft_press:false } });
 });
 
 // src/transport.mjs:18: a green answer that is not JSON fails closed as receiver_non_json.

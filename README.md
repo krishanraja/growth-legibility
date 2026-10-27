@@ -62,7 +62,7 @@ The bearer is `CONTROL_CENTER_ENGINE_TOKEN` (an Actions secret) and the target i
 | Protect approval | Exact supplied wording, source/revision hashes, 48-hour expiry and one follow-up limit; unsafe copy becomes a work task |
 | Reuse product evidence | Consent-aware benchmark with sample sizes, method/failure buckets and separate calibration strata |
 | Optimise | Minimum-sample funnel tripwires, source ranking by activation before traffic, one recommended constraint |
-| Report reliably | Protocol 1.0.0 envelope with a canonical digest, private SQLite transport spool, three total delivery attempts across restarts, independent readback and a journaled attempt per run |
+| Report reliably | Protocol 1.0.0 envelope (1.12.0, with a version 2 email action for the Draft press, only when Control Center serves it) with a canonical digest, private SQLite transport spool, three total delivery attempts across restarts, independent readback and a journaled attempt per run |
 
 This producer accepts source-owned snapshots. It does not pretend to discover prospects, verify emails or instrument the production app from a fixture. Current canonical ICP state, private source access, `/builders-beta`, report saving and referral flow require their owning app/runtime changes before a live campaign can operate. Those are concrete activation prerequisites in the handoff.
 

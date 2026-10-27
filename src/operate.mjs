@@ -2,6 +2,7 @@ import { deliver } from './transport.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId } from './orchestrator.mjs';
 import { captureExport, exportHold } from './lib/export-client.mjs';
 import { readPriorMindmake } from './lib/prior-outreach.mjs';
+import { emailAction, templateRevision } from './lib/draft-press.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
 // inside the walls, report and read back, read Krish's decisions, close the attempt. Nothing here sends, posts,
@@ -37,7 +38,8 @@ export function matchDecisions(decisions, envelope) {
 // appExport is exportFromEnv()'s answer (src/lib/export-client.mjs). Absent, the run holds exactly as it did before the
 // export client existed, and the summary names attribution_export_missing; a --snapshot file takes precedence.
 export async function operate({ client, outbox, policy, corpusSha, at = new Date().toISOString(), loadSnapshot = null, invocation,
-  synthetic = false, revision = 'unversioned-local', directiveDate = null, clock = () => new Date().toISOString(), appExport = { state:'absent' } }) {
+  synthetic = false, revision = 'unversioned-local', directiveDate = null, clock = () => new Date().toISOString(), appExport = { state:'absent' },
+  sourceRevision = templateRevision }) {
   const command = 'operate';
   const runId = protocolRunId(command, at, invocation);
   const attempt = { attempt_id:runId, command, run_id:runId, status:'started', phase:'start', error_code:null, started_at:new Date(at).toISOString() };
@@ -91,7 +93,27 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       summary.prior_outreach = read;
       phase = 'plan';
       privateReport = buildReport(snapshot, policy, observedAt, corpusSha);
-      envelope = engineReport(privateReport, { runId, directive, directiveHold });
+      // 1.12.0: an invitation that can be a version 2 email action travels as one only when Control Center serves the Draft
+      // press. Any doubt (no such invitation, the feature or the version not served, a failed read, an unreadable template)
+      // sends 1.0.0 exactly as before; it never stops the run.
+      phase = 'draft_press';
+      let draftPress = null;
+      const draftable = privateReport.actions.filter(a => emailAction(a).ok).length;
+      summary.draft_press = { state:'not_needed', reason:null, actions:draftable };
+      if (draftable) {
+        let features = null;
+        try { ({ features } = await client.capabilities()); }
+        catch (e) { Object.assign(summary.draft_press, { state:'unavailable', reason:errorCode(e) }); }
+        if (features && features.draft_press !== true) Object.assign(summary.draft_press, { state:'not_served', reason:'draft_press_not_served' });
+        if (features?.draft_press === true) {
+          try {
+            draftPress = { source_revision:sourceRevision() };
+            summary.draft_press.state = 'served';
+          } catch { Object.assign(summary.draft_press, { state:'unavailable', reason:'source_revision_unreadable' }); }
+        }
+      }
+      phase = 'plan';
+      envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress });
     } else {
       envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds });
     }

@@ -1,8 +1,9 @@
-import { isContactId, PROTOCOL, receiverTakes, SERVED, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
+import { atLeast, DRAFT_PRESS_VERSION, isContactId, PROTOCOL, receiverTakes, SERVED, VERSION, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
 
 // The one Control Center client for this engine (ADR-038, docs/control-center/ENGINE-PROTOCOL.md). It sends protocol
-// 1.0.0 reports and accepts any 1.x Control Center serves (F19); it also reads the 1.11.0 prior-outreach route, each
-// person's Mindmake record, when the capabilities say it is served.
+// 1.0.0 reports, or 1.12.0 when an invitation travels as a version 2 email action for the Draft press, and accepts any 1.x
+// Control Center serves (F19); it also reads the 1.11.0 prior-outreach route, each person's Mindmake record, when the
+// capabilities say it is served.
 // HTTPS to the approved origin only, no redirects, bounded timeouts, JSON only. The bearer is read by the caller at run
 // time and is never logged, echoed, stored or written into an error. Every failure leaves as a lower_snake code.
 export const APPROVED_ORIGIN = 'https://controlcenter.krishraja.com';
@@ -46,15 +47,20 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     return response;
   }
 
-  async function capabilities() {
+  // `version` names a report this engine is about to send at a version other than 1.0.0 (1.12.0 for the Draft press): the
+  // receiver must still take it, or nothing is posted.
+  async function capabilities({ version = VERSION } = {}) {
     const res = await request('/capabilities');
     if (!res.ok) { await discard(res); throw fault('receiver_not_ready'); }
     const cap = await jsonResponse(res);
     // The response also carries activation and features; only the identity, and that the
     // receiver still takes the 1.0.0 reports this engine sends, are compared.
     if (!SERVED.test(cap?.schema_version ?? '') || !receiverTakes(cap) || cap.engine_id !== PROTOCOL.engine_id || cap.product_slug !== PROTOCOL.product_slug) throw fault('receiver_contract_mismatch');
-    // Only the features this engine reads leave, and only as true or false.
-    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true } };
+    if (version !== VERSION && !receiverTakes(cap, version)) throw fault('receiver_contract_mismatch');
+    // Only the features this engine reads leave, and only as true or false. The Draft press counts only when the receiver
+    // serves 1.12.0 or later and takes a 1.12.0 report; otherwise the engine sends 1.0.0 exactly as before.
+    const draftPress = cap.features?.draft_press === true && atLeast(cap.schema_version, DRAFT_PRESS_VERSION) && receiverTakes(cap, DRAFT_PRESS_VERSION);
+    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress } };
   }
 
   // 1.11.0: each person's Mindmake record, for 1 to 50 distinct contact ids. Only the asked ids leave this function, each
@@ -147,7 +153,7 @@ export async function deliver(outbox, runId, options = {}) {
   if (!row) throw fault('outbox_report_missing');
   const report = validateEngineReport(JSON.parse(row.payload));
   if (report.mode !== 'live' && !client.local) throw fault('synthetic_delivery_prohibited');
-  await client.capabilities();
+  await client.capabilities({ version:report.schema_version });
   const ours = (receipt) => receipt?.payload_sha256 === report.payload_sha256;
   // Reconcile before any POST, especially after an ambiguous response or a restart.
   const existing = await client.readReport(runId);

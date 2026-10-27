@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { validateReport, validateEngineReport, sha256, VERSION } from './guards/wire.mjs';
+import { validateReport, validateEngineReport, sha256, VERSION, DRAFT_PRESS_VERSION } from './guards/wire.mjs';
+import { emailAction } from './lib/draft-press.mjs';
 import { capture } from './capture.mjs';
 import { measure } from './stages/measure.mjs';
 import { prepare } from './stages/prepare.mjs';
@@ -90,19 +91,30 @@ function constraintProposal(rec) {
   };
 }
 
-function actionProposal(a) {
+function actionProposal(a, draftPress) {
   if (a.status === 'pending_human') {
     // Krish approves these exact words for this target on this channel; the id binds target and channel, the digest binds the words.
     const target = short(a.candidate_id);
     const channel = String(a.candidate.channel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'channel';
     const mindmake = a.candidate.contact?.prior_mindmake;
-    return {
+    const base = {
       proposal_id:`legibility:invite:${target}:${channel}`,
       title:clip(`Send a researched ${a.candidate.relationship?.kind ?? 'named'} invitation to a ${a.candidate.pool} prospect`, 160),
       why:clip([`Scored ${a.score} of 100 against the approved buyer definition, from a signal observed ${a.lineage.signal_observed_at}.`, mindmakeWhy(mindmake), 'If Krish approves these exact words he sends them himself; the engine never sends.'].filter(Boolean).join(' '), 1000),
       kind:'prepared', wall:'send', amount_usd:null, channel:clip(String(a.candidate.channel), 60), objective_key:'activated',
       exact_payload:a.exact_text, payload_sha256:a.text_sha256, evidence:invitationEvidence(a.source_refs, mindmake),
       close_condition:{ event:'invitation_sent', reference:`candidate:${target}` }, expires_at:a.expires_at,
+    };
+    // 1.12.0, only when Control Center serves the Draft press: the same approved words as a version 2 email action, so his
+    // Clear drafts them into his own Gmail. The proposal keeps its id; the digest binds the whole action. Anything that cannot
+    // be one (no contact id or record, not an email, no subject line) stays plain words, exactly as before.
+    const v2 = draftPress ? emailAction(a) : null;
+    if (!v2?.ok) return base;
+    return {
+      ...base,
+      why:clip([`Scored ${a.score} of 100 against the approved buyer definition, from a signal observed ${a.lineage.signal_observed_at}.`, mindmakeWhy(mindmake), 'If Krish approves, Control Center drafts these exact words into his own Gmail and he sends them himself; the engine never sends.'].filter(Boolean).join(' '), 1000),
+      channel:'email', exact_payload:v2.exact_payload, payload_sha256:sha256(v2.exact_payload),
+      subject_ref:`contact:${v2.action.recipient_contact_id}`, source_revision:structuredClone(draftPress.source_revision),
     };
   }
   const subject = a.opportunity_id ? `opportunity:${short(a.opportunity_id)}` : `candidate:${short(a.candidate_id)}`;
@@ -140,7 +152,10 @@ function weeklyBuildersLine(metric, window) {
 }
 
 // Flatten a sealed private report into the protocol envelope. Unknown stays null with its reason, never zero.
-export function engineReport(report, { runId, directive = null, directiveHold = null }) {
+// draftPress is { source_revision } only when Control Center's capabilities serve the Draft press (features.draft_press at
+// 1.12.0 or later); then each invitation that can be a version 2 email action travels as one, and the report says 1.12.0.
+// Without it, or with no invitation that can be one, the envelope is exactly the 1.0.0 one.
+export function engineReport(report, { runId, directive = null, directiveHold = null, draftPress = null }) {
   validateReport(report);
   const { campaign, metrics, recommendation } = report.scorecard;
   const stale = report.holds.some(h => h.code === 'stale_snapshot');
@@ -163,12 +178,12 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
     { line:clip(`Weekly production agents: ${fmt(metrics.production_agents_weekly)}. Weekly median trusted reads per active account: ${fmt(metrics.weekly_median_trusted_reads_per_active_account)}. Mainnet agent revenue USD: ${fmt(metrics.mainnet_agent_revenue_usd)}; testnet volume is never counted as revenue.`, 500), evidence_url:null },
     { line:`Distribution inventory holds ${report.opportunities.length} verified opportunit${report.opportunities.length === 1 ? 'y' : 'ies'}, ${report.opportunities.filter(o => o.status === 'uncovered').length} uncovered.`, evidence_url:null },
   ].filter(Boolean);
-  const proposals = [...report.actions.map(actionProposal), constraintProposal(recommendation)].slice(0, 10);
+  const proposals = [...report.actions.map(a => actionProposal(a, draftPress)), constraintProposal(recommendation)].slice(0, 10);
   const holds = protocolHolds(report.holds);
   if (directiveHold) holds.push(directiveHold);
   const status = report.status === 'ready' && directiveHold ? 'degraded' : report.status;
   return seal({
-    schema_version:VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
+    schema_version:proposals.some(p => p.source_revision) ? DRAFT_PRESS_VERSION : VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
     observed_at:report.observed_at, source:{ revision:report.source.snapshot_sha256, captured_at:report.source.captured_at },
     status, objectives, activity, proposals, events:[], holds,
   });

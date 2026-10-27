@@ -69,7 +69,7 @@ async function main() {
   const corpusSources=verifySources(c.register,createHash);
   if(opts.command==='doctor') {
     console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',corpus_sources:corpusSources,policy:'pass',source_review_due:policy.source_review_due,
-      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY),legibility_export_url:Boolean(process.env.LEGIBILITY_EXPORT_URL),legibility_export_token:Boolean(process.env.LEGIBILITY_EXPORT_TOKEN)}},null,2));
+      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0, or 1.12.0 when it serves the Draft press',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY),legibility_export_url:Boolean(process.env.LEGIBILITY_EXPORT_URL),legibility_export_token:Boolean(process.env.LEGIBILITY_EXPORT_TOKEN)}},null,2));
     return;
   }
   if(opts.command==='help') {

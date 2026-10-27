@@ -30,11 +30,33 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
 
+- 2026-10-27 **The engine has an approved architecture and Phase 0 is built.**
+  - Ruling (Krish, 2026-10-27): the plan in [ENGINE-ARCHITECTURE.md](docs/ENGINE-ARCHITECTURE.md) is approved. The engine is aimed at alpha conversations and a qualified Founding 200 waitlist, with the weekly number as the scoreboard.
+  - Phase 0 (no behaviour change) added:
+    - the failure register ([FAILURES.md](docs/FAILURES.md)) and the rulings log ([history/LOG.md](docs/history/LOG.md));
+    - a CI-only docs check;
+    - the session deny list;
+    - 40 new tests: 33 guard tests and 7 docs-check tests, each seen to fail when its guard is broken;
+    - the Drive Growth folder (`Active Ventures > Legibility > 01_Growth`, brand and strategy only).
+  - The trial investigation found no trial in the app. The Free plan is today's honest offer (up to 1,000 trusted reads a month), and the real trial is app item A8.
+
 - 2026-10-27: recorded the [beta handoff](docs/BETA-HANDOFF.md) and approved 30-day free trial [outreach template](docs/OUTREACH-TEMPLATE.md). Five customer drafts, two warm introduction notes, two measured demo packs and one onboarding template remain private in Control Center. Fresh metadata check: outreach is still pending but its 23 October expiry is past. No sending or account provisioning occurred in this work; trial enforcement remains unverified.
 
 - 2026-10-23 **The North Star now has a number, a weekly ladder and an urgency rating.** Ruling (Krish, 2026-10-23): every repository chases one aggressive number on a weekly ladder, and urgency U1 to U5 sets how hard it pushes. The number is in `docs/NORTH_STAR.md`; contract: ai-harness `contract/north-star-metric.md`.
 
 ## What is next and what is waiting on Krish
+
+- **Next (Week 0, plan section 0):**
+  - measure the number by hand, through two owner-approved Control Center gateway reads;
+  - refresh the 7 expired outreach items in a session that holds the engine token;
+  - then Phase 1 (app contract A1 to A8, Control Center asks).
+- **Waiting on Krish:**
+  - approve the two gateway reads;
+  - define Legibility's buyer in Control Center Growth > Buyers (proposed wording in Drive `01_Growth/01_Strategy`);
+  - create the Calendly "Legibility alpha test" event by hand (settings in the same folder);
+  - run the Cowork brand-kit prompt;
+  - review and merge the Phase 0 pull request.
+- North Star check (2026-10-27): holds.
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
 

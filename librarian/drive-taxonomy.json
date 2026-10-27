@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "about": "The Growth folder in Drive (Active Ventures > Legibility > 01_Growth). Folder names, the kind to folder map, the naming rule and the named exceptions. Folder ids are resolved at run time and never committed: the Legibility folder is shared to anyone with the link.",
+  "root": "01_Growth",
+  "reads_only": ["00_Brand-Assets"],
+  "folders": ["00_START-HERE", "01_Strategy", "02_Waves", "03_Assets", "03_Assets/Brand-Kit", "03_Assets/Templates", "03_Assets/Decks", "03_Assets/Social", "03_Assets/Directory", "_Archive"],
+  "kinds": {
+    "architecture-link": "01_Strategy",
+    "offer": "01_Strategy",
+    "icp-proposal": "01_Strategy",
+    "play-note": "01_Strategy",
+    "cowork-prompt": "01_Strategy",
+    "calendly-settings": "01_Strategy",
+    "wave-spec": "02_Waves/<wave-folder>",
+    "wave-retro": "02_Waves/<wave-folder>",
+    "brand-kit": "03_Assets/Brand-Kit",
+    "brand-template": "03_Assets/Brand-Kit",
+    "template": "03_Assets/Templates",
+    "deck": "03_Assets/Decks",
+    "social": "03_Assets/Social",
+    "directory-listing": "03_Assets/Directory",
+    "superseded": "_Archive"
+  },
+  "naming": "^\\d{4}-\\d{2}-\\d{2}_[a-z0-9-]+_[a-z0-9-]+_v\\d+(\\.[a-z0-9]+)?$",
+  "exceptions": {
+    "files": ["00_START-HERE"],
+    "folder_patterns": ["^Wave-\\d{2}_\\d{4}-\\d{2}-\\d{2}_[a-z0-9-]+$"]
+  },
+  "never_in_drive": ["email addresses", "Control Center contact names or ids", "personal profile URLs", "measured business figures", "drafts to named people", "call prep and debriefs"],
+  "stamp": "growth-legibility:librarian:v1",
+  "max_depth": 3
+}

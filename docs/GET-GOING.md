@@ -13,6 +13,8 @@ Never ask Krish to paste a prompt or repeat a brief: everything needed is in thi
 
 ## The brief
 
+**The approved plan (27 Oct 2026) is [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md).** Its phases below are the build; the original steps 0 to 5 are kept and mapped into them. Week 0 (section 0 of the plan) runs alongside Phase 0. Control Center now serves protocol 1.9.0; read its copy at `docs/control-center/ENGINE-PROTOCOL.md`.
+
 For beta outreach/onboarding continuation, first read [BETA-HANDOFF.md](BETA-HANDOFF.md). The 27 October handoff records completed private preparation and expired outreach timestamps. It does not tick the engine implementation steps below.
 
 Read AGENTS.md first and follow it (it records Krish's rulings of 2026-10-19), then docs/NORTH_STAR.md, docs/CONTROL-CENTER-BRIEF.md and docs/control-center/ENGINE-PROTOCOL.md (protocol 1.1.0). Before you start, say which part of the North Star this work moves.
@@ -52,12 +54,24 @@ Today's live report (2026-10-19) was `held`, and all three objectives are missin
 
 ## The build
 
-- [ ] **Step 0.** Correct the status line at the top of docs/CONTROL-CENTER-BRIEF.md: the first live run on 2026-10-19 succeeded, so it is no longer only tested against a local stand-in.
+- [x] **Step 0.** Correct the status line at the top of docs/CONTROL-CENTER-BRIEF.md: the first live run on 2026-10-19 succeeded, so it is no longer only tested against a local stand-in. *Done in Phase 0 (27 Oct): the brief now says live since 19 Oct, and the reports stay `held` until the snapshot and ICP arrive.*
 - [ ] **Step 1.** The autonomy loop above (plan, go-live, the go-live step, check-ins) on protocol 1.1.0, proved against the stand-in: an approved plan never goes live, an approved go-live goes live once with exactly its payload, an amended one goes live in his words, a declined check-in stops its plan.
 - [ ] **Step 2.** Specify the snapshot. Write the exact export contract the Legibility app must produce (fields, windows, auth) into docs, and make `--snapshot` consume it. The app is another repository: do not edit it. Hand its owner the contract as a proposal.
 - [ ] **Step 3.** Propose the Legibility ICP to Krish as `wall: strategy`, with its evidence, so he can approve it on Control Center's Growth > Buyers. Code the ICP read against the documented `product_icp` shape, so prospecting releases on its own once Control Center serves that read.
 - [ ] **Step 4.** Keep the campaign-clock proposal on his list. When his approval arrives in decisions, start the clock and measure from that date.
 - [ ] **Step 5.** Make the daily recommendation one rich named invitation or product test, prepared, tied to `activated`.
+
+## The phases (from ENGINE-ARCHITECTURE.md, section 11)
+
+Each phase is one pull request with its acceptance tests set before it starts. The original steps map in brackets.
+
+- [x] **Phase 0. Lose nothing** (step 0). Registers (`docs/FAILURES.md`, `docs/history/LOG.md`), the filed plan, drift fixes, the protocol copy at 1.9.0, `npm run check:docs` in CI only, the session deny list (`.claude/settings.json`), the Drive taxonomy (`librarian/drive-taxonomy.json`), tests for the guards that had none, and the Drive Growth folder.
+- [ ] **Phase 1. Measure and attribute, plus the registry track** (step 2). The app contract A1 to A8 handed to a Legibility session; the engine's export client and the Google Analytics read through Control Center; the session ledger; directory artefacts by 5 Nov; the source review by 10 Nov; the Control Center asks.
+- [ ] **Phase 2. The signed spec and the autonomy loop** (steps 1, 3 and 4). Spec schema and digest binding, protocol fields, the G2 bundle with expiry and re-read, the Draft press route, `propose` for sessions, the ICP read or its shown fallback, the campaign clock proposal.
+- [ ] **Phase 3. Crew, invariants, computed readiness, pack and harness.**
+- [ ] **Phase 4. Alpha Wave 1** (step 5). The new route proves itself on a real run.
+- [ ] **Phase 5. Volume:** directories live, recipes, partners, Show HN, returning-builder nudges.
+- [ ] **Phase 6. Ranker and live Codex dispatch.**
 
 ## Checks
 

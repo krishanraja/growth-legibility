@@ -1,6 +1,8 @@
 # Control Center brief: growth-legibility
 
 > **Status, 2026-10-19: adopted.** The engine speaks protocol 1.0.0 through `src/transport.mjs` and `src/operate.mjs`, and `.github/workflows/operate.yml` answers the `cc-growth-directive` dispatch. See `docs/OPERATIONS.md`, "The Control Center loop".
+>
+> **Status, 2026-10-27: live, not only tested against the stand-in.** The first live run on 2026-10-19 succeeded: it journaled its attempt, read the directive, sent a report, read it back by digest and read Krish's decisions. The daily dispatch has run every day since, apart from the 33.5-hour gap on 20 and 21 October that 2b65ea6 fixed ([history log](history/LOG.md)). Every report so far is `held`, with the objectives missing. The engine's architecture and build plan is [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md).
 
 Written 2026-10-18 by Control Center. This brief **supersedes `docs/CONTROL-CENTER-HANDOFF.md`**. Most of your proposal is now the protocol for every engine: your paths, your envelope, your digest rule and your idempotency. Krish ruled that every growth engine conforms to one protocol (ADR-038 in Control Center).
 

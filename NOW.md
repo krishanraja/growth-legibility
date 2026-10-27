@@ -20,7 +20,7 @@ Legibility's growth engine: it prepares the product tests, rich named invitation
 
 ## Who it is for and why it matters for Mindmake
 
-Developers building software agents. It shows Mindmake growing a developer product through useful tests rather than signups.
+Companies whose agents or products need product data they can trust: reached, from Wave 1, through their commercial leaders, and counted when their engineers make trusted reads. It shows Mindmake growing a developer product through useful tests rather than signups.
 
 ## Where it is right now (as of 2026-10-27)
 
@@ -29,6 +29,13 @@ Developers building software agents. It shows Mindmake growing a developer produ
 Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
+
+- 2026-10-27 **Krish chose the commercial-leader route** ([ENGINE-ARCHITECTURE.md](docs/ENGINE-ARCHITECTURE.md), decisions 12 to 19; [history/LOG.md](docs/history/LOG.md)).
+  - From Wave 1, go in through commercial leaders at companies that buy product data for their own agents or products. Retailers and brands are a separate, later pool, never in the same wave.
+  - "Test and learn what works": Wave 1's one variable is the impact angle (cost and speed, revenue from agents, trust and risk), with the audience and the offer fixed, and only claims the pilot can measure.
+  - The 25-minute call ends with a test report on their own product pages, then an introduction to the engineer who gets the trial key. The number moves at that engineer's first trusted read.
+  - A commercial template is [proposed](docs/proposals/2026-10-27_commercial-outreach-template.md) for his approval; it is not for use, and OUTREACH-TEMPLATE.md is unchanged.
+  - Drafts land in his mindmake.co mailbox. Booking is "reply to book". Scheduled research, drafting and posting run only in the runner; no interactive session holds the engine token. Each pull request is merged once it is green.
 
 - 2026-10-27 **Ruling (Krish, 2026-10-27): to someone Krish already reached for Mindmake, Legibility is positioned as a partner product.** His words: "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product."
   - The snapshot now carries each person's Mindmake record (`contact.prior_mindmake`), copied from Control Center ([contracts/README.md](contracts/README.md)).
@@ -54,19 +61,20 @@ Lifecycle: building. The detail is in `README.md`.
 
 - **Next (Week 0, plan section 0):**
   - measure the number by hand, through two owner-approved Control Center gateway reads;
-  - refresh the 7 expired outreach items in a session that holds the engine token;
-  - then Phase 1 (app contract A1 to A8, Control Center asks).
+  - then Phase 1 (app contract A1 to A8, Control Center asks, now including the Draft press into his mindmake.co mailbox, the research desk for this engine and a read-only calendar read);
+  - the 7 expired outreach items are refreshed in the runner once its propose step exists (Phase 2), never from an interactive session.
 - **Waiting on Krish:**
-  - approve the two gateway reads;
-  - define Legibility's buyer in Control Center Growth > Buyers (proposed wording in Drive `01_Growth/01_Strategy`);
-  - create the Calendly "Legibility alpha test" event by hand (settings in the same folder);
-  - run the Cowork brand-kit prompt;
-  - review and merge the Phase 0 pull request.
+  - approve the two data reads (the gateway reads);
+  - save the buyer in Control Center Growth > Buyers, now commercial leaders at companies that buy product data (the proposal is in Drive `01_Growth/01_Strategy`);
+  - approve, amend or decline the commercial template draft ([proposal](docs/proposals/2026-10-27_commercial-outreach-template.md));
+  - add the spend-capped model API key (`ANTHROPIC_API_KEY`) as an Actions secret when Phase 2 needs it, with the cap set at the provider;
+  - run the Cowork brand-kit prompt.
 - **Single next step for the Mindmake ruling:** Control Center's prior-outreach reader, its route and the one-list hold (ENGINE-ARCHITECTURE section 11, Phase 1 asks 1 to 3, one Control Center pull request). They unblock the Wave 0 refresh for people reached for Mindmake: the record comes only from that reader, never from a session's own reads, so until it exists every Wave 0 item holds as `mindmake_history_unknown`. Krish's words are approved (GET-GOING step 0b).
-- **Also waiting on Krish:** the hello mailbox. Control Center's `api/_mailboxes.ts` says it is connected read-only and is never a drafts box, so the Draft press would place Legibility drafts in his own box unless he connects it for drafts (ENGINE-ARCHITECTURE, assumption ledger). His decision, not made here.
+- **Resolved:** the hello mailbox. Krish ruled on 27 October that drafts land in his mindmake.co mailbox; the hello mailbox stays read-only, as Control Center keeps it.
 - North Star check (2026-10-27): holds.
 - North Star check (2026-10-27, Mindmake ruling): holds. This protects the quality of each invitation; it does not move the number by itself.
 - North Star check (2026-10-27, Mindmake variant approved): holds. People reached for Mindmake can now be invited once the reader lands; it does not move the number by itself.
+- North Star check (2026-10-27): holds; commercial-leader route chosen; the number still unmeasured (U4).
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
 

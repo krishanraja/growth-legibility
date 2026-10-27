@@ -2,7 +2,7 @@
 
 **For:** a session working in the Legibility app repository (`krishanraja/legibility`).
 **From:** the Legibility growth engine (`krishanraja/growth-legibility`, public), written 27 October 2026.
-**Status:** a proposal for the app's owner. Nothing in it is built, deployed or approved yet. Every deploy needs Krish's yes for that deploy.
+**Status (27 October 2026, later):** built. The app shipped A1 to A8 in legibility PRs 45 to 51, live in production apart from A3's page, which is deployed but paused. Section 12 has each item's status and what still waits on Krish. The brief below is kept as written, as the record of what was asked.
 
 This brief is self-contained: everything needed to build A1 to A8 is below, so do not ask Krish to repeat the brief. Where it cites this engine's files, they are public at `https://github.com/krishanraja/growth-legibility`, and reading them is optional. The plan behind it is [ENGINE-ARCHITECTURE.md](../ENGINE-ARCHITECTURE.md), section 11, Phase 1, part 1A.
 
@@ -12,7 +12,7 @@ The app repository's own rules outrank this brief on app matters (structure, tes
 
 1. Read the app repository's own AGENTS.md (or CLAUDE.md) and its North Star, and say which part of it each item moves.
 2. Read section 2 (what binds every item) and section 3 (order).
-3. Do section 11 (the source review read) first: it is read-only, takes minutes, and the engine has a hard deadline on it (10 November).
+3. Do section 11 (the source review read) first: it is read-only and takes minutes. *Done by the engine itself on 27 October at the app's `ffe7cda` (`docs/SOURCE-REGISTER.md`); the next review is due by 19 November.*
 4. Build one item per pull request, in the order of section 3. Each pull request carries its own acceptance tests, written before the code.
 5. Stop at each deploy and ask Krish, once, for that deploy only.
 
@@ -20,14 +20,14 @@ The app repository's own rules outrank this brief on app matters (structure, tes
 
 ### The number this serves
 
-Legibility's North Star number is **builders making trusted reads every week**: 300 by 28 December 2026, on a front-loaded weekly ladder (1 in the week of 26 October, 5 in the week of 2 November, 19 by 16 November, 135 by 14 December, 300 by 28 December). Its source is "weekly active keys with a trusted read, excluding Krish's own". Today it is unmeasured, which counts as urgency U4. The growth engine reports three campaign objectives beside it: `activated` (builders with a first trusted read, target 75), `returning` (mature seven-day returning builders, target 30) and `net` (qualified Founding 200 enrolments, target 200).
+Legibility's North Star number is **builders making trusted reads every week**: 300 by 28 December 2026, on a front-loaded weekly ladder (1 in the week of 26 October, 5 in the week of 2 November, 19 by 16 November, 135 by 14 December, 300 by 28 December). Its source is "weekly active keys with a trusted read, excluding Krish's own". It was first measured on 27 October: 0 against 1 in the week of 26 October, urgency U4 (the engine's NOW.md holds the current line). The growth engine reports three campaign objectives beside it: `activated` (builders with a first trusted read, target 75), `returning` (mature seven-day returning builders, target 30) and `net` (qualified Founding 200 enrolments, target 200).
 
 The product North Star (the app's own) is: by March 2027, more of Legibility's revenue comes from agents paying per call in USDC on mainnet than from human sign-ups, and a hundred production agents depend on it every week. The engine's part of it: by March 2027, trace every production agent to the channel that earned it.
 
 ### Why the app work is the critical path
 
-Measured on 27 October:
-- every daily engine report is held with `source_snapshot_missing`: there is no export from the app, so 0 of 11 runs measured anything;
+Measured on 27 October, before A1 to A8 shipped (what a run says now is in [OPERATIONS.md](../OPERATIONS.md), "What a dispatch measures today"):
+- every daily engine report was held with `source_snapshot_missing`: there is no export from the app, so 0 of 11 runs measured anything;
 - there is no internal-key flag, and `northstar_weekly` counts accounts and excludes nobody;
 - nothing captures where a builder came from, and x402 calls write no row;
 - there is no developer waitlist page and no trial entitlement;
@@ -167,7 +167,7 @@ The aims are planning dates, not rulings. A1, A2 and A4 come first; A6 and A7 mu
 
 ## 8. A4: the row-level export
 
-**Why.** Every engine report is held with `source_snapshot_missing`, and every objective is `missing`. The export ends that. It is row-level, not aggregate, because the engine composes the full snapshot and runs its own existing capture and measure, so every guard still applies (internal exclusion, testbench exclusion, the 0.7 gate, replays that cannot inflate counts, mature seven-day returns, no credit to a key made before its touch). An aggregate would bypass all of them.
+**Why.** Before A4, every engine report was held with `source_snapshot_missing`, and every objective was `missing`. The export ends that (it did, from Actions run 40595794935 on 27 October). It is row-level, not aggregate, because the engine composes the full snapshot and runs its own existing capture and measure, so every guard still applies (internal exclusion, testbench exclusion, the 0.7 gate, replays that cannot inflate counts, mature seven-day returns, no credit to a key made before its touch). An aggregate would bypass all of them.
 
 ### The route
 
@@ -339,7 +339,7 @@ Plus the deploy and the migration, each with his yes.
 
 ## 11. The source review read, for the engine (do this first)
 
-The engine pins four app files at revision `f3c6b77965b0c654fe8eac3611d2d2dfe5a2077e`, reviewed on 18 October. Its policy stops every run on 17 November unless they are reviewed against the app's current head, and the engine's sessions cannot read the app repository. The engine needs the read by **10 November**. It is read-only: change nothing.
+The engine pins four app files at revision `f3c6b77965b0c654fe8eac3611d2d2dfe5a2077e`, reviewed on 18 October. Its policy stopped every run on 17 November unless they were reviewed against the app's current head. *Done 27 October at `ffe7cda`; the lock is now 26 November, and the next review is due by 19 November.* It is read-only: change nothing.
 
 1. Record the full commit hash of the app's `main` head on the day you read it.
 2. For each file below, at that head, say: still at this path (yes or no), and whether it still establishes the claim (holds, or one line on what changed):
@@ -351,6 +351,22 @@ The engine pins four app files at revision `f3c6b77965b0c654fe8eac3611d2d2dfe5a2
 4. Put the answer in the A1 pull request description: the hash, one line per file, no names, figures or secrets. A growth-legibility session then updates its register from it.
 
 ## 12. What comes back to the engine
+
+### Status, 27 October 2026
+
+| Item | Pull request | State | Waiting on Krish |
+|---|---|---|---|
+| A1 internal list and `northstar_weekly_keys` | legibility PR 45 | Live | Nothing |
+| A2 attribution capture | legibility PR 46 | Live | Mark `generate_lead`, `sign_up` and `test_run` as key events in Google Analytics admin |
+| A4 row-level export | legibility PR 47 | Live: `GET /api/internal/growth/export`, read by this engine since Actions run 40595794935 | A dedicated `LEGIBILITY_EXPORT_TOKEN`, with the app's `GROWTH_EXPORT_TOKEN_SHA256` changed to its hash in the same step (FAILURES F44) |
+| A6 and A7 role contact, tool metadata, `server.json` | legibility PR 48 | Live: `server.json` names `io.legibility/mcp` 0.4.0 | Create his registry publishing key, publish `server.json` and submit the directory listings by 5 November |
+| A3 run-first Founding 200 page | legibility PR 49 | Deployed, paused | Create `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY`; the page stays off until both exist |
+| A5 x402 calls logged | legibility PR 50 | Live | Nothing |
+| A8 the 30-day trial | legibility PR 51 | Live. Grants are by hand only (his click on `/dashboard/waitlist`, Trials), 5,000 trusted reads by default, at most 30 days, then Free; no Stripe; `FOUNDING_AUTO_TRIAL` is off, so a Founding 200 sign-up gets no automatic trial | Grant each tester's trial when they accept |
+
+The engine side still owed: the attribution fields (`accounts[].attribution`, `reads[].key_id`) in `src/guards/wire.mjs`, after which the export client asks with `fields=attribution` (GET-GOING, Phase 1B).
+
+### What each pull request reports
 
 In each pull request description, never in a secret:
 - the item, its deployed commit, and the date Krish approved the deploy;

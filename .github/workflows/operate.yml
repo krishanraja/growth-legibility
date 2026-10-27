@@ -31,7 +31,7 @@ jobs:
           CONTROL_CENTER_URL: ${{ vars.CONTROL_CENTER_URL }}
           # The app's A4 export (legibility PR 47) takes the engine's own Control Center bearer until Krish adds a
           # dedicated LEGIBILITY_EXPORT_TOKEN, which the || picks first (then the app's GROWTH_EXPORT_TOKEN_SHA256 must
-          # become that token's hash). One credential, one runner, two read routes: FAILURES F42.
+          # become that token's hash). One credential, one runner, two read routes: FAILURES F44.
           LEGIBILITY_EXPORT_TOKEN: ${{ secrets.LEGIBILITY_EXPORT_TOKEN || secrets.CONTROL_CENTER_ENGINE_TOKEN }}
           LEGIBILITY_EXPORT_URL: ${{ vars.LEGIBILITY_EXPORT_URL || 'https://legibility.io/api/internal/growth/export' }}
           # The dispatch payload is untrusted input: passed as data and checked by the CLI, never pasted into a script.

@@ -13,7 +13,7 @@
 | Persistence proof | PASS: actual loopback HTTP writes followed by independent stored digest readback; false HTTP success remains unverified |
 | Recovery and concurrency | PASS: lost POST response reconciles without another write; three-attempt budget survives restart; simultaneous caller and stale reservation completion cannot reopen an active lease |
 | Control Center protocol (2026-10-19) | PASS: canonical digest reproduces the protocol worked example; envelopes validate against engine-report.schema.json with no unknown fields; a local stand-in proves attempt started then terminal, directive, report, replay, readback digest match, a 409 with no blind retry, a 401 as a failed attempt with a lower_snake code, and no bearer in any output |
-| Topology | PASS: canonical checker validates 6 stages, 7 joins and 3 regression-backed lessons |
+| Topology | PASS: canonical checker validates 6 stages, 7 joins and 3 regression-backed lessons (4 since 27 October, when `unknown-mindmake-history-is-not-none` was added; `npm run conveyor` prints the current count) |
 | Copywriting corpus (2026-10-19) | PASS: both new sources compare equal to the supplied uploads; check and doctor verify every manifest source's SHA-256 and byte count and reject unregistered corpus files; a one-byte alteration fails check and doctor, and the restored copy is identical to the upload. The playbook digest that seals reports is unchanged, so frozen examples and contract hashes are untouched |
 | Mechanical checks | PASS: Node syntax, policy, snapshot, corpus, source credential-shape scan and required documents |
 

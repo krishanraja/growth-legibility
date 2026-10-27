@@ -20,12 +20,18 @@ const ATTEMPT_ID = 'legibility:2026-10-19:operate:guardtest';
 const started = () => ({ attempt_id:ATTEMPT_ID, command:'operate', run_id:null, status:'started', phase:'start', error_code:null, started_at:AT });
 const finished = status => ({ ...started(), status, phase:'report', error_code:status === 'failed' ? 'receiver_unauthorized' : null, finished_at:AT });
 
-function journal(t) {
-  const dir = mkdtempSync(join(tmpdir(), 'growth-legibility-guards-'));
-  t.after(() => rmSync(dir, { recursive:true, force:true }));
-  return join(dir, 'outbox.sqlite');
+// Windows will not delete a file that is still open, and once one after() hook throws node:test skips the rest, so a
+// loopback server is left listening and the test process never exits. So the journal closes before its folder is
+// removed, and removal retries and never throws: a temp folder left behind is harmless, a hung suite is not.
+function removeQuietly(dir) {
+  try { rmSync(dir, { recursive:true, force:true, maxRetries:5, retryDelay:100 }); } catch {}
 }
-function outbox(t) { const db = new Outbox(journal(t)); t.after(() => db.close()); return db; }
+function outbox(t) {
+  const dir = mkdtempSync(join(tmpdir(), 'growth-legibility-guards-'));
+  const db = new Outbox(join(dir, 'outbox.sqlite'));
+  t.after(() => { try { db.close(); } catch {} removeQuietly(dir); });
+  return db;
+}
 function report() {
   const r = buildReport(json('../fixtures/snapshot.json'), json('../config/policy.json'), '2026-10-18T12:00:00Z', 'a'.repeat(64));
   return engineReport(r, { runId:protocolRunId('run', r.observed_at, r.run_id.slice(3, 19)) });

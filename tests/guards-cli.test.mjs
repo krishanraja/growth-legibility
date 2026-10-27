@@ -16,10 +16,16 @@ const SNAPSHOT = ['--snapshot', 'fixtures/snapshot.json', '--at', AT];
 // Each test runs the CLI from a byte copy of the engine in the OS temp directory, so anything a broken guard would
 // write lands there and never in this repository's runtime/. A preloaded stub replaces fetch: it records the call and
 // throws, so nothing leaves the machine and a test can see whether the CLI reached the network at all. The child gets
-// only the environment a test names; nothing is inherited from this process.
+// only the environment a test names, plus Windows' SystemRoot, which Node needs to start there and the engine never
+// reads. Removal of the copy retries and never throws (Windows can hold a just-closed file for a moment, and a throwing
+// after() hook would skip the cleanups after it).
+const OS_ENV = process.env.SystemRoot ? { SystemRoot:process.env.SystemRoot } : {};
+function removeQuietly(dir) {
+  try { rmSync(dir, { recursive:true, force:true, maxRetries:5, retryDelay:100 }); } catch {}
+}
 function sandbox(t) {
   const dir = mkdtempSync(join(tmpdir(), 'growth-legibility-cli-'));
-  t.after(() => rmSync(dir, { recursive:true, force:true }));
+  t.after(() => removeQuietly(dir));
   const root = join(dir, 'engine');
   for (const part of ['package.json', 'src', 'config', '_corpus', 'fixtures']) cpSync(join(repo, part), join(root, part), { recursive:true });
   const offline = join(dir, 'offline.mjs'), network = join(dir, 'network.log');
@@ -27,7 +33,7 @@ function sandbox(t) {
     + "globalThis.fetch = async () => { appendFileSync(process.env.GL_TEST_NETWORK_LOG, 'fetch\\n'); throw new TypeError('offline'); };\n");
   const cli = (argv, env = {}) => spawnSync(process.execPath,
     ['--disable-warning=ExperimentalWarning', '--import', pathToFileURL(offline).href, join(root, 'src', 'cli.mjs'), ...argv],
-    { cwd:root, env:{ ...env, GL_TEST_NETWORK_LOG:network }, encoding:'utf8', timeout:30000 });
+    { cwd:root, env:{ ...OS_ENV, ...env, GL_TEST_NETWORK_LOG:network }, encoding:'utf8', timeout:30000 });
   const calls = () => existsSync(network) ? readFileSync(network, 'utf8').split('\n').filter(Boolean).length : 0;
   return { dir, root, runtime:join(root, 'runtime'), cli, calls };
 }

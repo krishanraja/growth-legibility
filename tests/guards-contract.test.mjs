@@ -15,9 +15,15 @@ const policy = () => structuredClone(POLICY);
 const AT = '2026-10-18T12:00:00Z';
 const TARGETS = ['gross', 'net', 'keys', 'activated', 'returning', 'feedback', 'partners'];
 
+// Windows will not delete a file that is still open, and once one after() hook throws node:test skips the rest, so one
+// failed removal would skip the cleanups after it. So the journal closes before its folder is
+// removed, and removal retries and never throws: a temp folder left behind is harmless, a hung suite is not.
+function removeQuietly(dir) {
+  try { rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); } catch {}
+}
 function scratch(t) {
   const dir = mkdtempSync(join(tmpdir(), 'growth-legibility-guards-'));
-  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  t.after(() => removeQuietly(dir));
   return dir;
 }
 const show = v => v === undefined ? 'missing' : JSON.stringify(v);
@@ -139,9 +145,9 @@ test('a protocol run id with unsafe characters or more than 120 characters is re
 
 // src/outbox.mjs:20-21 if (old && old.digest !== report.payload_sha256) throw new Error('outbox_identity_conflict')
 test('putting a different payload under a run id the outbox already holds is refused and the first payload is kept', t => {
-  const dir = scratch(t);
+  const dir = mkdtempSync(join(tmpdir(), 'growth-legibility-guards-'));
   const db = new Outbox(join(dir, 'outbox.sqlite'));
-  t.after(() => db.close());
+  t.after(() => { try { db.close(); } catch {} removeQuietly(dir); });
   const raw = JSON.parse(readFileSync(new URL('../fixtures/snapshot.json', import.meta.url)));
   const r = buildReport(raw, policy(), AT, 'a'.repeat(64));
   const first = engineReport(r, { runId: protocolRunId('run', r.observed_at, r.run_id.slice(3, 19)) });

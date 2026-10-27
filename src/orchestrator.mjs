@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { validateReport, validateEngineReport, sha256, VERSION, DRAFT_PRESS_VERSION } from './guards/wire.mjs';
 import { emailAction } from './lib/draft-press.mjs';
+import { siteActivity } from './lib/cc-signals.mjs';
+import { isoWeek } from './stages/measure.mjs';
 import { capture } from './capture.mjs';
 import { measure } from './stages/measure.mjs';
-import { prepare } from './stages/prepare.mjs';
+import { icpCurrent, prepare } from './stages/prepare.mjs';
 
 export function buildReport(raw, rawPolicy, at, corpusSha) {
   const {policy,snapshot,sourceHash}=capture(raw,rawPolicy,at);
@@ -142,13 +144,34 @@ function protocolHolds(holds) {
 
 function fmt(m) { return m?.value === null || m?.value === undefined ? `unknown (${m?.reason ?? 'not measured'})` : `${m.value}`; }
 
-// The North Star number travels as an activity line, never as a fourth objective: Control Center's registry
-// objectives stay activated, returning and net until it registers weekly_builders.
+// The North Star number always travels as an activity line. Since protocol 1.13.0 Control Center may register
+// weekly_builders and conversations_held as objectives (migration 20261112150000); the directive's objectives say which
+// are registered, and only those are reported as objectives (registeredObjectives below), so against a registry
+// without them the report is unchanged.
 function weeklyBuildersLine(metric, window) {
   const scope = window ? `in ISO week ${window.iso_week} to ${window.as_of}` : 'this ISO week';
   const value = metric?.value === null || metric?.value === undefined ? `unknown (${metric?.reason ?? 'not measured'})`
     : `${metric.value} builder${metric.value === 1 ? '' : 's'} with at least one trusted read`;
   return { line:clip(`weekly_builders: ${value} ${scope}, internal accounts excluded, counted per account until the export carries key ids.`, 500), evidence_url:null };
+}
+
+const HELD_REASON = 'calendar_read_missing: held conversations are counted from Krish\'s calendar, read only, and that read does not exist yet; a booking never counts as held';
+/** The keys the directive says the registry holds for this engine (its objectives[].key), beyond the original three. */
+export function registeredObjectives(directive) {
+  const keys = new Set((Array.isArray(directive?.objectives) ? directive.objectives : []).map(o => o?.key).filter(k => typeof k === 'string'));
+  return { weekly_builders:keys.has('weekly_builders'), conversations_held:keys.has('conversations_held') };
+}
+/** weekly_builders and conversations_held as objectives, where registered. `wb` is { value, reason, week_start, as_of, stale }. */
+function numberObjectives(registered, wb) {
+  const out = [];
+  if (registered.weekly_builders) {
+    const base = { key:'weekly_builders', unit:'builders', window_start:wb.week_start, window_end:wb.as_of, timezone:'UTC' };
+    if (wb.value === null || wb.value === undefined) out.push({ ...base, value:null, availability:'missing', reason:clip(wb.reason ?? 'Not measured', 500) });
+    else if (wb.stale) out.push({ ...base, value:wb.value, availability:'stale', reason:'The source snapshot is older than the policy freshness limit' });
+    else out.push({ ...base, value:wb.value, availability:'measured', reason:null });
+  }
+  if (registered.conversations_held) out.push({ key:'conversations_held', value:null, unit:'conversations', window_start:null, window_end:null, timezone:'UTC', availability:'missing', reason:HELD_REASON });
+  return out;
 }
 
 // Flatten a sealed private report into the protocol envelope. Unknown stays null with its reason, never zero.
@@ -168,6 +191,11 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
     if (stale) return { ...base, value:m.value, availability:'stale', reason:'The source snapshot is older than the policy freshness limit' };
     return { ...base, value:m.value, availability:'measured', reason:null };
   });
+  const wbWindow = report.scorecard.north_star?.weekly_builders_window;
+  objectives.push(...numberObjectives(registeredObjectives(directive), {
+    value:metrics.weekly_builders?.value ?? null, reason:metrics.weekly_builders?.reason ?? null,
+    week_start:wbWindow?.week_start ?? null, as_of:wbWindow?.as_of ?? null, stale,
+  }));
   const pending = report.actions.filter(a => a.status === 'pending_human').length;
   const activity = [
     directiveActivity(directive),
@@ -177,6 +205,7 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
     { line:`Prepared ${pending} named invitation${pending === 1 ? '' : 's'} for Krish to review and ${report.actions.length - pending} work task${report.actions.length - pending === 1 ? '' : 's'}. Nothing was sent or published.`, evidence_url:null },
     { line:clip(`Weekly production agents: ${fmt(metrics.production_agents_weekly)}. Weekly median trusted reads per active account: ${fmt(metrics.weekly_median_trusted_reads_per_active_account)}. Mainnet agent revenue USD: ${fmt(metrics.mainnet_agent_revenue_usd)}; testnet volume is never counted as revenue.`, 500), evidence_url:null },
     { line:`Distribution inventory holds ${report.opportunities.length} verified opportunit${report.opportunities.length === 1 ? 'y' : 'ies'}, ${report.opportunities.filter(o => o.status === 'uncovered').length} uncovered.`, evidence_url:null },
+    ...siteActivity(directive?.web_analytics),
   ].filter(Boolean);
   const proposals = [...report.actions.map(a => actionProposal(a, draftPress)), constraintProposal(recommendation)].slice(0, 10);
   const holds = protocolHolds(report.holds);
@@ -192,21 +221,31 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
 // A run with no source snapshot still reports, honestly: held, nothing measured, and the missing inputs named.
 // extraHolds name why an export that was configured did not arrive; with none, the report is exactly the one sent
 // before the export client existed.
-export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [] }) {
+// icp is the buyer Control Center's directive carried (src/lib/cc-signals.mjs readIcp), or null. Only a current approved
+// one (prepare's own rule, icpCurrent) clears icp_not_current_approved; with none, the report is exactly the one sent
+// before the directive carried a buyer.
+export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [], icp = null }) {
   const inactive = !policy?.campaign?.activated_at;
   const reason = `No source snapshot from the Legibility app reached this run, so nothing was measured.${inactive ? ' The campaign clock has not been activated either.' : ''}`;
   const objectives = OBJECTIVES.map(({ key, unit }) => ({ key, value:null, unit, window_start:policy?.campaign?.activated_at ?? null, window_end:null, timezone:'UTC', availability:'missing', reason }));
+  objectives.push(...numberObjectives(registeredObjectives(directive), { value:null, reason, week_start:new Date(isoWeek(Date.parse(at)).start).toISOString(), as_of:at, stale:false }));
+  const buyer = icpCurrent(icp, at);
   const holds = [
     { reason:'source_snapshot_missing', detail:'The runner has no authenticated export from the app (accounts, server-metered reads, events, settlements). Measurement and preparation stay held until the source owner supplies one with --snapshot.' },
-    { reason:'icp_not_current_approved', detail:'No current approved Legibility buyer definition from Control Center product_icp reached this run, so prospecting stays held. Control Center still owes the narrow product_icp read path.' },
+    ...(buyer ? [] : [{ reason:'icp_not_current_approved', detail:'No current approved Legibility buyer definition from Control Center product_icp reached this run, so prospecting stays held. Control Center still owes the narrow product_icp read path.' }]),
     ...extraHolds,
   ];
   if (directiveHold) holds.push(directiveHold);
-  const rec = { code:'restore_measurement', action:'Connect the app snapshot export and the product_icp read path to this runner', reason:'Unknown observations cannot establish funnel performance or justify outreach' };
+  const rec = buyer
+    ? { code:'restore_measurement', action:'Connect the app snapshot export to this runner', reason:'Unknown observations cannot establish funnel performance or justify outreach' }
+    : { code:'restore_measurement', action:'Connect the app snapshot export and the product_icp read path to this runner', reason:'Unknown observations cannot establish funnel performance or justify outreach' };
+  const held = buyer
+    ? { line:`Held measurement and preparation: no source snapshot reached the runner. The approved buyer did, from Control Center product_icp (revision ${String(icp.revision).replace(/^sha256:/, '').slice(0, 12)}, reviewed ${icp.reviewed_at}). No objective was guessed and nothing was sent.`, evidence_url:null }
+    : { line:'Held measurement and preparation: no source snapshot or canonical ICP reached the runner. No objective was guessed and nothing was sent.', evidence_url:null };
   return seal({
     schema_version:VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode, observed_at:at,
     source:{ revision:String(revision).slice(0, 128), captured_at:at }, status:'held', objectives,
-    activity:[directiveActivity(directive), { line:'Held measurement and preparation: no source snapshot or canonical ICP reached the runner. No objective was guessed and nothing was sent.', evidence_url:null }].filter(Boolean),
+    activity:[directiveActivity(directive), held, ...siteActivity(directive?.web_analytics)].filter(Boolean),
     proposals:[constraintProposal(rec)], events:[], holds,
   });
 }

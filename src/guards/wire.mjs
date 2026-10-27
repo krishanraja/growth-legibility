@@ -115,18 +115,25 @@ export function validateSnapshot(s, at) {
   for (const f of s.feedback) {keys(f,['id','account_id','occurred_at'],'feedback');fail(accountIds.has(f.account_id) && before(f.occurred_at), 'feedback');}
   keys(s.spend,['paid_media_usd'],'spend');
   fail(num(s.spend?.paid_media_usd), 'spend');
-  fail(s.icp && allowed(s.icp.status,['approved','proposed','missing']), 'icp');
-  keys(s.icp,['product_slug','source','buyer_definition','status','revision','reviewed_at'],'icp');
-  if (s.icp.status === 'approved') {
-    fail(s.icp.product_slug === 'legibility' && s.icp.source === 'control-center:product_icp', 'icp_product_source');
-    fail(text(s.icp.revision,200) && before(s.icp.reviewed_at) && text(s.icp.buyer_definition,4000), 'icp_definition_provenance');
-  }
+  validateIcp(s.icp, before);
   fail(s.benchmark && typeof s.benchmark.selection_method === 'string' && bool(s.benchmark.consented), 'benchmark');
   keys(s.benchmark,['selection_method','consented'],'benchmark');
   for(const c of s.candidates) validateCandidate(c, before);
   for(const o of s.opportunities) {keys(o,['id','kind','title','url','evidence_url','observed_at','status','effort_minutes'],'opportunity');fail(date(o.observed_at),'opportunity_date');}
   for(const x of s.suppressions) {keys(x,['candidate_id','reason'],'suppression');fail(id(x.candidate_id)&&text(x.reason,500),'suppression');}
   return s;
+}
+// The buyer, as snapshot.icp and as Control Center serves it in the directive (protocol 1.13.0, `icp`): one rule for both.
+// `before` bounds reviewed_at by the capture (or, for the directive, the run clock).
+export const ICP_KEYS = Object.freeze(['product_slug','source','buyer_definition','status','revision','reviewed_at']);
+export function validateIcp(icp, before) {
+  fail(icp && allowed(icp.status,['approved','proposed','missing']), 'icp');
+  keys(icp,ICP_KEYS,'icp');
+  if (icp.status === 'approved') {
+    fail(icp.product_slug === 'legibility' && icp.source === 'control-center:product_icp', 'icp_product_source');
+    fail(text(icp.revision,200) && before(icp.reviewed_at) && text(icp.buyer_definition,4000), 'icp_definition_provenance');
+  }
+  return icp;
 }
 // contact.prior_mindmake is Control Center's Mindmake record for the person, copied unchanged from its reader.
 // Absent means unknown, which prepare holds; null is refused, so a failed join can never read as none.

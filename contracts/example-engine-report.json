@@ -2,11 +2,11 @@
   "schema_version": "1.0.0",
   "engine_id": "growth-legibility",
   "product_slug": "legibility",
-  "run_id": "legibility:2026-10-18:run:16df0aa30873a4c7",
+  "run_id": "legibility:2026-10-18:run:90fa45b575d8983b",
   "mode": "synthetic",
   "observed_at": "2026-10-18T12:00:00Z",
   "source": {
-    "revision": "ed03d2f65c2b4c8043a1863d6d3ea41d79ce5acf7315a05f2b9d4c4a0e85f1c5",
+    "revision": "c5f75dae0ab80ec2c95908c60d6cc1b8f31883db1999ebd6161024c71d313844",
     "captured_at": "2026-10-18T12:00:00Z"
   },
   "status": "ready",
@@ -44,7 +44,7 @@
   ],
   "activity": [
     {
-      "line": "Measured the Founding 200 funnel from a synthetic source snapshot captured 2026-10-18T12:00:00Z (digest ed03d2f65c2b).",
+      "line": "Measured the Founding 200 funnel from a synthetic source snapshot captured 2026-10-18T12:00:00Z (digest c5f75dae0ab8).",
       "evidence_url": null
     },
     {
@@ -83,7 +83,7 @@
       "evidence": [
         {
           "label": "Their Mindmake record in Control Center",
-          "url": "https://example.com/cc/person/candidate-example"
+          "url": "https://controlcenter.krishraja.com/#/people?person=00000000-0000-4000-8000-000000000001"
         },
         {
           "label": "Cited source",
@@ -144,5 +144,5 @@
   ],
   "events": [],
   "holds": [],
-  "payload_sha256": "2d86e7f0eb73f21cc77960b591496dd7c882c218cccaf816eca109672b730390"
+  "payload_sha256": "230c8a7cfe704c077e56bff54013f5b8faa3670810715214d5ae2ca3c09983ab"
 }

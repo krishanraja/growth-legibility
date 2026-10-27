@@ -49,3 +49,20 @@ The wire refuses a broken record before the capture digest, and the whole snapsh
 The client takes `LEGIBILITY_EXPORT_URL` (an Actions variable: a route on `https://legibility.io`, the only origin it calls) and `LEGIBILITY_EXPORT_TOKEN` (an Actions secret, never printed). It sends a bearer GET with `start` and `end` as UTC instants, refuses redirects, stops at 20 seconds and 20 MB, and takes JSON only. Only a `live` export is read from the app's origin. The attribution fields (`fields=attribution`) are not accepted yet: the validator still refuses them, and the client never asks for them.
 
 The scorecard also carries `weekly_builders`, the engine's North Star number: builders with at least one trusted read in the ISO week to date, internal accounts excluded, counted per account until the export carries key ids. It travels in the protocol envelope as an activity line; `objectives[]` keeps `activated`, `returning` and `net`. manifest.json was refrozen for `src/stages/measure.mjs` and both examples, which gained that metric and line; the fixture and every other pinned file are unchanged.
+
+## The Mindmake record, read by the runner (protocol 1.11.0, 27 October 2026)
+
+**`candidates[].contact.contact_id`** (optional). The person's Control Center contact id: a lowercase uuid, never a name, an address, an uppercase id or null (`invalid_contract:candidate_contact_id`). It is the only key the record is read by.
+
+`operate` reads each record from Control Center before it builds the report (`src/lib/prior-outreach.mjs`): `GET /api/growth/engines/legibility/prior-outreach?contacts=<ids>` on the engine's own bearer, only when `capabilities.features.prior_outreach` is true, in batches of at most 50 distinct ids (Control Center's `MAX_CONTACTS`) and at most 4 batches a run. Each record is copied into `contact.prior_mindmake` unchanged. In `operate` the reader is the only writer of that field: a record already in the snapshot is dropped first. The field stays absent, which prepare holds as `mindmake_history_unknown`, when:
+
+- the candidate has no `contact_id`;
+- Control Center does not serve the route, or a read fails (any status, a body that is not `{ ok: true, schema_version: 1.x, prior_outreach: {} }`, a rate limit);
+- an id is missing from the answer, or past the 4-batch cap;
+- the record breaks the rules in the table above (`validateMindmakeRecord`), is dated after `captured_at`, or links a record other than this person's (`record_url` must be `https://controlcenter.krishraja.com/#/people?person=<contact_id>`, or null when unknown).
+
+A refused record leaves only that person unknown; it never refuses the snapshot. Nothing writes `none` on a failure. The run's printed summary names the outcome in counts and codes only (`prior_outreach`: `read`, `partial`, `unavailable`, `unlinked` or `not_needed`). `run` and `check:invitation` do not read Control Center: they take the record their input carries.
+
+The approval packet now binds `contact.contact_id` beside the record. The fixture's candidate gained a synthetic `contact_id`, and its record link and draft source became the Control Center person link for that id. manifest.json was refrozen for `src/guards/wire.mjs`, `src/stages/prepare.mjs`, the fixture and both examples; the send proposal's exact words and `payload_sha256` are unchanged, and its evidence leads with the new record link.
+
+**What feeds it.** No producer fills `contact_id` yet: the app export owns no candidates (they are empty with coverage false), so today a candidate reaches the runner only in a `--snapshot` file. The id comes from Control Center (a contact Krish already has, or one its research desk's `person_route` files), carried by the runner's research step in Phase 2.

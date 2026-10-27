@@ -1,6 +1,7 @@
 import { deliver } from './transport.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId } from './orchestrator.mjs';
 import { captureExport, exportHold } from './lib/export-client.mjs';
+import { readPriorMindmake } from './lib/prior-outreach.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
 // inside the walls, report and read back, read Krish's decisions, close the attempt. Nothing here sends, posts,
@@ -82,6 +83,13 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     if (snapshot) {
       // Synthetic fixtures never count as live: they may only travel to a local stand-in.
       if (snapshot.mode !== 'live' && !client.local) throw Object.assign(new Error('synthetic_snapshot_refused'), { code:'synthetic_snapshot_refused' });
+      // Each person's Mindmake record, from Control Center's reader only (1.11.0). A failed or partial read leaves the
+      // record absent, which prepare holds as unknown; it never stops the run.
+      phase = 'prior_outreach';
+      let read;
+      ({ snapshot, summary:read } = await readPriorMindmake(client, snapshot));
+      summary.prior_outreach = read;
+      phase = 'plan';
       privateReport = buildReport(snapshot, policy, observedAt, corpusSha);
       envelope = engineReport(privateReport, { runId, directive, directiveHold });
     } else {

@@ -2,14 +2,14 @@
   "schema_version": 1,
   "pipeline_id": "legibility-growth-v1",
   "inventory": {"roots":["src"],"extensions":[".mjs"],"exclude":[]},
-  "external_inputs": ["source_snapshot","app_export","policy","run_clock","corpus_digest","delivery_options","directive"],
+  "external_inputs": ["source_snapshot","app_export","mindmake_record","policy","run_clock","corpus_digest","delivery_options","directive"],
   "terminal_outputs": ["private_report","presentation_summary","attempt_journal","decision_tally"],
   "stages": [
     {
-      "id":"capture","owner":"source-contract-boundary","owned_paths":["src/capture.mjs","src/lib/export-client.mjs"],
-      "inputs":["source_snapshot","app_export","policy","run_clock"],"outputs":["observed_snapshot"],"consumed_guards":["wire"],"side_effects":["read-only authenticated GET of the app's row-level export from the pinned origin; never a write"],
+      "id":"capture","owner":"source-contract-boundary","owned_paths":["src/capture.mjs","src/lib/export-client.mjs","src/lib/prior-outreach.mjs"],
+      "inputs":["source_snapshot","app_export","mindmake_record","policy","run_clock"],"outputs":["observed_snapshot"],"consumed_guards":["wire"],"side_effects":["read-only authenticated GET of the app's row-level export from the pinned origin; never a write","read-only GET of Control Center's prior-outreach route by contact id, at most 50 ids a read and 4 reads a run; never a write"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Normalized source digest in immutable report","recovery_entrypoint":"capture-recovery"},
-      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs rejects invalid, contradictory and privacy-unsafe exports before consumption; tests/export-client.test.mjs pins the export origin and refuses redirects, slow, oversized and non-JSON answers"}
+      "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs rejects invalid, contradictory and privacy-unsafe exports before consumption; tests/export-client.test.mjs pins the export origin and refuses redirects, slow, oversized and non-JSON answers; tests/prior-outreach.test.mjs copies each Mindmake record unchanged and leaves it unknown on any failure"}
     },
     {
       "id":"measure","owner":"growth-measurement","owned_paths":["src/stages/measure.mjs"],

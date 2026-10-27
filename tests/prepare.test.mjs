@@ -115,7 +115,7 @@ test('candidate and opportunity projections exclude unknown nested export metada
   assert.equal(JSON.stringify(result).includes('AUTH_CANARY'), false);
   assert.deepEqual(Object.keys(result.actions[0].candidate.current_signal).sort(), ['observed_at', 'text', 'url']);
   assert.deepEqual(Object.keys(result.actions[0].candidate.relationship).sort(), ['evidence', 'kind', 'url']);
-  assert.deepEqual(Object.keys(result.actions[0].candidate.contact).sort(), ['followups', 'last_sent_at', 'prior_mindmake', 'status']);
+  assert.deepEqual(Object.keys(result.actions[0].candidate.contact).sort(), ['contact_id', 'followups', 'last_sent_at', 'prior_mindmake', 'status']);
   assert.deepEqual(Object.keys(result.actions[0].candidate.contact.prior_mindmake).sort(), ['by', 'last_touch_at', 'record_url', 'state', 'state_at']);
   assert.deepEqual(result.actions[0].candidate.contact.prior_mindmake, NONE);
   assert.equal('request_headers' in result.opportunities[0], false);

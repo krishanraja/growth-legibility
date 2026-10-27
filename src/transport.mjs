@@ -1,11 +1,16 @@
-import { PROTOCOL, receiverTakes, SERVED, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
+import { isContactId, PROTOCOL, receiverTakes, SERVED, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
 
-// The one Control Center client for this engine: protocol 1.0.0 (ADR-038, docs/control-center/ENGINE-PROTOCOL.md).
+// The one Control Center client for this engine (ADR-038, docs/control-center/ENGINE-PROTOCOL.md). It sends protocol
+// 1.0.0 reports and accepts any 1.x Control Center serves (F19); it also reads the 1.11.0 prior-outreach route, each
+// person's Mindmake record, when the capabilities say it is served.
 // HTTPS to the approved origin only, no redirects, bounded timeouts, JSON only. The bearer is read by the caller at run
 // time and is never logged, echoed, stored or written into an error. Every failure leaves as a lower_snake code.
 export const APPROVED_ORIGIN = 'https://controlcenter.krishraja.com';
 const PREFIX = `/api/growth/engines/${PROTOCOL.slug}`;
 const TIMEOUT_MS = 20000;
+// Control Center's api/_priorOutreach.ts MAX_CONTACTS: at most this many contact ids in one prior-outreach read.
+export const MAX_PRIOR_OUTREACH_CONTACTS = 50;
+const plainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 export class ControlCenterError extends Error {
   constructor(message, code = message) { super(message); this.code = code; }
@@ -48,7 +53,21 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     // The response also carries activation and features; only the identity, and that the
     // receiver still takes the 1.0.0 reports this engine sends, are compared.
     if (!SERVED.test(cap?.schema_version ?? '') || !receiverTakes(cap) || cap.engine_id !== PROTOCOL.engine_id || cap.product_slug !== PROTOCOL.product_slug) throw fault('receiver_contract_mismatch');
-    return { activation:cap.activation?.state ?? null };
+    // Only the features this engine reads leave, and only as true or false.
+    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true } };
+  }
+
+  // 1.11.0: each person's Mindmake record, for 1 to 50 distinct contact ids. Only the asked ids leave this function, each
+  // as Control Center sent it; the caller validates every record (src/lib/prior-outreach.mjs). Codes only on failure.
+  async function priorOutreach(ids) {
+    if (!Array.isArray(ids) || ids.length < 1 || ids.length > MAX_PRIOR_OUTREACH_CONTACTS || !ids.every(isContactId) || new Set(ids).size !== ids.length) throw fault('prior_outreach_request_invalid');
+    const res = await request(`/prior-outreach?contacts=${ids.join(',')}`);
+    if (res.status === 404) { await discard(res); throw fault('prior_outreach_not_supported'); }
+    if (res.status === 429) { await discard(res); throw fault('receiver_rate_limited'); }
+    if (!res.ok) { await discard(res); throw fault('prior_outreach_unavailable'); }
+    const body = await jsonResponse(res);
+    if (body?.ok !== true || !SERVED.test(body.schema_version ?? '') || !plainObject(body.prior_outreach)) throw fault('prior_outreach_invalid');
+    return Object.fromEntries(ids.filter(id => Object.hasOwn(body.prior_outreach, id)).map(id => [id, body.prior_outreach[id]]));
   }
 
   async function readAttempt(attemptId) {
@@ -116,7 +135,7 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     return request('/reports', { method:'POST', body:payload, headers:{ 'idempotency-key':runId } });
   }
 
-  return { local, capabilities, postAttempt, readAttempt, directive, decisions, readReport, postReport };
+  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport };
 }
 
 const POST_REFUSALS = { 400:'receiver_report_refused', 403:'receiver_identity_refused', 413:'receiver_report_too_large', 429:'receiver_rate_limited' };

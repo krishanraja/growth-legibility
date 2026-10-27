@@ -24,11 +24,15 @@ Companies whose agents or products need product data they can trust: reached, fr
 
 ## Where it is right now (as of 2026-10-27)
 
-<!-- north-star-state {"week_of": "2026-10-26", "week_target": 1, "current": null, "current_as_of": null, "current_source": null, "urgency": 4, "urgency_reason": "not measured yet"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: not measured yet, against 1 this week, on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits.
+<!-- north-star-state {"week_of": "2026-10-26", "week_target": 1, "current": 0, "current_as_of": "2026-10-27", "current_source": "Supabase legibility: accounts with a trusted read (product returned, confidence set) since Monday 00:00 UTC, internal accounts excluded; read-only count, 2026-10-27 20:46 UTC", "urgency": 4, "urgency_reason": "0 against 1 this week, under 40%"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: 0 against 1 this week (measured 27 Oct), on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits.
 
 Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
+
+- 2026-10-27 **The engine reads each person's Mindmake record from Control Center** (control-center PR 581 merged, protocol 1.11.0). A candidate may carry its Control Center contact id (`contact.contact_id`), and `operate` reads `GET .../prior-outreach` by those ids, at most 50 a read, and copies each record unchanged into `contact.prior_mindmake`. A failed read, a missing capability, a malformed record or no contact id leaves the record absent, which holds as `mindmake_history_unknown`; nothing writes `none` on a failure ([contracts/README.md](contracts/README.md), FAILURES F38). No producer fills the contact id yet, so live runs are unchanged.
+
+- 2026-10-27 **The number is measured: 0 against 1 this week** (read-only count at 20:46 UTC, authorised by Krish in chat). Buyer v2 was written to Control Center `product_icp` at 20:45 UTC on his authority; the read-back shows it defined, with 10 titles.
 
 - 2026-10-27 **The source review is done** (Phase 1E): register reviewed against both repositories' current heads, review date moved to 26 Nov 2026 with its reasons, manifest refrozen. Details under "What is next".
 
@@ -64,16 +68,14 @@ Lifecycle: building. The detail is in `README.md`.
 ## What is next and what is waiting on Krish
 
 - **Next (Week 0, plan section 0):**
-  - measure the number by hand, through two owner-approved Control Center gateway reads;
+  - measured 27 Oct: 0 (week target 1). Context: there has been no API call since 21 Oct, the one live key is internal, and the waitlist is empty. Re-measure each Monday until the A4 export replaces it;
   - the export client is built (Phase 1B, 27 Oct): once the app ships A4 and Krish adds `LEGIBILITY_EXPORT_TOKEN` (Actions secret) and `LEGIBILITY_EXPORT_URL` (variable), each run counts `weekly_builders`; until then the live report is unchanged;
   - then the rest of Phase 1 (app contract A1 to A8, Control Center asks, now including the Draft press into his mindmake.co mailbox, the research desk for this engine and a read-only calendar read);
   - the 7 expired outreach items are refreshed in the runner once its propose step exists (Phase 2), never from an interactive session.
 - **Waiting on Krish:**
-  - approve the two data reads (the gateway reads);
-  - save the buyer in Control Center Growth > Buyers, now commercial leaders at companies that buy product data (the proposal is in Drive `01_Growth/01_Strategy`);
   - add the spend-capped model API key (`ANTHROPIC_API_KEY`) as an Actions secret when Phase 2 needs it, with the cap set at the provider;
   - run the Cowork brand-kit prompt.
-- **Single next step for the Mindmake ruling:** merge Control Center's prior-outreach reader, its route (protocol 1.11.0) and the one-list hold (control-center pull request 581, open 27 Oct), then teach the engine to read that route. They unblock the Wave 0 refresh for people reached for Mindmake: the record comes only from that reader, never from a session's own reads, so until it exists every Wave 0 item holds as `mindmake_history_unknown`. Krish's words are approved (GET-GOING step 0b).
+- **Single next step for the Mindmake ruling:** a producer for each candidate's Control Center contact id. Control Center's reader, route and one-list hold are merged (PR 581) and the engine reads the route (27 Oct), but no candidate carries a `contact_id` yet: the app export owns no candidates, so they reach the runner only in a `--snapshot` file. Phase 2's research and propose step in the runner carries the id from Control Center (a contact Krish already has, or one the research desk's `person_route` files); until then every Wave 0 item holds as `mindmake_history_unknown`. Control Center still owes ask 5 (`contact_id` on People-press drafts, so their open check keys by contact).
 - **Resolved:** the hello mailbox. Krish ruled on 27 October that drafts land in his mindmake.co mailbox; the hello mailbox stays read-only, as Control Center keeps it.
 - North Star check (2026-10-27): holds.
 - North Star check (2026-10-27, Mindmake ruling): holds. This protects the quality of each invitation; it does not move the number by itself.
@@ -84,12 +86,13 @@ Lifecycle: building. The detail is in `README.md`.
 - **Done 27 Oct 2026, the source review (Phase 1E; [SOURCE-REGISTER.md](docs/SOURCE-REGISTER.md), "Review of 27 October 2026").** The four app files were reviewed at the app's `main` head `ffe7cda` (three unchanged; the North Star gained its number, 1,000 production agents a week by 29 March 2027) and the two Control Center rows at `621bad8` (the receiver is live, the packs collision is gone, the attribution allowlist still omits Legibility). No changed claim alters what a run does. `source_review_due` is now 26 Nov 2026 00:00 UTC, 30 days after the review; the manifest is refrozen with both examples rebuilt. **Next review due by 19 Nov 2026; if it is missed, from 26 Nov 00:00 UTC every run holds with `source_review_due` and prepares nothing.**
 - North Star check (2026-10-27, export client): holds. The engine can now count the number from the app's export; it is measured once A4 ships and the secret is added.
 - North Star check (2026-10-27, source review): holds. It keeps every run able to prepare past 17 Nov; it does not move the number by itself.
+- North Star check (2026-10-27, measured): holds; the number is 0 against 1, U4.
+- North Star check (2026-10-27, Mindmake reader): holds. People reached for Mindmake can be invited once a contact id reaches the runner; it does not move the number by itself.
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
 
 - Resume from docs/BETA-HANDOFF.md: refresh expired outreach and current contact/approval state; inspect trial provisioning before promising activated access. Do not count internal demos as builder adoption.
 
-- Measure the North Star number and record it on the first line under "Where it is right now".
 - North Star check (2026-10-23): holds.
 
 ## Read next

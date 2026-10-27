@@ -79,3 +79,65 @@ https://legibility.io
 - Write nothing in these cases, which the engine holds: a Mindmake item about them is still open, they are a Mindmake client, the last Mindmake touch is under 14 days old, or the record is unknown.
 - An introduction request opens with the same two sentences, then makes its one introduction ask.
 - Approving this variant does not authorise sending, scheduling or account provisioning.
+
+## Commercial-leader version
+
+Approved by Krish on 27 October 2026, when he chose to go in through commercial leaders (`docs/history/LOG.md`). It keeps the structure of the template above: introduce Krish and Legibility first, explain it plainly, then the 30-day free trial in exchange for feedback, with a test report on a few of their own product pages and a 25-minute call booked by reply.
+
+### Who it is for
+
+Wave 1 is commercial leaders at companies that buy product data for their own agents or products: marketplaces, comparison and affiliate sites, procurement platforms, catalogue-enrichment firms and agent startups. Titles: CRO, Chief Commercial Officer, VP or Head of Sales, Partnerships, Business Development, Growth or eCommerce, Chief Digital Officer, GM, or a commercial co-founder.
+
+Commercial leaders at retailers and brands are a separate, later pool with its own wording (agents misread your pages), never in the same wave. This template is not for them. Brands wanting SEO or GEO consultancy are not prospected at all.
+
+### Template
+
+Subject: A free test report and 30-day free trial of Legibility for [company]
+
+Hi [first name],
+
+I'm Krish, building Legibility. It gives AI agents product information they can act on: the name, price and stock of a product, with a score for how far each detail can be trusted and when it was checked.
+
+[Company] relies on product data for [product or project name]. Legibility could sit alongside the data you use today and fill gaps on the [kinds of supported product pages relevant to them], without replacing what already works.
+
+[One impact paragraph: choose version A, B or C below.]
+
+Legibility is in pilot mode, and I'm offering a small group of companies a 30-day free trial in exchange for feedback. With it comes a test report on a few of [company]'s own product pages, showing what Legibility read and how far each detail can be trusted.
+
+Would you be open to a 25-minute call to walk through that report? Just reply and I'll book a time.
+
+Krish
+https://legibility.io
+
+### The impact paragraph: three versions
+
+Each wave tests one of these three, and the Learning Judge reads which one commercial leaders respond to (Ruling, Krish, 2026-10-27: "test and learn what works"). Each draft carries exactly one. No measured result exists yet, so each one says what the pilot will measure and never claims a result.
+
+**A. Cost and speed of getting product data**
+
+> Getting product details from a new source usually costs money and time before it is useful. The pilot would measure both for [company]: what each trusted detail costs, and how quickly a new source gives usable data, compared with what you use today.
+
+**B. Revenue from agent-led buying**
+
+> More buying is starting to happen through AI agents, and an agent can only recommend a product whose details it can read and trust. The pilot would measure how much of [company]'s product data an agent could rely on today, and where the gaps are.
+
+**C. Trust and risk of wrong prices and stock**
+
+> A wrong price or a product shown in stock that is not puts customer trust at risk. The pilot would measure how often the details Legibility returns match the live page, and how often it says it is unsure rather than guessing.
+
+### Someone Krish has already reached for Mindmake
+
+Use the opening lines of "Variant: someone Krish has already reached for Mindmake" above, under the same conditions: replace "I'm Krish, building Legibility." with the two sentences for that person's record, and keep everything after it word for word.
+
+### Use
+
+- One reader, one impact version, one ask: reply to book the call. No booking link: Krish books the call himself, and the calendar event carries the invitation id.
+- The call ends with the test report on their own product pages, then an introduction to the engineer who will get the trial key. That introduction is asked for on the call, never in this first note. The number moves only when that engineer makes their first trusted read from their own key.
+- Tailor [product or project name] and the kinds of pages to current, cited company evidence. Do not assume their data is poor or that they need a replacement.
+- Every impact sentence says what the pilot would measure. No lift, saving, revenue figure or accuracy rate until one is measured and recorded with its source.
+- Keep "free" beside the trial. The offer is the 30-day free trial for feedback plus the test report, nothing more: no unlimited use, enforced end date, waived charges or price.
+- Mindmake appears only in the approved opening lines of the variant, and only for someone Control Center records as reached for it. Never the word "partner", never a Mindmake offer, link or second ask.
+- No claim of earlier contact, warmth or familiarity beyond what the record shows. No coverage claim beyond the supported pages. No hype words.
+- On LinkedIn, drop the subject line and keep the rest as a copyable note.
+- Approving this template does not authorise sending, scheduling or account provisioning. Krish sends from his mindmake.co mailbox.
+- Each version, filled with example values, passes the engine's own draft lints (`src/stages/prepare.mjs`) for a person with no Mindmake record and for someone Krish reached for Mindmake.

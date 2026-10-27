@@ -100,7 +100,9 @@ test('the 21 October template is byte-identical and the Mindmake variant lines a
   const cut = doc.indexOf('\n## Variant: someone Krish has already reached for Mindmake\n');
   assert.ok(cut > 0, 'variant heading');
   assert.equal(createHash('sha256').update(doc.slice(0, cut)).digest('hex'), 'e0d19803df6bce6519c2f07d46e88491eebe1cfadd8695214fbf4a5d4cd11df7');
-  const variant = doc.slice(cut);
+  const commercialAt = doc.indexOf('\n## Commercial-leader version\n');
+  assert.ok(commercialAt > cut, 'commercial heading after the variant');
+  const variant = doc.slice(cut, commercialAt);
   // The approved variant is pinned as Krish approved it on 27 Oct: a change to its words needs his yes and a new digest.
   assert.equal(createHash('sha256').update(variant).digest('hex'), '403518e6cf90a02a07422a762b101c26ee4663e6f89f9552c3e3bb9c391d5ded');
   assert.match(variant, /Approved by Krish on 27 October 2026/);
@@ -115,5 +117,8 @@ test('the 21 October template is byte-identical and the Mindmake variant lines a
   assert.deepEqual(rows, [`${month(bridge.sent)} ${shared}`, `${month(bridge.replied)} ${shared}`, `${month(bridge.met)} ${shared}`, intro.join(' ')]);
   // The worked example opens with the approved lines for a note Krish sent.
   assert.ok(variant.includes(`\n${month(bridge.sent)} ${shared} It gives AI shopping agents`));
+  // The commercial-leader version is pinned as Krish approved it on 27 Oct.
+  assert.match(doc.slice(commercialAt), /Approved by Krish on 27 October 2026/);
+  assert.equal(createHash('sha256').update(doc.slice(commercialAt)).digest('hex'), 'f9d9a633055576a6a197f5760a0dc40cfa0f4c04d336d94e0d5824c1c67440a3');
   assert.equal(doc.includes(String.fromCharCode(0x2014)), false);
 });

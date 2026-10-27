@@ -13,7 +13,7 @@ Recorded 27 October 2026. This is a sanitised continuation guide for the work co
 
 Later on 27 October Krish also decided (`docs/history/LOG.md`; [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md), decisions 12 to 19):
 
-- From Wave 1, go in through commercial leaders at companies that buy product data, testing which commercial impact lands. Wave 0 keeps its audience and the approved template. A commercial template is [proposed](proposals/2026-10-27_commercial-outreach-template.md) and awaits his approval; it is not for use.
+- From Wave 1, go in through commercial leaders at companies that buy product data, testing which commercial impact lands. Wave 0 keeps its audience and the approved template. The commercial template is approved (27 Oct): [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), "Commercial-leader version".
 - The 25-minute call ends with a test report on their own product pages, then an introduction to the engineer who gets the trial key.
 - Drafts land in his mindmake.co mailbox, not the hello mailbox. Booking is "reply to book", with no booking link.
 - Scheduled research, drafting and posting run only in the runner (`operate.yml`). No interactive session holds the engine token.

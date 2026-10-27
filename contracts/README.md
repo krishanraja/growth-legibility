@@ -12,7 +12,7 @@ Reports are private. Only publicSummary() is designed for presentation outside t
 payload_sha256 hashes canonical sorted JSON excluding that field. run_id binds normalized source, policy, clock and corpus revision.
 Idempotent delivery uses the same immutable report. A changed clock produces a new observation/run, never a second copy of the same frozen report.
 
-What travels to Control Center is the protocol 1.0.0 envelope (docs/control-center/engine-report.schema.json), built by engineReport() in src/orchestrator.mjs and checked by validateEngineReport() in src/guards/wire.mjs. contracts/example-engine-report.json is the frozen envelope for the synthetic fixture; npm run check rebuilds both examples and fails on drift. The private report above never leaves the runtime spool. Existing growth/packs and attribution routes are incompatible.
+What travels to Control Center is the protocol 1.0.0 envelope (or 1.12.0 when it serves the Draft press, below) (docs/control-center/engine-report.schema.json), built by engineReport() in src/orchestrator.mjs and checked by validateEngineReport() in src/guards/wire.mjs. contracts/example-engine-report.json is the frozen envelope for the synthetic fixture; npm run check rebuilds both examples and fails on drift. The private report above never leaves the runtime spool. Existing growth/packs and attribution routes are incompatible.
 
 ## Additions within producer contract 1.0.0 (27 October 2026)
 
@@ -66,3 +66,25 @@ A refused record leaves only that person unknown; it never refuses the snapshot.
 The approval packet now binds `contact.contact_id` beside the record. The fixture's candidate gained a synthetic `contact_id`, and its record link and draft source became the Control Center person link for that id. manifest.json was refrozen for `src/guards/wire.mjs`, `src/stages/prepare.mjs`, the fixture and both examples; the send proposal's exact words and `payload_sha256` are unchanged, and its evidence leads with the new record link.
 
 **What feeds it.** No producer fills `contact_id` yet: the app export owns no candidates (they are empty with coverage false), so today a candidate reaches the runner only in a `--snapshot` file. The id comes from Control Center (a contact Krish already has, or one its research desk's `person_route` files), carried by the runner's research step in Phase 2.
+
+## The Draft press: a version 2 email action (protocol 1.12.0, 27 October 2026)
+
+Ruling (Krish, 2026-10-27): "Legibility drafts land in Krish's mindmake.co mailbox, and the press re-reads the Mindmake record first." Control Center's Clear drafts an approved invitation into his own Gmail only when it arrives as a version 2 email action (control-center PR 585 at `efad466`, docs/control-center/ENGINE-PROTOCOL.md, "Legibility drafts in his own box"). Plain words stay a plain approval, and he copies them.
+
+**When.** `operate` asks the capabilities only when an invitation could be one, and sends 1.12.0 only when they say `features.draft_press: true`, serve 1.12.0 or later (`schema_version`) and take a 1.12.0 report (`schema_versions`). The feature absent or false, an older version, a failed read or an unreadable template all send the 1.0.0 envelope, byte for byte the one sent before. Delivery checks again that the receiver takes the report's own version, and refuses `receiver_contract_mismatch` before any write. `run` and `check:invitation` never ask Control Center, so they stay 1.0.0. The run's printed summary names the outcome in counts and codes only (`draft_press`: `served`, `not_served`, `unavailable` or `not_needed`).
+
+**The action.** Each approved invitation (`pending_human`) whose candidate carries both `contact.contact_id` and `contact.prior_mindmake`, on an email channel (`email` or `manual-email`), whose approved words open with a `Subject:` line, travels as its `exact_payload`, the canonical JSON of exactly:
+
+- `version: 2`, `channel: "email"`, `form: null`;
+- `recipient_contact_id`: the candidate's `contact.contact_id`;
+- `subject` and `body`: prepare's approved and linted words, split at the first line (`Subject:` and the rest), with only edge whitespace dropped, which Control Center trims anyway;
+- `mailbox: "krish"`;
+- `prior_mindmake`: the candidate's record, all five keys, copied unchanged from Control Center's reader.
+
+The proposal keeps its `proposal_id` and adds `subject_ref` (`contact:<id>`, the same person) and `source_revision` (`[{ repo: "krishanraja/growth-legibility", path: "docs/OUTREACH-TEMPLATE.md", sha }]`, the file's git blob SHA computed from the checkout with LF line endings, as GitHub's contents API gives it on `main`, which is what Control Center reads again before the press). Its `channel` is `email`, and its `why` says Control Center drafts the words into his own Gmail. `payload_sha256` is the SHA-256 of the exact action, so his approval binds the recipient, the words, the box and the record; the same words and record give the same digest on every run, whatever order the record's keys arrive in. Every other proposal is unchanged.
+
+Anything that cannot be one stays plain words: no contact id or record (those are held as `mindmake_history_unknown` before this point), a channel that is not email, no subject line, or a record link that is not the person's own. A report carries 1.12.0 only when at least one action does.
+
+**The wire.** `validateActionV2` (src/guards/wire.mjs) checks each action before the report is sealed or posted: the eight keys and no other, a lowercase contact id, a one-line subject of at most 200 characters and words of at most 7,000, both without edge whitespace, `mailbox: "krish"`, and a record that passes `validateMindmakeRecord`, is `none`, `drafted`, `sent`, `replied` or `met`, and links the recipient's own record. `validateEngineEnvelope` takes 1.12.0 beside 1.0.0, and at 1.12.0 only: an action only on a prepared send whose `channel` is `email`, `subject_ref` naming its recipient, 1 to 8 `source_revision` entries with '/' paths and 40-character SHAs, and a digest equal to the action's. `subject_ref` and `source_revision` on anything else, a version 2 action at 1.0.0, and a 1.12.0 report with no action are refused.
+
+manifest.json was refrozen for `src/guards/wire.mjs` only. Both frozen examples were rebuilt and are unchanged: they are built with no Control Center, so they are the 1.0.0 envelope. docs/control-center/engine-report.schema.json is now Control Center's schema at `efad466`, and the stand-in (tests/standin.mjs) reads a report and presses an action as Control Center does there.

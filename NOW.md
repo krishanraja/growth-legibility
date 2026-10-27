@@ -36,6 +36,8 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What is next and what is waiting on Krish
 
+- **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
+
 - Resume from docs/BETA-HANDOFF.md: refresh expired outreach and current contact/approval state; inspect trial provisioning before promising activated access. Do not count internal demos as builder adoption.
 
 - Measure the North Star number and record it on the first line under "Where it is right now".

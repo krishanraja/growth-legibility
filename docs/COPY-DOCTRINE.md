@@ -47,6 +47,7 @@ Label awareness before choosing a lead (Great Leads, Operational rules; Part IV,
 | Warm builder with cited relationship evidence | Solution or product aware | Promise, only with the proof attached | Relationship URL must be cited; no invented familiarity |
 | Introducer or multiplier | Their audience's problem | Problem-Solution for their readers | One ask; publication or forwarding stays theirs |
 | Returning builder (first trusted read done) | Most aware | Offer: the next concrete step | One human-reviewed follow-up at most |
+| Someone Krish already reached for Mindmake, at rest 14 days or more | Aware of Krish, unaware of Legibility | The opening sentences Krish approves for their Control Center record in [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), then the 21 October template. Until he approves them, the engine holds the draft | Mindmake only in those sentences, with the month from the record, and the record cited. Never while a Mindmake item about them is open, for a Mindmake client, or when the record is unknown |
 
 Avoid Proclamation and Story for cold builders: they spend attention before relevance, and Proclamation slides toward the banned hype patterns. A Promise lead is never used without the test or a sourced result beside it.
 
@@ -156,13 +157,13 @@ Score 0 to 4 on the corpus's twelve dimensions (Part VI, Evaluation Rubric) as a
 
 Audience (approved ICP and trigger), Desire (their stated or observed need), Awareness fit (lead matches the touch table), Differentiation (mechanism, not "unique"), Offer value (the test lowers delay and effort), Proof (claim-matched, cited, qualified), Clarity, Flow, Objections (coverage and integration doubts answered where they arise), Ethics (no invented warmth, urgency or proof), Action (one exact step), Measurement (outcome traced by source to first trusted read).
 
-Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total. A high score proves only that the draft is worth Krish's review, not that it will work.
+Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total. An unsupported Mindmake or earlier-contact claim scores 0 on Ethics. A high score proves only that the draft is worth Krish's review, not that it will work.
 
 ## Where this engine's rules change the corpus
 
 1. No sender, publisher, list buyer or payment executor. The corpus's distribution and follow-up advice ends at a prepared draft; Krish acts.
 2. Named drafts only, for builders in a current approved Legibility ICP from Control Center. No generic sequences, purchased or scraped lists, or the corpus's seven-email sequence. One message and at most one human-reviewed follow-up.
-3. No invented urgency, scarcity, guarantees, testimonials, statistics, customer language or warmth. The corpus allows real versions; here even real ones need source evidence or Krish's confirmation.
+3. No invented urgency, scarcity, guarantees, testimonials, statistics, customer language or warmth, including earlier contact, Mindmake or otherwise, that the record does not show. The corpus allows real versions; here even real ones need source evidence or Krish's confirmation.
 4. No mainnet or universal-coverage claims without reviewed live evidence. x402 is testnet.
 5. Synthetic runs, fixtures and demo output never count as live achievement or as test results.
 6. Price, bonuses, guarantees and offer changes are Krish and product decisions, surfaced as proposals, never drafted first.
@@ -170,3 +171,4 @@ Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total.
 8. Zero paid media. The corpus's paid channel is closed.
 9. Voice-of-customer and case material uses only source-owned, consented records. Never commit real people, drafts or private research; fixtures stay synthetic.
 10. No em dashes in new material.
+11. Someone Krish already reached for Mindmake hears of Legibility as a Mindmake product (Ruling, Krish, 2026-10-27), only in the variant words Krish approves in [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md); until then the engine holds the draft (`partner_framing_missing`). Whether someone was reached comes only from Control Center's record of the person (`contact.prior_mindmake`), never from a name, a company or memory. Mindmake is named to nobody else, and never as an offer, endorsement, link or second ask. Unknown history holds the draft.

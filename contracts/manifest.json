@@ -4,7 +4,7 @@
   "artifacts": [
     {
       "path": "src/guards/wire.mjs",
-      "sha256": "20b546280a6e433f051cc1dae56690d8f187df2a1f946c274698e46c01d392f9"
+      "sha256": "9b5df00dd1c3850cd53c7c9826d66a8a014eca24aeb32617241b9a15f8407bdf"
     },
     {
       "path": "src/stages/measure.mjs",
@@ -12,7 +12,7 @@
     },
     {
       "path": "src/stages/prepare.mjs",
-      "sha256": "bad14bdbc73a94248131ba12ce143262bc411b2d06e518f7f4a483f4f1d4503b"
+      "sha256": "31a6e2cc4cff0bfc14907d554c0ac0610d4cae3b6fecc443675eaea3eb47f874"
     },
     {
       "path": "config/policy.json",
@@ -20,15 +20,15 @@
     },
     {
       "path": "fixtures/snapshot.json",
-      "sha256": "6e4996732522d096f338fd5d97523ce156ecaa85248a8f91162e6d3d10e709a3"
+      "sha256": "1994425edce211389f6c3a9e4dbd3e90088ffcdd75c9d695268de79d32696d10"
     },
     {
       "path": "contracts/example-report.json",
-      "sha256": "d0da147ad99f28b0efe953cb717bcf608c0e4e8932a8c7038efc098493c7c786"
+      "sha256": "d2e2762ca3bb0a64e00314a857641e65c465db4694c5c4c1a82ef070b440d0e2"
     },
     {
       "path": "contracts/example-engine-report.json",
-      "sha256": "80d8a57ae77d82dc54d8a1cc619588cfac0aae5544794b9b6560b4ed83475800"
+      "sha256": "0b0d6335b18ccaa9f424e0df6fce571e5f631f07f62e8bc1293f6d94cdce215b"
     }
   ]
 }

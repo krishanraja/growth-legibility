@@ -51,6 +51,20 @@ const clip = (text, max) => text.length <= max ? text : `${text.slice(0, max - 3
 const short = value => sha256(String(value)).slice(0, 16);
 const httpsEvidence = refs => [...new Set(refs ?? [])].filter(u => /^https:\/\/\S+$/.test(u)).slice(0, 12).map(url => ({ label:'Cited source', url }));
 const objectiveFor = code => /enrol|referral|report_to/.test(code) ? 'net' : /return/.test(code) ? 'returning' : 'activated';
+// What Control Center's Mindmake record says about the person, in plain words for Krish (Ruling, Krish, 2026-10-27).
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MINDMAKE_STAGE = { drafted:() => 'a note drafted, not shown as sent', sent:by => by === 'krish' ? 'a note Krish sent' : 'a note sent for Krish',
+  replied:by => by === 'krish' ? 'a reply to a note Krish sent' : 'a reply to a note sent for Krish', met:() => 'a conversation with Krish' };
+function mindmakeWhy(m) {
+  if (m?.state === 'none') return 'Control Center has no Mindmake note to them on record, so the note does not name Mindmake; the record is linked in the evidence.';
+  if (!MINDMAKE_STAGE[m?.state] || !Number.isFinite(Date.parse(m.state_at))) return '';
+  const at = new Date(m.state_at);
+  return `Control Center records Mindmake contact with them (${MINDMAKE_STAGE[m.state](m.by)}, ${MONTHS[at.getUTCMonth()]} ${at.getUTCFullYear()}), so the note opens with the approved Mindmake lines; the record is linked in the evidence.`;
+}
+function invitationEvidence(refs, m) {
+  const record = /^https:\/\/\S+$/.test(m?.record_url ?? '') ? m.record_url : null;
+  return [...(record ? [{ label:'Their Mindmake record in Control Center', url:record }] : []), ...httpsEvidence((refs ?? []).filter(u => u !== record))].slice(0, 12);
+}
 
 export function protocolRunId(command, at, discriminator) {
   const id = `legibility:${new Date(at).toISOString().slice(0, 10)}:${command}:${discriminator}`;
@@ -81,12 +95,13 @@ function actionProposal(a) {
     // Krish approves these exact words for this target on this channel; the id binds target and channel, the digest binds the words.
     const target = short(a.candidate_id);
     const channel = String(a.candidate.channel).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'channel';
+    const mindmake = a.candidate.contact?.prior_mindmake;
     return {
       proposal_id:`legibility:invite:${target}:${channel}`,
       title:clip(`Send a researched ${a.candidate.relationship?.kind ?? 'named'} invitation to a ${a.candidate.pool} prospect`, 160),
-      why:clip(`Scored ${a.score} of 100 against the approved buyer definition, from a signal observed ${a.lineage.signal_observed_at}. If Krish approves these exact words he sends them himself; the engine never sends.`, 1000),
+      why:clip([`Scored ${a.score} of 100 against the approved buyer definition, from a signal observed ${a.lineage.signal_observed_at}.`, mindmakeWhy(mindmake), 'If Krish approves these exact words he sends them himself; the engine never sends.'].filter(Boolean).join(' '), 1000),
       kind:'prepared', wall:'send', amount_usd:null, channel:clip(String(a.candidate.channel), 60), objective_key:'activated',
-      exact_payload:a.exact_text, payload_sha256:a.text_sha256, evidence:httpsEvidence(a.source_refs),
+      exact_payload:a.exact_text, payload_sha256:a.text_sha256, evidence:invitationEvidence(a.source_refs, mindmake),
       close_condition:{ event:'invitation_sent', reference:`candidate:${target}` }, expires_at:a.expires_at,
     };
   }

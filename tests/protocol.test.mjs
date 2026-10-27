@@ -213,3 +213,43 @@ test('Control Center may serve any 1.x: a directive and capabilities are taken w
   assert.equal(receiverTakes({ schema_version: '1.2.0', schema_versions: ['1.1.0', '1.2.0'] }), false, 'a receiver that stopped taking 1.0.0 is a mismatch');
   assert.equal(receiverTakes({ schema_version: '1.0.0' }), true, 'an older receiver with no list is taken on its one version');
 });
+
+// Ruling (Krish, 2026-10-27): someone already reached for Mindmake hears of Legibility as a Mindmake product, so a snapshot
+// that cannot say whether they were is held, never read as "never reached".
+test('a snapshot with no Mindmake record sends no invitation to Krish', () => {
+  const f = fixture(); delete f.candidates[0].contact.prior_mindmake;
+  const r = buildReport(f, policy(), AT, 'a'.repeat(64));
+  const e = engineReport(r, { runId:protocolRunId('run', r.observed_at, r.run_id.slice(3, 19)) });
+  assert.deepEqual(schemaErrors(e, REPORT_SCHEMA), []);
+  assert.equal(e.proposals.filter(p => p.wall === 'send').length, 0);
+  assert.equal(r.actions.filter(a => a.candidate_id === 'candidate-example').length, 0);
+  assert.ok(e.holds.some(h => h.reason === 'mindmake_history_unknown'));
+  assert.ok(!JSON.stringify(e).includes('calibrated confidence over REST and MCP'));
+});
+
+test('a send proposal says what Control Center records about Mindmake, links the record and still binds only the exact words', () => {
+  const e = envelope();
+  const send = e.proposals.find(p => p.wall === 'send');
+  const [candidate] = fixture().candidates;
+  const record = candidate.contact.prior_mindmake.record_url;
+  assert.match(send.why, /Control Center has no Mindmake note to them on record/);
+  assert.deepEqual(send.evidence[0], { label:'Their Mindmake record in Control Center', url:record });
+  assert.equal(send.evidence.filter(x => x.url === record).length, 1);
+  assert.equal(send.exact_payload, candidate.draft.text);
+  assert.equal(send.payload_sha256, sha256(send.exact_payload));
+  assert.ok(!send.why.includes(String.fromCharCode(0x2014)), 'no em dash');
+  const activity = JSON.stringify(e.activity);
+  assert.ok(!activity.includes(record) && !activity.includes('example.com'));
+  for (const month of ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']) assert.ok(!activity.includes(month), month);
+  assert.deepEqual(schemaErrors(e, REPORT_SCHEMA), []);
+  validateEngineReport(e);
+  // A record of Krish's own Mindmake note, as the approved words will one day let through: the why names the stage and the
+  // month in words, and the digest still binds only the exact words.
+  const r = privateReport();
+  r.actions.find(a => a.status === 'pending_human').candidate.contact.prior_mindmake = { state:'sent', by:'krish', state_at:'2026-09-10T09:00:00Z', last_touch_at:'2026-09-12T09:00:00Z', record_url:record };
+  const { payload_sha256:_old, ...body } = r;
+  const touched = engineReport({ ...body, payload_sha256:sha256(body) }, { runId:'legibility:2026-10-18:run:touched' }).proposals.find(p => p.wall === 'send');
+  assert.match(touched.why, /Control Center records Mindmake contact with them \(a note Krish sent, September 2026\), so the note opens with the approved Mindmake lines/);
+  assert.equal(touched.payload_sha256, send.payload_sha256);
+  assert.deepEqual(touched.evidence[0], send.evidence[0]);
+});

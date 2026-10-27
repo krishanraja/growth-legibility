@@ -28,7 +28,7 @@ Drafts, evidence links and compose payloads were independently read back after w
 
 ## Freshness check on 27 October
 
-Read-only queue metadata check: all seven outreach rows still have state `pending`, with no decision or completion timestamp. Their `expires_at` is **23 October 2026 at 12:45 UTC**, already past. Do not describe them as currently approved or sendable without refreshing contact/company evidence, suppression/contact history and expiry through the normal approval path. Do not silently extend expiry or infer authority from the pending state.
+Read-only queue metadata check: all seven outreach rows still have state `pending`, with no decision or completion timestamp. Their `expires_at` is **23 October 2026 at 12:45 UTC**, already past. Do not describe them as currently approved or sendable without refreshing contact/company evidence, suppression/contact history, each person's Mindmake record in Control Center (ruling of 27 October) and expiry through the normal approval path. Do not silently extend expiry or infer authority from the pending state.
 
 The onboarding item is pending with no expiry. It still requires recipient personalisation and per-account activation checks. No fresh product calls, account provisioning, trial enforcement test or North Star measurement were performed on 27 October.
 
@@ -61,11 +61,11 @@ Onboarding sequence already drafted:
 ## Next session
 
 1. Read AGENTS.md, docs/NORTH_STAR.md, NOW.md and this handoff. The current North Star is weekly real builders making trusted reads, with the weekly ladder in NORTH_STAR.md. The number remains unmeasured here, not zero.
-2. Read current Control Center directives, decisions, canonical ICP, outreach rows and contact history. Refresh expired outreach before proposing a send; preserve reserve priorities and recipient/channel caveats. Do not rebuild completed copy or ask Krish to repeat the brief.
+2. Read current Control Center directives, decisions, canonical ICP, outreach rows and contact history. Refresh expired outreach before proposing a send; preserve reserve priorities and recipient/channel caveats. Someone Krish already reached for Mindmake takes the variant opening only once he approves its words; an item whose Mindmake record is unknown or open, a Mindmake client, or a Mindmake touch under 14 days old is not refreshed. Run `npm run check:invitation` on the refreshed items and resubmit only those with no code. Do not rebuild completed copy or ask Krish to repeat the brief.
 3. **Explicitly authorised next-session task (Krish, 27 October 2026):** inspect the Legibility app's access/quota/billing implementation and establish how to provision and enforce the promised 30-day free trial, so the team is ready when a prospect replies. Start this investigation next session without asking whether to continue. Verify the activation process, usage allowance, trial start/end dates, expiry behaviour and billing safeguards. This authorises the investigation and concrete implementation recommendation; account provisioning, access/billing changes and release actions retain their own authority boundaries. The investigation has not yet been performed. Krish explicitly ended the current session: do not continue it here or ask another continuation question.
 4. Once a real tester accepts, personalise the saved onboarding item, verify access and free usage, record dates, and measure their first trusted API read and return. Count only genuine external builder use.
 5. Keep the existing GET-GOING engine build checklist separate. This handoff does not complete snapshot-export, ICP-read, autonomy-loop or campaign-clock implementation steps.
 
 ## Handoff validation
 
-On 27 October, `npm run check`, all 76 tests, `npm run conveyor`, `npm run demo` and `git diff --check` passed. The demo used synthetic fixtures only; it is not evidence of live adoption or trial provisioning. The queue metadata check was read-only. No engine implementation or North Star target was changed by this documentation update.
+On 27 October, `npm run check`, all tests, `npm run conveyor`, `npm run demo` and `git diff --check` passed. The demo used synthetic fixtures only; it is not evidence of live adoption or trial provisioning. The queue metadata check was read-only. No engine implementation or North Star target was changed by this documentation update.

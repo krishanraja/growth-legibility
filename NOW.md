@@ -30,6 +30,11 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
 
+- 2026-10-27 **Ruling (Krish, 2026-10-27): someone already reached for Mindmake hears of Legibility as a Mindmake product.** His words: "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product."
+  - The snapshot now carries each person's Mindmake record (`contact.prior_mindmake`), copied from Control Center ([contracts/README.md](contracts/README.md)).
+  - The engine holds an invitation whose record is unknown, open, a Mindmake client or under 14 days old. It holds everyone reached for Mindmake until Krish approves the opening words, never names Mindmake to anyone else, and links the record in each invitation.
+  - Items prepared by hand, such as Wave 0, pass `npm run check:invitation` first.
+
 - 2026-10-27 **The engine has an approved architecture and Phase 0 is built.**
   - Ruling (Krish, 2026-10-27): the plan in [ENGINE-ARCHITECTURE.md](docs/ENGINE-ARCHITECTURE.md) is approved. The engine is aimed at alpha conversations and a qualified Founding 200 waitlist, with the weekly number as the scoreboard.
   - Phase 0 (no behaviour change) added:
@@ -56,7 +61,10 @@ Lifecycle: building. The detail is in `README.md`.
   - create the Calendly "Legibility alpha test" event by hand (settings in the same folder);
   - run the Cowork brand-kit prompt;
   - review and merge the Phase 0 pull request.
+- **Single next step for the Mindmake ruling:** Krish approves the opening words for people already reached for Mindmake (GET-GOING step 0b). Wave 0 items for those people wait on his words. Control Center's reader, route and one-list hold (ENGINE-ARCHITECTURE section 11, Phase 1 asks) are the other half; until the reader exists, each Wave 0 record comes from owner-approved gateway reads, and doubt reads as unknown.
+- **Also waiting on Krish:** whether contacts that People, Advisory, Visibility or Events hold are excluded only while an item about them is open (ENGINE-ARCHITECTURE section 0, item 8).
 - North Star check (2026-10-27): holds.
+- North Star check (2026-10-27, Mindmake ruling): holds. This protects the quality of each invitation; it does not move the number by itself.
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.
 

@@ -13,3 +13,31 @@ payload_sha256 hashes canonical sorted JSON excluding that field. run_id binds n
 Idempotent delivery uses the same immutable report. A changed clock produces a new observation/run, never a second copy of the same frozen report.
 
 What travels to Control Center is the protocol 1.0.0 envelope (docs/control-center/engine-report.schema.json), built by engineReport() in src/orchestrator.mjs and checked by validateEngineReport() in src/guards/wire.mjs. contracts/example-engine-report.json is the frozen envelope for the synthetic fixture; npm run check rebuilds both examples and fails on drift. The private report above never leaves the runtime spool. Existing growth/packs and attribution routes are incompatible.
+
+## Additions within producer contract 1.0.0 (27 October 2026)
+
+**`candidates[].contact.prior_mindmake`** (optional). Control Center's Mindmake record for the person, under Krish's ruling of 27 October 2026 that someone he already reached for Mindmake hears of Legibility as a Mindmake product. Its one source is Control Center's prior-outreach reader, and the exporter (or a session preparing items by hand) copies the reader's answer unchanged. This repository never derives it, and never matches a person by name, company or a guessed address.
+
+When present it is a closed object of exactly five keys, with no names, addresses, message words or figures:
+
+- `state`: `none`, `unknown`, `open`, `client`, `drafted`, `sent`, `replied` or `met`.
+- `by`: null, `krish` (Krish's own Mindmake note or conversation) or `other` (a note sent for him).
+- `state_at` and `last_touch_at`: null or a UTC instant at or before `captured_at`.
+- `record_url`: null or an https link to the person's Control Center record, with no credentials, at most 2000 characters.
+
+| state | by | state_at | last_touch_at | record_url |
+|---|---|---|---|---|
+| unknown | null | null | null | null |
+| none | null | null | null | https |
+| open, client | null | null or UTC | null or UTC | https |
+| drafted | null | UTC | UTC, at or after state_at | https |
+| sent, replied | krish or other | UTC | UTC, at or after state_at | https |
+| met | krish | UTC | UTC, at or after state_at | https |
+
+**Unknown is not none.** An absent field means unknown and holds the candidate (`mindmake_history_unknown`), and so does `state: "unknown"`. Null is refused at the wire, so a failed join can never read as none. `none` means Control Center read every source completely and found no Mindmake touch for that contact.
+
+The wire refuses a broken record before the capture digest, and the whole snapshot with it: `invalid_contract:unknown_fields_candidate_prior_mindmake` (null, an array, a non-object or an extra key), `invalid_contract:candidate_prior_mindmake_shape` (a missing key, a combination outside the table, a date after capture, or a last touch before `state_at`), `invalid_contract:candidate_prior_mindmake_state` and `invalid_contract:candidate_prior_mindmake_record`. Prepare re-checks the record, holds `open` (`mindmake_thread_open`), `client` (`mindmake_client`) and a touch under 14 days old (`mindmake_touch_too_recent`), and binds all five keys into each approval packet.
+
+`contact.last_sent_at` and `followups` count this engine's own Legibility sends only. A Mindmake touch never fills them, so a first Legibility note to someone reached for Mindmake stays a direct invitation and never uses up the one follow-up.
+
+**Release order.** This validator ships before any exporter that writes the field: a consumer still vendoring the earlier validator refuses such a snapshot as `unknown_fields_candidate_contact`. No live exporter exists yet. `VERSION` stays 1.0.0, because the same constant stamps the protocol envelope, which does not change. When the planned split of the protocol version from the producer version lands (docs/ENGINE-ARCHITECTURE.md, section 1), the producer contract becomes 1.1.0 and names this field. manifest.json was refrozen for `src/guards/wire.mjs`, `src/stages/prepare.mjs`, the fixture (whose candidate gained a `none` record, cited in its draft sources) and both examples. For that candidate the send proposal's exact words and `payload_sha256` are unchanged; its `why` says what Control Center records about Mindmake, and its evidence leads with the record link.

@@ -19,6 +19,6 @@ The live site URL was supplied directly by Krish and agrees with current app sou
 
 The 14 October live canon ruling supersedes the installed principles' older blanket ban on cold outreach. The implementation permits individually evidenced named drafts and always leaves sending to the human. The original playbook and installed harness were not edited. The corpus's x402 discovery motion remains valid as research, but mainnet claims are blocked until reviewed live evidence changes the product truth.
 
-Policy requires source review by 17 November 2026 and source snapshot freshness within 24 hours. Renewal requires reviewing actual revisions and behavior; moving a timestamp alone is insufficient. Dynamic ICP, contact history and suppression must be re-read at approval time by the source owner.
+Policy requires source review by 17 November 2026 and source snapshot freshness within 24 hours. Renewal requires reviewing actual revisions and behavior; moving a timestamp alone is insufficient. Dynamic ICP, contact history, suppression and each person's Mindmake record (Control Center's prior-outreach read, `contact.prior_mindmake`) must be re-read at approval time by the source owner.
 
 Source-code plans, synthetic runs, measured live outcomes and unresolved claims must remain separate in every report. Do not convert a source README's historical calibration or pricing into a fresh benchmark result.

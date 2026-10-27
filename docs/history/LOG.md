@@ -26,6 +26,7 @@ One line per ruling, in date order, with where it is recorded. NOW.md points her
 | 2026-10-27 | Google Analytics comes from Control Center, which already reads it; no Google credential in this repository | same |
 | 2026-10-27 | The 7 expired outreach items are refreshed and resubmitted as Wave 0 | same |
 | 2026-10-27 | The engine architecture plan (docs/ENGINE-ARCHITECTURE.md) is approved: "Approve, start now" | same |
+| 2026-10-27 | "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product." | PR 8; docs/COPY-DOCTRINE.md (item 11); docs/FAILURES.md F29 to F32. The opening words for such a person wait on his approval in docs/OUTREACH-TEMPLATE.md |
 
 ## Events
 
@@ -38,3 +39,4 @@ One line per ruling, in date order, with where it is recorded. NOW.md points her
 | 2026-10-27 | Trial provisioning investigated (read-only): no trial exists; Free plan is the honest interim; app item A8 designed | docs/ENGINE-ARCHITECTURE.md, section 0 |
 | 2026-10-27 | The Windows CI leg hung on PR 8: a temp-folder removal threw on an open journal and skipped the server close. Fixed in the guard tests; the hung runs were cancelled | docs/FAILURES.md F27 |
 | 2026-10-27 | With the hang fixed, the Windows leg showed the docs check used Windows separators; its status-word rule had matched nothing there. Fixed to use '/' everywhere | docs/FAILURES.md F28 |
+| 2026-10-27 | The engine reads each person's Mindmake record from the snapshot. It holds an invitation whose record is unknown, open, a client or under 14 days old, and holds everyone reached for Mindmake until Krish approves the opening words | docs/FAILURES.md F29 to F32 |

@@ -71,8 +71,9 @@
    - Krish's and demo accounts are excluded in memory, never written to git. x402 is labelled excluded, because it writes no row.
    - Write the result to the NOW.md state line with its source, and recompute urgency. Repeat each Monday until the app export replaces it.
 3. **Wave 0: refresh the 7 expired items** (ruling 10). The route is the one the 21 Oct session used: a session Krish starts with the engine token in its environment.
-   - **Re-checked for each person:** company evidence, contact history (no contact in 14 days), suppression, whether Control Center People already holds them, and the template.
-   - **Kept:** the approved copy and the stable proposal ids. A new 48-hour expiry is set.
+   - **Re-checked for each person:** company evidence, contact history (no contact in 14 days), suppression, whether Control Center People already holds them, the Mindmake record (state, month and record link: no open Mindmake item, not a Mindmake client, 14 days since the last Mindmake touch), and the template.
+   - **Kept:** the stable proposal ids, and the approved copy for anyone whose record shows no Mindmake touch, with the record link added to its sources. For anyone reached for Mindmake, the variant Krish approves replaces the first sentence, and the new digest sends the item back to him (a changed payload keeps the id, `docs/control-center/ENGINE-PROTOCOL.md`); until he approves those words, those items wait. A new 48-hour expiry is set.
+   - **Gate:** `npm run check:invitation -- --input runtime/input/<file>.json`. Only items with no code are resubmitted.
    - **Krish's list:** they come back one at a time. The pending onboarding item counts against the one-ask rule.
    - **Warm intros** stay introduction requests.
    - **Sending:** Krish sends from the hello mailbox. Draft automation is not built yet, so he copies the approved text.
@@ -84,6 +85,7 @@
    - the exports conform.
    Nothing waits on the brand kit.
 7. **Phase 0** runs in parallel. It is docs and checks only.
+8. **Open question for Krish (Mindmake ruling, 27 Oct).** As written, this plan excludes contacts that People, Advisory, Visibility or Events hold (the Invitation Researcher, G2 and the Phase 2 accept tests), and those are exactly the people the ruling is about. Whether the exclusion should apply only while an item about the person is open waits on his answer; until then those people get no Legibility invitation from the engine.
 
 ## 1. Lose nothing: the inventory every phase preserves
 
@@ -92,7 +94,7 @@
 - `ci.yml`: Linux and Windows.
 - Both stay unchanged until Wave 1's first measured report proves the new route.
 
-**Code.** 76 tests (the docs say 75, which is stale), the policy locks, the transport, outbox and lease logic, and the corpus byte checks. Reuse these rather than rewrite them:
+**Code.** The test suite (`npm test` prints the count; the docs no longer hand-write it, F13), the policy locks, the transport, outbox and lease logic, and the corpus byte checks. Reuse these rather than rewrite them:
 - `src/guards/wire.mjs`: `canonical`, `sha256` and the validators.
 - `src/transport.mjs`: `controlCenter`, `deliver`.
 - `src/operate.mjs`: `matchDecisions`.
@@ -304,6 +306,10 @@ A run loads only the cards its spec names. **Wave 1 loads the five marked ★, p
 | F20: green runs with empty outcomes (0 of 11) | Computed readiness, and a repair after 3 held days |
 | F17: 7 approvals expired un-actioned (23 Oct) | 48-hour expiry from policy. Suppression, contact history and ICP are re-read immediately before any draft is placed, with named holds (`draft_suppressed`, `contact_too_recent`, `icp_not_current`). Check-ins report drafts placed but unsent after 48 hours |
 | F18: price-first opening rejected (21 Oct) | Invitation Researcher lint, with a synthetic price-first fixture that must fail |
+| F29: a note to someone Krish already reached for Mindmake that ignores the record (Ruling 27 Oct) | `partner_framing_missing` and `mindmake_record_not_cited` in prepare; everyone reached for Mindmake is held until Krish approves the opening words |
+| F30: a Mindmake or earlier-contact claim the record does not show reached `pending_human` (probe at 8f20daf) | `mindmake_claim_unsupported`, `mindmake_named_without_touch` and `prior_contact_claim_unsupported` |
+| F31: unknown Mindmake history read as none; an open Mindmake item, a Mindmake client or a recent touch let through | A closed record at the wire, with null refused; the four holds in prepare; `check:invitation` for items prepared by hand; conveyor learning `unknown-mindmake-history-is-not-none` |
+| F32: Mindmake offer words in a Legibility draft | `mindmake_offer_mentioned` |
 | Windows doubled drive letter (1c2a547) | Keep the CLI test and the Windows matrix |
 | A copied doc linked outside the repo (6dafb79) | `check-docs`: every relative link resolves (absolute https allowed). CI only |
 | Docs drift (test count, stale status, step 0) | `check-docs` derives the counts. Docs stop hand-writing numbers that code can compute |
@@ -321,7 +327,7 @@ A run loads only the cards its spec names. **Wave 1 loads the five marked ★, p
 |---|---|---|
 | Measure (app export; Google Analytics through Control Center), report, read decisions, journal | The daily `operate` run on the GitHub runner | Actions secrets: the engine token and the export token. No Google credential |
 | Research, draft the G2 bundle, prep packs, check-ins, Drive filing, connector reads | A session Krish starts on his PC (as on 21 Oct), or a scheduled cloud session. It posts through `node src/cli.mjs propose` with its own run id, `legibility:<date>:session:<n>`, and its own attempt journal | The engine token held in that session's environment, never printed. Without it, the session holds with `control_center_token_missing` |
-| **Place the approved invitation as a draft** | **Control Center's Draft press (ruling 9).** `api/_rowPress.ts` already writes an engine's exact email into a Gmail draft in his box, after re-checking do-not-contact, the 14-day gap and that the source is unchanged, and records it as carried out. The executor never sends it. A Control Center change extends it from Mindmake to Legibility. It also checks that the hello mailbox is a send-as address in his box (`api/_mailboxes.ts`). Until that change lands, Krish copies the approved text himself | None new: Control Center's existing Google connection. No Gmail credential in this repo |
+| **Place the approved invitation as a draft** | **Control Center's Draft press (ruling 9).** `api/_rowPress.ts` already writes an engine's exact email into a Gmail draft in his box, after re-checking do-not-contact, the 14-day gap and that the source is unchanged, and records it as carried out. The executor never sends it. A Control Center change extends it from Mindmake to Legibility. It also checks that the hello mailbox is a send-as address in his box (`api/_mailboxes.ts`). Once Control Center's Mindmake reader exists, the press also re-reads the person's Mindmake record and checks it against the basis the engine declared (Phase 1 asks). Until that change lands, Krish copies the approved text himself | None new: Control Center's existing Google connection. No Gmail credential in this repo |
 | Send | Krish, from his mail client | |
 
 **Control Center facts behind this.**
@@ -482,6 +488,15 @@ A run loads only the cards its spec names. **Wave 1 loads the five marked ★, p
   - campaign and content breakdowns (`sessionCampaignName`, `sessionManualAdContent`) for legibility.io in `web_analytics_daily`, so one invitation is visible in Google Analytics;
   - per-item subject refs on a bundled go-live.
   - optionally, a Legibility entry in Control Center's North Star `READERS` (`api/_northStarRefresh.ts`). Control Center would then measure the number itself every day at 05:10 UTC, with the credential it already holds (found after approval; it has no Legibility reader today).
+  - **For the Mindmake record (Ruling, Krish, 2026-10-27).** Each is a read or a hold; nothing sends or drafts.
+    1. **The reader,** `api/_priorOutreach.ts`: `priorOutreach(db, contactIds, now)` answers each id with `{ state, by, state_at, last_touch_at, record_url }`, the snapshot field's exact shape, and becomes the one system that says whether a contact was reached for Mindmake (a house-systems row in Control Center's AGENTS.md). It reads Advisory `pilot_deals` (the stage from the stamps, never the current state), growth-mindmake `growth_engine_proposals` and `growth_engine_actions`, and attributable `people_drafts`. It answers unknown for every id when any read fails or is incomplete, and for an id that is missing or merged away, and it returns no names, addresses, subjects, bodies, thread ids or row ids. Tests: a fixture per state, stamps over state, a show recording read as replied by other and never met, Krish's own row winning the bridge over a further visibility row, each read failing in turn, and no fixture name or address in any answer.
+    2. **The route,** `GET /api/growth/engines/legibility/prior-outreach?contacts=<1 to 50 lowercase uuids>`: growth-legibility only (any other engine gets 404 `prior_outreach_not_supported`), only the ids asked for, 400 for anything else, behind the engine gate's rate limit. It sets `features.prior_outreach`, adds protocol 1.10.0, and adds a "Prior Mindmake outreach" section to Control Center's ENGINE-PROTOCOL document, whose title still reads 1.8.0 while the code serves 1.9.0.
+    3. **The one-list hold,** in `api/_waiting.ts`: for a walled send proposal from growth-legibility, find the person from `subject_ref contact:<id>` (until the engine sends 1.2.0, from Control Center's own person link in the evidence), run the reader, and show the state in words on the evidence line. Hold it off the list, counted and named, when no person resolves (`prior_outreach_unlinked`), the state is unknown, open or client, the last touch is under 14 days old, or the words contradict the record (`mindmake_not_named`: a touched record whose words lack Mindmake, or a none record whose words name it). This layer catches every route to his list, including Wave 0 items a session posts by hand. Tests: one fixture per hold in `tests/api/waiting.test.ts`.
+    4. **The Draft press checks,** when the press is extended to Legibility: an optional `prior_mindmake { state, state_at }` on ActionV2 (1.10.0), required on email actions from engines other than Mindmake. After the do-not-contact and 14-day holds, the press re-reads the reader and holds on `prior_outreach_undeclared`, `prior_outreach_changed`, `prior_outreach_unknown`, `mindmake_thread_open`, `mindmake_client` or `mindmake_not_named`; the 14-day gap also counts the reader's `last_touch_at`; G2 bundle items are split, each with its own contact id and basis. Tests: one per hold with the draft spy called 0 times, and a matching basis that names Mindmake placing exactly one draft.
+    5. **`contact_id` on People-press drafts** (`api/_peopleDraft.ts`), with `proposal_id` where there is one, backfilled from the approach key, so the reader keys these drafts directly and a new job kind cannot fall outside it.
+    6. **Optional:** a `DONE_CHECKS` entry that reads Gmail SENT for growth-mindmake rows carried out as a draft, so a Mindmake note that went reads as sent by Krish.
+
+    **Order:** 1, 2 and 3 ship as one Control Center pull request, and they unblock the Wave 0 refresh of people reached for Mindmake. 4 ships with the press extension, 5 any time, and 6 when convenient.
 - *Accept:*
   - synthetic tests cover ISO weeks, every internal key class, no credit for a key made before its touch, and null when the export is missing;
   - every live report carries `activated`, `returning` and `net`, measured or null with a reason;

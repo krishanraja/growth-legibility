@@ -11,6 +11,33 @@ const BANNED_CLAIMS = [
   ['unsupported_hype', /\b(?:revolutionary|game[- ]changing)\b/i],
 ];
 const WARMTH_CLAIM = /\b(?:you know|we (?:met|spoke|worked|discussed)|we['’]ve (?:met|spoken|worked)|worked together|our (?:conversation|meeting|shared history|time at)|as discussed|following up on our|I remember|when we|great (?:meeting|speaking|talking))\b/i;
+// Ruling (Krish, 2026-10-27): someone already reached for Mindmake hears of Legibility as a Mindmake product, only in the
+// words Krish approves for their record (docs/OUTREACH-TEMPLATE.md). Until he approves them this stays null, so every such
+// person is held as partner_framing_missing. Shape: { bridge: { sent, replied, met }, shared, intro: [two sentences] },
+// with {month} in each bridge line.
+export const MINDMAKE_COPY = null;
+const MINDMAKE_RECORD = ['state', 'by', 'state_at', 'last_touch_at', 'record_url'];
+const MINDMAKE_STATES = new Set(['none', 'unknown', 'open', 'client', 'drafted', 'sent', 'replied', 'met']);
+const MINDMAKE_TOUCHED = new Set(['drafted', 'sent', 'replied', 'met']);
+const MINDMAKE_GAP_DAYS = 14;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const ANY_MINDMAKE = /\bmind\s*[/-]?\s*make(?:rs?)?\b/i;
+const OFFER = /\bmindmake\.co\b|\b(?:thirty|30)[- ]day (?:paid )?proof\b|\bpaid (?:pilot|proof)\b|\bAI (?:brain|GTM)\b/i;
+const PRIOR_CONTACT_CLAIM = /\b(?:I (?:wrote|sent|emailed|messaged) (?:to )?you|I (?:reached out|got in touch)|(?:my|our) (?:last|earlier|previous|recent|first) (?:note|email|message|call)|following up|circling back|in case (?:my|you missed)|thanks? (?:you )?for (?:coming back|getting back|your reply|replying|talking|speaking|meeting|making time))\b/i;
+const MINDMAKE_HOLD_ACTIONS = {
+  mindmake_history_unknown: 'Link the person to one Control Center contact and read their Mindmake record from Control Center, then re-run. Unknown is never read as none.',
+  mindmake_thread_open: 'Leave the person to the open Mindmake item; re-read the record once it is at rest.',
+  mindmake_client: 'Prepare nothing for a Mindmake client; Krish raises Legibility with a client himself, if at all.',
+  mindmake_touch_too_recent: 'Wait until 14 full days after the last Mindmake touch, then re-read the record.',
+};
+const DRAFT_HOLD_ACTIONS = {
+  partner_framing_missing: MINDMAKE_COPY ? 'Open with the sentences docs/OUTREACH-TEMPLATE.md gives for this Mindmake record and keep the rest of the template word for word.' : 'Held until Krish approves the opening words for someone already reached for Mindmake (docs/OUTREACH-TEMPLATE.md).',
+  mindmake_claim_unsupported: 'Remove the sentence that names Mindmake, or use the approved line with the month (and year) from the record.',
+  mindmake_named_without_touch: 'Keep the 21 October opening unchanged; Mindmake is named only to someone the record shows was reached for it.',
+  prior_contact_claim_unsupported: 'Remove the claim of earlier contact; the only one allowed is the approved line for the record.',
+  mindmake_offer_mentioned: 'Keep the one offer: the 30-day free trial of Legibility in exchange for feedback.',
+  mindmake_record_not_cited: 'Cite the person record in Control Center in the draft sources.',
+};
 
 function compare(a, b) {
   return a < b ? -1 : a > b ? 1 : 0;
@@ -53,6 +80,95 @@ function timestamp(value) {
 function fresh(value, now, ageDays) {
   const time = timestamp(value);
   return Number.isFinite(time) && time <= now && now - time <= ageDays * DAY;
+}
+
+function clockOf(now) {
+  const clock = typeof now === 'number' ? now : timestamp(now);
+  if (!Number.isFinite(clock)) throw new TypeError('at must be an ISO timestamp with an explicit timezone.');
+  return clock;
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function recordLink(value) {
+  if (!present(value) || value.length > 2000 || !/^https:\/\/\S+$/.test(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password;
+  } catch {
+    return false;
+  }
+}
+
+// Control Center's Mindmake record for the person, re-checked here because prepare can be reached without the wire.
+// Absent or malformed is null: unknown, which holds and is never read as none. Extra keys are not projected.
+function priorMindmake(contact, now) {
+  const record = contact?.prior_mindmake;
+  if (!isRecord(record) || MINDMAKE_RECORD.some(key => !Object.hasOwn(record, key))) return null;
+  const { state, by, state_at: stateAt, last_touch_at: lastTouchAt, record_url: recordUrl } = record;
+  if (!MINDMAKE_STATES.has(state) || state === 'unknown' || !recordLink(recordUrl)) return null;
+  const dated = value => Number.isFinite(timestamp(value)) && timestamp(value) <= now;
+  const sender = state === 'met' ? by === 'krish' : ['sent', 'replied'].includes(state) ? ['krish', 'other'].includes(by) : by === null;
+  const dates = state === 'none' ? stateAt === null && lastTouchAt === null
+    : MINDMAKE_TOUCHED.has(state) ? dated(stateAt) && dated(lastTouchAt)
+      : (stateAt === null || dated(stateAt)) && (lastTouchAt === null || dated(lastTouchAt));
+  if (!sender || !dates || (stateAt !== null && lastTouchAt !== null && timestamp(lastTouchAt) < timestamp(stateAt))) return null;
+  return { state, by, state_at: stateAt, last_touch_at: lastTouchAt, record_url: recordUrl };
+}
+
+/** The hold, if any, that the person's Mindmake record puts on a Legibility invitation, in this order. */
+export function mindmakeHolds(candidate, now) {
+  const clock = clockOf(now);
+  const record = priorMindmake(candidate?.contact, clock);
+  if (!record) return ['mindmake_history_unknown'];
+  if (record.state === 'open') return ['mindmake_thread_open'];
+  if (record.state === 'client') return ['mindmake_client'];
+  if (MINDMAKE_TOUCHED.has(record.state) && clock - timestamp(record.last_touch_at) < MINDMAKE_GAP_DAYS * DAY) return ['mindmake_touch_too_recent'];
+  return [];
+}
+
+// The subject and greeting lines are linted but are never the opening; the body is split into sentences.
+function sentences(text) {
+  const lines = text.replace(/[‘’]/g, "'").replace(/[ \t]+/g, ' ').split(/\r?\n/).map(line => line.trim());
+  const head = [];
+  while (lines.length && !lines[0]) lines.shift();
+  if (/^Subject:/.test(lines[0] ?? '')) head.push(lines.shift());
+  while (lines.length && !lines[0]) lines.shift();
+  if (/^(?:Hi|Hello|Dear)\b.{0,80},$/.test(lines[0] ?? '')) head.push(lines.shift());
+  return { head, body: lines.filter(Boolean).join(' ').split(/(?<=[.!?])\s+/).filter(Boolean) };
+}
+
+function expectedOpening(record, now, copy) {
+  if (!copy || !MINDMAKE_TOUCHED.has(record.state)) return [];
+  const at = new Date(timestamp(record.state_at));
+  const month = `${MONTHS[at.getUTCMonth()]}${at.getUTCFullYear() === new Date(now).getUTCFullYear() ? '' : ` ${at.getUTCFullYear()}`}`;
+  return record.by === 'krish' && ['sent', 'replied', 'met'].includes(record.state) ? [copy.bridge[record.state].replaceAll('{month}', month), copy.shared] : [...copy.intro];
+}
+
+/** Deterministic checks of a draft against the person's Mindmake record. A record that holds returns its hold. */
+export function mindmakeProblems(candidate, now, copy = MINDMAKE_COPY) {
+  const clock = clockOf(now);
+  const held = mindmakeHolds(candidate, clock);
+  if (held.length) return held;
+  const record = priorMindmake(candidate.contact, clock);
+  const draft = candidate.draft;
+  if (!draft || !present(draft.text)) return ['missing_draft'];
+  const touched = MINDMAKE_TOUCHED.has(record.state);
+  const firstTouch = candidate.contact.last_sent_at === null;
+  const expected = expectedOpening(record, clock, copy);
+  const { head, body } = sentences(draft.text);
+  const all = [...head, ...body];
+  const named = all.filter(sentence => ANY_MINDMAKE.test(sentence));
+  const problems = [];
+  if (touched && firstTouch && (expected.length === 0 || expected.some((line, index) => body[index] !== line))) problems.push('partner_framing_missing');
+  if (touched && (named.some(sentence => !expected.includes(sentence)) || new Set(named).size !== named.length)) problems.push('mindmake_claim_unsupported');
+  if (record.state === 'none' && named.length) problems.push('mindmake_named_without_touch');
+  if (firstTouch && all.some(sentence => !expected.includes(sentence) && PRIOR_CONTACT_CLAIM.test(sentence))) problems.push('prior_contact_claim_unsupported');
+  if (OFFER.test(all.join(' '))) problems.push('mindmake_offer_mentioned');
+  if (!Array.isArray(draft.source_refs) || !draft.source_refs.includes(record.record_url)) problems.push('mindmake_record_not_cited');
+  return [...new Set(problems)].sort();
 }
 
 function weightScore(scores) {
@@ -103,6 +219,7 @@ function candidatePacket(candidate) {
       status: stringOrNull(candidate.contact.status),
       last_sent_at: stringOrNull(candidate.contact.last_sent_at),
       followups: Number.isInteger(candidate.contact.followups) ? candidate.contact.followups : null,
+      prior_mindmake: isRecord(candidate.contact.prior_mindmake) ? Object.fromEntries(MINDMAKE_RECORD.map(key => [key, stringOrNull(candidate.contact.prior_mindmake[key])])) : null,
     },
     partner_id: stringOrNull(candidate.partner_id),
   };
@@ -179,20 +296,22 @@ function approvalAction(snapshot, candidate, score, type, at, flags) {
   };
 }
 
-function draftProblems(candidate) {
+/** Every check of the exact draft: sources, claims, placeholders, specificity and the person's Mindmake record. */
+export function draftProblems(candidate, now) {
   const draft = candidate.draft;
   const problems = [];
   if (!draft || !present(draft.text)) return ['missing_draft'];
   if (!Array.isArray(draft.source_refs) || draft.source_refs.some(ref => !validUrl(ref))) problems.push('invalid_source_refs');
   const refs = Array.isArray(draft.source_refs) ? draft.source_refs : [];
-  if (!refs.includes(candidate.current_signal.url)) problems.push('signal_source_not_cited');
+  if (!refs.includes(candidate.current_signal?.url)) problems.push('signal_source_not_cited');
   const hasPath = present(candidate.relationship?.evidence) && validUrl(candidate.relationship?.url);
   const claimsWarmth = WARMTH_CLAIM.test(draft.text);
   if (claimsWarmth && (candidate.relationship?.kind === 'cold' || !hasPath)) problems.push('invented_relationship');
   if ((claimsWarmth || candidate.relationship?.kind !== 'cold') && !refs.includes(candidate.relationship?.url)) problems.push('relationship_source_not_cited');
   for (const [code, pattern] of BANNED_CLAIMS) if (pattern.test(draft.text)) problems.push(code);
   if (/\[[^\]]+\]|\{\{[^}]+\}\}/.test(draft.text)) problems.push('unresolved_placeholder');
-  if (candidate.relationship?.kind === 'cold' && (!draft.text.toLowerCase().includes(candidate.company.toLowerCase()) || !draft.text.toLowerCase().includes(candidate.project.toLowerCase()))) problems.push('cold_draft_not_specific');
+  if (candidate.relationship?.kind === 'cold' && (!present(candidate.company) || !present(candidate.project) || !draft.text.toLowerCase().includes(candidate.company.toLowerCase()) || !draft.text.toLowerCase().includes(candidate.project.toLowerCase()))) problems.push('cold_draft_not_specific');
+  problems.push(...mindmakeProblems(candidate, now));
   return [...new Set(problems)].sort();
 }
 
@@ -260,6 +379,11 @@ export function prepare(snapshot, at, policy = {}) {
       holds.push(makeHold('invalid_contact_history', target, 'Correct the missing, invalid, or future last-contact timestamp.'));
       continue;
     }
+    const [mindmakeHold] = mindmakeHolds(candidate, now);
+    if (mindmakeHold) {
+      holds.push(makeHold(mindmakeHold, target, MINDMAKE_HOLD_ACTIONS[mindmakeHold]));
+      continue;
+    }
     if (!present(candidate.current_signal?.text) || !validUrl(candidate.current_signal?.url) || !fresh(candidate.current_signal?.observed_at, now, maxAge)) {
       holds.push(makeHold('signal_not_current_verified_reference', target, 'Research a relevant signal with an HTTP(S) source URL and a non-future observation inside the configured freshness window.'));
       candidateActions.push(candidateTask(snapshot, candidate, score, 'research_candidate', 'Replace missing, stale, invalid, or future relevance evidence with a current sourced signal.', ['evidence_required']));
@@ -290,9 +414,10 @@ export function prepare(snapshot, at, policy = {}) {
     const type = intro ? 'introduction_request' : candidate.contact.last_sent_at !== null ? 'single_followup' : 'direct_invitation';
     const flags = [candidate.relationship.kind === 'cold' ? 'named_cold_requires_human_review' : 'private_relationship_evidence', 'source_facts_require_human_review'];
     if (candidate.contact.last_sent_at !== null) flags.push('single_followup_only');
-    const problems = draftProblems(candidate);
+    if (MINDMAKE_TOUCHED.has(priorMindmake(candidate.contact, now).state)) flags.push('prior_mindmake_outreach');
+    const problems = draftProblems(candidate, now);
     if (problems.length) {
-      for (const code of problems) holds.push(makeHold(code, target, code === 'missing_draft' ? 'Prepare an individual draft from the cited evidence for human review.' : 'Revise the exact draft and its source references before requesting approval.'));
+      for (const code of problems) holds.push(makeHold(code, target, DRAFT_HOLD_ACTIONS[code] ?? (code === 'missing_draft' ? 'Prepare an individual draft from the cited evidence for human review.' : 'Revise the exact draft and its source references before requesting approval.')));
       candidateActions.push(candidateTask(snapshot, candidate, score, intro ? 'draft_introduction_request' : type === 'single_followup' ? 'draft_single_followup' : 'draft_direct_invitation', 'Write or repair a single evidence-backed message, preserving product limitations and citing the relevance signal and any relationship claim.', [...flags, ...problems]));
       continue;
     }

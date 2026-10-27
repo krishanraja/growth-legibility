@@ -61,6 +61,7 @@
   "learnings":[
     {"id":"http-success-is-not-persistence","owner_stage":"deliver","enforced_by":["tests/transport.test.mjs"]},
     {"id":"testbench-is-not-api-activation","owner_stage":"measure","enforced_by":["tests/measure.test.mjs"]},
-    {"id":"journal-before-reading-sources","owner_stage":"operate","enforced_by":["tests/protocol.test.mjs"]}
+    {"id":"journal-before-reading-sources","owner_stage":"operate","enforced_by":["tests/protocol.test.mjs"]},
+    {"id":"unknown-mindmake-history-is-not-none","owner_stage":"prepare","enforced_by":["tests/prepare.test.mjs"]}
   ]
 }

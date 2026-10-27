@@ -8,6 +8,10 @@ It serves the North Star directly: 75 builders with a first trusted read and 30 
 
 ## The one rule
 
+### Approved beta invitation update, 21 October 2026
+
+Krish's explicit copy correction governs the pilot invitations: introduce the sender and business, explain Legibility in plain English, say where it adds to or could replace existing extraction, state the intended benefit and test criteria, and offer a 30-day free trial for feedback. Use [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), tailoring the workflow and contact channel. Demo evidence supports the explanation; do not open with unexplained test prices or jargon. This overrides the demonstration-first ordering below for these invitations without weakening evidence requirements or authorising sends.
+
 The corpus closes on: identify a valuable change people already want, build a credible and differentiated way to achieve it, explain it in the form they are ready to understand, and measure whether they act and succeed. For Legibility that reads: a builder whose agent needs product data it can rely on, shown on their own products what Legibility can and cannot read, then measured by a first trusted read and a return, never by a reply.
 
 ## The market: high sophistication, proof hungry

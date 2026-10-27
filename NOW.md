@@ -65,14 +65,15 @@ Lifecycle: building. The detail is in `README.md`.
 
 - **Next (Week 0, plan section 0):**
   - measure the number by hand, through two owner-approved Control Center gateway reads;
-  - then Phase 1 (app contract A1 to A8, Control Center asks, now including the Draft press into his mindmake.co mailbox, the research desk for this engine and a read-only calendar read);
+  - the export client is built (Phase 1B, 27 Oct): once the app ships A4 and Krish adds `LEGIBILITY_EXPORT_TOKEN` (Actions secret) and `LEGIBILITY_EXPORT_URL` (variable), each run counts `weekly_builders`; until then the live report is unchanged;
+  - then the rest of Phase 1 (app contract A1 to A8, Control Center asks, now including the Draft press into his mindmake.co mailbox, the research desk for this engine and a read-only calendar read);
   - the 7 expired outreach items are refreshed in the runner once its propose step exists (Phase 2), never from an interactive session.
 - **Waiting on Krish:**
   - approve the two data reads (the gateway reads);
   - save the buyer in Control Center Growth > Buyers, now commercial leaders at companies that buy product data (the proposal is in Drive `01_Growth/01_Strategy`);
   - add the spend-capped model API key (`ANTHROPIC_API_KEY`) as an Actions secret when Phase 2 needs it, with the cap set at the provider;
   - run the Cowork brand-kit prompt.
-- **Single next step for the Mindmake ruling:** Control Center's prior-outreach reader, its route and the one-list hold (ENGINE-ARCHITECTURE section 11, Phase 1 asks 1 to 3, one Control Center pull request). They unblock the Wave 0 refresh for people reached for Mindmake: the record comes only from that reader, never from a session's own reads, so until it exists every Wave 0 item holds as `mindmake_history_unknown`. Krish's words are approved (GET-GOING step 0b).
+- **Single next step for the Mindmake ruling:** merge Control Center's prior-outreach reader, its route (protocol 1.11.0) and the one-list hold (control-center pull request 581, open 27 Oct), then teach the engine to read that route. They unblock the Wave 0 refresh for people reached for Mindmake: the record comes only from that reader, never from a session's own reads, so until it exists every Wave 0 item holds as `mindmake_history_unknown`. Krish's words are approved (GET-GOING step 0b).
 - **Resolved:** the hello mailbox. Krish ruled on 27 October that drafts land in his mindmake.co mailbox; the hello mailbox stays read-only, as Control Center keeps it.
 - North Star check (2026-10-27): holds.
 - North Star check (2026-10-27, Mindmake ruling): holds. This protects the quality of each invitation; it does not move the number by itself.
@@ -81,6 +82,7 @@ Lifecycle: building. The detail is in `README.md`.
 - **Single next step for the app contract:** Krish opens a session in the Legibility app repository and points it at [handoff/APP-PHASE-1.md](docs/handoff/APP-PHASE-1.md); it starts with the read-only source review read (its section 11) and A1, and asks him once per deploy.
 - North Star check (2026-10-27, app brief): holds. A1, A2 and A4 are the critical path to measuring the number; the brief moves it only once they are deployed.
 - **Done 27 Oct 2026, the source review (Phase 1E; [SOURCE-REGISTER.md](docs/SOURCE-REGISTER.md), "Review of 27 October 2026").** The four app files were reviewed at the app's `main` head `ffe7cda` (three unchanged; the North Star gained its number, 1,000 production agents a week by 29 March 2027) and the two Control Center rows at `621bad8` (the receiver is live, the packs collision is gone, the attribution allowlist still omits Legibility). No changed claim alters what a run does. `source_review_due` is now 26 Nov 2026 00:00 UTC, 30 days after the review; the manifest is refrozen with both examples rebuilt. **Next review due by 19 Nov 2026; if it is missed, from 26 Nov 00:00 UTC every run holds with `source_review_due` and prepares nothing.**
+- North Star check (2026-10-27, export client): holds. The engine can now count the number from the app's export; it is measured once A4 ships and the secret is added.
 - North Star check (2026-10-27, source review): holds. It keeps every run able to prepare past 17 Nov; it does not move the number by itself.
 
 - **Start here next session, already authorised by Krish on 27 October:** investigate how the Legibility app can provision and enforce the 30-day free trial. Establish activation, usage allowance, dates, expiry and billing safeguards. Do not ask whether to start or continue. The previous session is closed; see docs/BETA-HANDOFF.md for scope and authority.

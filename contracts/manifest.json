@@ -16,7 +16,7 @@
     },
     {
       "path": "config/policy.json",
-      "sha256": "8321e0e475ac9380c8f57100ea99b3ab7b3c1ebf6d97ce5e1535548893089e3b"
+      "sha256": "8ed2c792e735bc9059bcbb460c896e55d5376f51bcd68f08376eb4b0a287ad25"
     },
     {
       "path": "fixtures/snapshot.json",
@@ -24,11 +24,11 @@
     },
     {
       "path": "contracts/example-report.json",
-      "sha256": "d2e2762ca3bb0a64e00314a857641e65c465db4694c5c4c1a82ef070b440d0e2"
+      "sha256": "60dce1e20dcca76d7f68f257781a31b4a468d2fd97f618e95f551d02416065f2"
     },
     {
       "path": "contracts/example-engine-report.json",
-      "sha256": "0b0d6335b18ccaa9f424e0df6fce571e5f631f07f62e8bc1293f6d94cdce215b"
+      "sha256": "4d65c47814ed2a927f05fd87b8af2e6e2fb6f76be9d596aebba84867df1d7651"
     }
   ]
 }

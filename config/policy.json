@@ -5,7 +5,7 @@
   "max_candidate_age_days": 30,
   "max_followups": 1,
   "max_snapshot_age_hours": 24,
-  "source_review_due": "2026-11-17T00:00:00Z",
+  "source_review_due": "2026-11-26T00:00:00Z",
   "campaign": {
     "activated_at": null,
     "duration_days": 30,

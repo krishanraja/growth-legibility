@@ -36,3 +36,4 @@ One line per ruling, in date order, with where it is recorded. NOW.md points her
 | 2026-10-20 to 21 | Reporting stopped for 33.5 hours: the engine required exactly protocol 1.0.0 back (`receiver_contract_mismatch`) | operate runs 2 and 3; fixed in 2b65ea6 (#6), confirmed by run 4 |
 | 2026-10-21 | Seven named outreach items and one onboarding item prepared in Control Center; none decided; outreach expired 23 Oct | docs/BETA-HANDOFF.md |
 | 2026-10-27 | Trial provisioning investigated (read-only): no trial exists; Free plan is the honest interim; app item A8 designed | docs/ENGINE-ARCHITECTURE.md, section 0 |
+| 2026-10-27 | The Windows CI leg hung on PR 8: a temp-folder removal threw on an open journal and skipped the server close. Fixed in the guard tests; the hung runs were cancelled | docs/FAILURES.md F27 |

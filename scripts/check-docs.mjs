@@ -10,7 +10,7 @@ const EXAMPLE_DOMAINS = /@(?:[a-z0-9-]+\.)*example\.(?:test|com|org|net)$/i;
 // Whole servers: retired routes and tools placed with other ventures. Single tools: verbs that send, share,
 // delete, publish or change an account. Names follow this cloud session's connector names.
 export const REQUIRED_DENY = [
-  'mcp__Instantly', 'mcp__plugin_sales_apollo', 'mcp__plugin_sales_fireflies', 'mcp__Buffer', 'mcp__Higgsfield',
+  'mcp__Instantly', 'mcp__plugin_sales_apollo', 'mcp__plugin_sales_fireflies', 'mcp__Descript', 'mcp__Buffer', 'mcp__Higgsfield',
   'mcp__Runway', 'mcp__HeyGen', 'mcp__ElevenLabs', 'mcp__Shopify', 'mcp__Riverside',
   'mcp__Gmail__send_message', 'mcp__Gmail__reply', 'mcp__Gmail__forward', 'mcp__Gmail__trash_message',
   'mcp__Gmail__trash_thread', 'mcp__Gmail__delete_draft', 'mcp__Gmail__delete_label',

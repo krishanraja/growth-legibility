@@ -231,8 +231,8 @@ export function heldEngineReport({ runId, at, revision, mode = 'live', policy, d
   objectives.push(...numberObjectives(registeredObjectives(directive), { value:null, reason, week_start:new Date(isoWeek(Date.parse(at)).start).toISOString(), as_of:at, stale:false }));
   const buyer = icpCurrent(icp, at);
   const holds = [
-    { reason:'source_snapshot_missing', detail:'The runner has no authenticated export from the app (accounts, server-metered reads, events, settlements). Measurement and preparation stay held until the source owner supplies one with --snapshot.' },
-    ...(buyer ? [] : [{ reason:'icp_not_current_approved', detail:'No current approved Legibility buyer definition from Control Center product_icp reached this run, so prospecting stays held. Control Center still owes the narrow product_icp read path.' }]),
+    { reason:'source_snapshot_missing', detail:'No source snapshot reached this run: the app export (accounts, server-metered reads, events, settlements) was not read and no --snapshot file was given, so measurement and preparation stay held. An export hold beside this one says why the export was not read.' },
+    ...(buyer ? [] : [{ reason:'icp_not_current_approved', detail:'No current approved Legibility buyer definition from Control Center product_icp reached this run, so prospecting stays held. Control Center carries it in the directive from protocol 1.13.0, when its capabilities say features.icp.' }]),
     ...extraHolds,
   ];
   if (directiveHold) holds.push(directiveHold);

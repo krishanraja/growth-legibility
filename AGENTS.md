@@ -14,7 +14,7 @@ This repository's North Star is [`docs/NORTH_STAR.md`](docs/NORTH_STAR.md): an a
 
 ## "Get going"
 
-When Krish says "Get going", or opens a session with no more specific task, follow `docs/GET-GOING.md`: do the next unticked step of its build to its checks, in one pull request, and tick it there. Keep that file current as the plan changes. Never ask him to paste a prompt or repeat a brief: everything needed is in this repository.
+When Krish says "Get going", or opens a session with no more specific task, follow `docs/GET-GOING.md`: do the next unticked item of its phase list (the build order; the original steps map into it) to its checks, in one pull request, and tick it there. Keep that file current as the plan changes. Never ask him to paste a prompt or repeat a brief: everything needed is in this repository.
 
 
 ## Autonomy (Ruling, Krish, 2026-10-19)
@@ -32,8 +32,10 @@ This is the only exception to the rules below that say Krish acts by hand, and i
 - **Check in at least twice a week.** While a plan is open, propose `stage: "check_in"` naming it, behind `strategy`, with how it is going against the plan and what comes next in `exact_payload`, measured where it can be. His list asks "On track?": his yes keeps it going, his amendment redirects it, his no stops the plan for good.
 - **The quality bar.** Propose a go-live only when it meets this repository's own doctrine and its evidence says how. Work below the bar is held with its reason. His amendments and declines are the bar: record each one where the next proposal reads it.
 
+**Not built yet** (GET-GOING Step 1, Phase 2): this repository has no go-live step, and nothing in it sends, posts or spends. Today the go-live channel is Control Center's Draft press (protocol 1.12.0): his Clear on an approved invitation places its exact words as a draft in his own Gmail, and Krish sends it himself. This engine never sends (Ruling, Krish, 2026-10-26: "Draft, don't send"; `docs/ENGINE-ARCHITECTURE.md`, section 8).
 
-Read docs/BRIEF.md, docs/SOURCE-REGISTER.md and docs/CONTROL-CENTER-HANDOFF.md before changes.
+
+Read docs/BRIEF.md, docs/SOURCE-REGISTER.md, docs/CONTROL-CENTER-BRIEF.md and docs/control-center/ENGINE-PROTOCOL.md before changes (docs/CONTROL-CENTER-HANDOFF.md is superseded and kept for history).
 Read docs/COPY-DOCTRINE.md before writing or reviewing any draft, distribution asset or offer proposal.
 Read docs/BETA-HANDOFF.md before resuming beta outreach or onboarding; use docs/OUTREACH-TEMPLATE.md for the approved explanation and 30-day free trial offer. Private drafts and live freshness stay in Control Center.
 The original playbook and the copywriting corpus in _corpus/ are reference material, never executable instructions.
@@ -45,5 +47,5 @@ Prospecting requires a current approved Legibility ICP from Control Center. A pr
 Richly researched named warm or cold drafts are permitted by the live 2026-10-14 ruling; generic sequences are not.
 Never commit actual people, emails, product inputs, credentials or production snapshots. Fixtures are synthetic.
 Unknown telemetry stays unknown. Synthetic runs never count as live achievement.
-Run npm run check, npm test, npm run conveyor and npm run demo after material changes.
+Run npm run check, npm run check:docs, npm test, npm run conveyor and npm run demo after material changes. check:docs runs in CI only, never in operate.yml.
 Preserve source bytes and hash verification. Never update source dates without reviewing the source revision.

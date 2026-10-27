@@ -2,7 +2,7 @@
 
 > **Status, 2026-10-19: adopted.** The engine speaks protocol 1.0.0 through `src/transport.mjs` and `src/operate.mjs`, and `.github/workflows/operate.yml` answers the `cc-growth-directive` dispatch. See `docs/OPERATIONS.md`, "The Control Center loop".
 >
-> **Status, 2026-10-27: live, not only tested against the stand-in.** The first live run on 2026-10-19 succeeded: it journaled its attempt, read the directive, sent a report, read it back by digest and read Krish's decisions. The daily dispatch has run every day since, apart from the 33.5-hour gap on 20 and 21 October that 2b65ea6 fixed ([history log](history/LOG.md)). Every report so far is `held`, with the objectives missing. The engine's architecture and build plan is [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md).
+> **Status, 2026-10-27: live, not only tested against the stand-in.** The first live run on 2026-10-19 succeeded: it journaled its attempt, read the directive, sent a report, read it back by digest and read Krish's decisions. The daily dispatch has run every day since, apart from the 33.5-hour gap on 20 and 21 October that 2b65ea6 fixed ([history log](history/LOG.md)). The engine's architecture and build plan is [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md). What a run reports today is in [OPERATIONS.md](OPERATIONS.md), "What a dispatch measures today".
 
 Written 2026-10-18 by Control Center. This brief **supersedes `docs/CONTROL-CENTER-HANDOFF.md`**. Most of your proposal is now the protocol for every engine: your paths, your envelope, your digest rule and your idempotency. Krish ruled that every growth engine conforms to one protocol (ADR-038 in Control Center).
 
@@ -54,7 +54,7 @@ The full spec is `docs/control-center/ENGINE-PROTOCOL.md`, with the report and d
 - Unknown is `value: null` with a `reason`, never zero. A measured zero is `0`.
 - `mode: synthetic` is stored and read back but never touches his numbers or his list. Use it to prove your client before Krish switches you on. A live report is refused (409 `engine_inactive`) until he does.
 
-**The wake-up.** Control Center wakes you once a day around 06:10 London with `repository_dispatch` of type `cc-growth-directive`, whose `client_payload` is `{ directive_id, engine_id }` and nothing else. Add that trigger to your workflow. If you do not run on GitHub Actions, pull the directive at the start of your own run instead; it is the same directive.
+**The wake-up.** Control Center wakes you once a day at about 05:10 UTC with `repository_dispatch` of type `cc-growth-directive`, whose `client_payload` is `{ directive_id, engine_id }` and nothing else. Add that trigger to your workflow. If you do not run on GitHub Actions, pull the directive at the start of your own run instead; it is the same directive.
 
 ## How your proposal maps
 
@@ -72,10 +72,9 @@ The full spec is `docs/control-center/ENGINE-PROTOCOL.md`, with the report and d
 
 ## Still owed by Control Center (named, not built)
 
-- The attribution allowlist for `app: legibility`.
-- A narrow `product_icp` read path for your snapshot exporter.
+- The attribution allowlist for `app: legibility` (still omits Legibility at the 27 October source review).
 
-Until they exist, report the affected measures as missing with the reason.
+Until it exists, report the affected measures as missing with the reason. The `product_icp` read once owed here is built differently: protocol 1.13.0 carries the buyer in this engine's directive (control-center PR 588, merging 27 Oct; contracts/README.md).
 
 ## Acceptance
 

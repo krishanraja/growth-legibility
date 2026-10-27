@@ -16,7 +16,7 @@ Later on 27 October Krish also decided (`docs/history/LOG.md`; [ENGINE-ARCHITECT
 - From Wave 1, go in through commercial leaders at companies that buy product data, testing which commercial impact lands. Wave 0 keeps its audience and the approved template. The commercial template is approved (27 Oct): [OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), "Commercial-leader version".
 - The 25-minute call ends with a test report on their own product pages, then an introduction to the engineer who gets the trial key.
 - Drafts land in his mindmake.co mailbox, not the hello mailbox. Booking is "reply to book", with no booking link.
-- Scheduled research, drafting and posting run only in the runner (`operate.yml`). No interactive session holds the engine token.
+- Scheduled research, drafting and posting run only in the runner (`operate.yml`). No interactive session holds the engine token (one did on 27 Oct; removing it is on NOW.md's Waiting on Krish list).
 
 ## Completed and where to find it
 
@@ -37,7 +37,7 @@ Drafts, evidence links and compose payloads were independently read back after w
 
 Read-only queue metadata check: all seven outreach rows still have state `pending`, with no decision or completion timestamp. Their `expires_at` is **23 October 2026 at 12:45 UTC**, already past. Do not describe them as currently approved or sendable without refreshing contact/company evidence, suppression/contact history, each person's Mindmake record in Control Center (ruling of 27 October) and expiry through the normal approval path. Do not silently extend expiry or infer authority from the pending state.
 
-The onboarding item is pending with no expiry. It still requires recipient personalisation and per-account activation checks. No fresh product calls, account provisioning, trial enforcement test or North Star measurement were performed on 27 October.
+The onboarding item is pending with no expiry. It still requires recipient personalisation and per-account activation checks. That check made no fresh product calls, account provisioning, trial enforcement test or North Star measurement (the number was measured later the same day: NOW.md).
 
 Private lookup route: Control Center's `growth_engine_proposals`, scoped to `engine_id = 'growth-legibility'`. Outreach proposal IDs begin `legibility:first-users:2026-10-21:`; onboarding proposal ID is `legibility:beta-onboarding:2026-10-21`. Read current values and amendments before any mutation. Do not export rows into Git, public Actions artifacts or PR descriptions.
 
@@ -51,7 +51,7 @@ Preserve these boundaries: selected-SKU stock does not describe every variant; e
 
 The temporary encrypted credential used for the bounded demo checks was removed and deletion verified. No credential is preserved here. Obtain scoped runtime access only if a future authenticated check actually needs it.
 
-## Onboarding and the trial gap
+## Onboarding and the trial
 
 The 21 October live quickstart documented `POST https://legibility.io/api/v1/read_product`, bearer API-key authentication, JSON containing either `gtin` or `url`, and dashboard key creation. Signup used an email magic link. URL reads were labelled private beta. An older API reference showed a shorter path and a different response illustration; the private onboarding note uses the quickstart path, corroborated by the earlier real demo calls. Recheck live docs before reuse.
 
@@ -63,13 +63,13 @@ Onboarding sequence already drafted:
 4. Treat `product: null` as a miss even with HTTP 200. Preserve failures as feedback. Check 401 authentication; pause on 402 to check allowance; honour `retry-after` on 429.
 5. Compare actual selected-product fields, source timestamps, coverage, accuracy, latency, cost and integration work with the tester's existing source. Request feedback after first calls, around midpoint and before trial end. Redact keys and private customer data.
 
-**Not implemented or verified:** a dedicated 30-day trial entitlement, beta-access toggle, account-specific allowance, trial clock, enforcement/expiry, reminders or billing handling. The public Free plan's calendar-month quota is not proof of a dedicated 30-day trial. Do not promise unlimited usage, automatic expiry, free overages, waived charges or an SLA. No tester was provisioned by this session.
+**The trial (app item A8, legibility PR 51, live since 27 October).** Krish grants each trial by hand, with his click on `/dashboard/waitlist`, Trials; that click is the provisioning approval. A grant serves 5,000 trusted reads by default and its own cost fuse, from the grant for at most 30 days, then the account falls back to Free, so a trial is never worse than Free. The 402 says the trial is used up and nothing was charged. Nothing touches Stripe, and `FOUNDING_AUTO_TRIAL` is off, so a sign-up gets no trial on its own. Reminders are not built: the engine drafts them for his approval. Still not promised: unlimited usage, free overages, waived charges or an SLA. The approved template's wording is unchanged and pinned; whether the offer's words change now is Krish's question (NOW.md). No tester has been provisioned yet. Details: [handoff/APP-PHASE-1.md](handoff/APP-PHASE-1.md), A8 and section 12.
 
 ## Next session
 
-1. Read AGENTS.md, docs/NORTH_STAR.md, NOW.md and this handoff. The current North Star is weekly real builders making trusted reads, with the weekly ladder in NORTH_STAR.md. The number remains unmeasured here, not zero.
+1. Read AGENTS.md, docs/NORTH_STAR.md, NOW.md and this handoff. The current North Star is weekly real builders making trusted reads, with the weekly ladder in NORTH_STAR.md. It was measured on 27 October: 0 against 1 this week (U4); NOW.md holds the current line.
 2. Read current Control Center directives, decisions, canonical ICP, outreach rows and contact history. Refresh expired outreach before proposing a send; preserve reserve priorities and recipient/channel caveats. The Wave 0 refresh runs in the runner once its propose step exists (Phase 2), using each person's Mindmake record from Control Center's prior-outreach reader; no interactive session holds the engine token or posts the items. Someone Krish already reached for Mindmake takes the variant opening Krish approved on 27 October 2026 ([OUTREACH-TEMPLATE.md](OUTREACH-TEMPLATE.md), "Variant: someone Krish has already reached for Mindmake"); someone touched only by visibility notes (podcast pitches, guest invites, press, the visibility notes a colleague sends for Krish) takes the template's own opening; an item whose Mindmake record is unknown or open, a Mindmake client, or a Mindmake touch under 14 days old is not refreshed. Run `npm run check:invitation` on the refreshed items and resubmit only those with no code. Do not rebuild completed copy or ask Krish to repeat the brief.
-3. **Explicitly authorised next-session task (Krish, 27 October 2026):** inspect the Legibility app's access/quota/billing implementation and establish how to provision and enforce the promised 30-day free trial, so the team is ready when a prospect replies. Start this investigation next session without asking whether to continue. Verify the activation process, usage allowance, trial start/end dates, expiry behaviour and billing safeguards. This authorises the investigation and concrete implementation recommendation; account provisioning, access/billing changes and release actions retain their own authority boundaries. The investigation has not yet been performed. Krish explicitly ended the current session: do not continue it here or ask another continuation question.
+3. **Done: the trial investigation** Krish authorised on 27 October. It ran the same day, read-only (ENGINE-ARCHITECTURE.md, section 0, item 1), and its design shipped as A8 (above). Provisioning a tester's trial stays Krish's click.
 4. Once a real tester accepts, personalise the saved onboarding item, verify access and free usage, record dates, and measure their first trusted API read and return. On the commercial route the tester is the engineer a commercial leader introduces, and the read counts only from that engineer's own key. Count only genuine external builder use.
 5. Keep the existing GET-GOING engine build checklist separate. This handoff does not complete snapshot-export, ICP-read, autonomy-loop or campaign-clock implementation steps.
 

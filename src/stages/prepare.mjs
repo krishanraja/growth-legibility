@@ -127,6 +127,11 @@ function timestamp(value) {
   return typeof value === 'string' && /T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value) ? Date.parse(value) : NaN;
 }
 
+function reviewedBy(value, now) {
+  const time = timestamp(value);
+  return Number.isFinite(time) && time <= now;
+}
+
 function fresh(value, now, ageDays) {
   const time = timestamp(value);
   return Number.isFinite(time) && time <= now && now - time <= ageDays * DAY;
@@ -423,10 +428,11 @@ export function candidateGate(candidate, now, policy = {}) {
  * This pure stage never fetches, drafts copy, approves, publishes, or sends anything.
  * A source reference proves lineage to the snapshot, not independent source verification.
  */
-/** Whether a buyer is Legibility's current approved one from Control Center product_icp, reviewed in the last 30 days. */
+/** Whether a buyer is Legibility's approved one from Control Center product_icp. An approved buyer stays current until Krish changes it
+ *  (Ruling, Krish, 2026-10-28: "The buyers are now the buyers"); its review time only has to be a real time not after the run. */
 export function icpCurrent(icp, at) {
   const now = typeof at === 'number' ? at : timestamp(at);
-  return icp?.product_slug === 'legibility' && icp?.source === 'control-center:product_icp' && icp?.status === 'approved' && present(icp?.buyer_definition) && present(icp?.revision) && fresh(icp?.reviewed_at, now, 30);
+  return icp?.product_slug === 'legibility' && icp?.source === 'control-center:product_icp' && icp?.status === 'approved' && present(icp?.buyer_definition) && present(icp?.revision) && reviewedBy(icp?.reviewed_at, now);
 }
 export function prepare(snapshot, at, policy = {}) {
   const now = timestamp(at);

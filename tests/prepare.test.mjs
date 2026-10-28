@@ -68,10 +68,12 @@ test('threshold scoring is exact and does not round a below-70 candidate up', ()
 });
 
 test('requires approved current ICP revision and complete candidate coverage', () => {
+  // An approved buyer stays current however long ago it was reviewed (Ruling, Krish, 2026-10-28).
+  const old = prepare(snapshot({ icp: { ...snapshot().icp, status: 'approved', revision: 'icp-1', reviewed_at: '2025-01-01T00:00:00.000Z' } }), AT);
+  assert.ok(!old.holds.some(hold => hold.code === 'icp_not_current_approved'));
   for (const change of [
     { status: 'proposed', revision: 'icp-1', reviewed_at: AT },
     { status: 'approved', revision: null, reviewed_at: AT },
-    { status: 'approved', revision: 'icp-1', reviewed_at: '2026-09-17T12:00:00.000Z' },
     { status: 'approved', revision: 'icp-1', reviewed_at: '2026-10-19T12:00:00.000Z' },
   ]) {
     const result = prepare(snapshot({ icp: { ...snapshot().icp, ...change } }), AT);

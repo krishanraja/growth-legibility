@@ -86,7 +86,6 @@ The last live run, Actions run 40607512910 on 28 October, read the app's export 
 | Hold `opportunity_coverage_unknown` | The export owns no distribution inventory | An opportunity source (directories and partners, Phase 5) |
 | Objectives `activated`, `returning`, `net` `missing` | The campaign clock in `config/policy.json` is not activated, so there is no campaign window to count in | Krish's ruling on the campaign clock (GET-GOING step 4) |
 | Objective `conversations_held` `missing` (`calendar_read_missing`) | No read of Krish's calendar exists | Control Center's read-only calendar read (Phase 1 asks) |
-| Hold `icp_not_current_approved` again, once the buyer is 30 days old | The buyer counts as current for 30 days after its `reviewed_at` (`icpCurrent` in `src/stages/prepare.mjs`). Buyer v2 was saved on 27 Oct, so it lapses about 26 Nov | Krish re-reviews the buyer in Growth > Buyers before then |
 
 So the buyer alone does not let an export-fed run prepare invitations: that also needs a candidate source. When the export cannot be read, the run has no snapshot and sends the held report instead: `held`, nothing measured, holds `source_snapshot_missing` and `icp_not_current_approved` (until the buyer is served) beside the export's own code. Even with a snapshot, `activated`, `returning` and `net` stay `missing` until the campaign clock is activated; then they report builders with a first trusted read, mature seven-day returning builders and qualified Founding members.
 

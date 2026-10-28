@@ -83,9 +83,12 @@ test('a held run with the approved buyer served no longer holds icp_not_current_
   // Its words never reach the printed summary.
   assert.doesNotMatch(JSON.stringify(served.summary), /Synthetic commercial leaders|Head of Data/);
 
-  for (const icp of [MISSING, { ...ICP, reviewed_at:'2026-09-01T00:00:00.000Z' }, { ...ICP, product_slug:'mindmake' }]) {
+  // An approved buyer reviewed long ago is still the buyer (Ruling, Krish, 2026-10-28).
+  const old = await run(t, await standIn(t, { directive:{ ...DIRECTIVE, icp:{ ...ICP, reviewed_at:'2025-01-01T00:00:00.000Z' } }, capabilities:SERVES_ICP }));
+  assert.ok(!reasons(old.stored).includes('icp_not_current_approved'));
+  for (const icp of [MISSING, { ...ICP, product_slug:'mindmake' }]) {
     const held = await run(t, await standIn(t, { directive:{ ...DIRECTIVE, icp }, capabilities:SERVES_ICP }));
-    assert.ok(reasons(held.stored).includes('icp_not_current_approved'), `${icp.status} ${icp.reviewed_at} ${icp.product_slug}: missing, stale or another product's buyer still holds`);
+    assert.ok(reasons(held.stored).includes('icp_not_current_approved'), `${icp.status} ${icp.reviewed_at} ${icp.product_slug}: missing, or another product's buyer, still holds`);
   }
   const unread = await run(t, await standIn(t, { capabilities:SERVES_ICP }));
   assert.ok(reasons(unread.stored).includes('icp_not_current_approved'));

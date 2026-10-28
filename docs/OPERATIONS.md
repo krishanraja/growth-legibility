@@ -13,7 +13,7 @@ Coverage flags must reflect full pagination and reconciliation. Missing sources 
 1. Export source-owned accounts, server reads, events, canonical ICP, private candidate evidence, contact/suppression state, each candidate's Control Center contact id (`contact.contact_id`) and Mindmake record (`contact.prior_mindmake`, copied unchanged from Control Center's reader; contracts/README.md; `operate` reads it itself by contact id and drops any record the input carried), partner distribution, feedback, settled payments and actual source coverage. Protect the export under runtime/input/.
 2. Run `node src/cli.mjs run --snapshot runtime/input/snapshot.json --out runtime/live`. Inspect the emitted mode, status, unknown reasons, recommended constraint and pending actions in the private report. A hand `run` reads nothing from Control Center: no directive, no buyer from `product_icp` (the snapshot's own `icp` decides), no Mindmake record (the snapshot's own `contact.prior_mindmake` decides) and no Draft press, so its envelope is always protocol 1.0.0 with the three original objectives. It differs from what `operate --snapshot FILE` would report on the same snapshot in the runner, which reads all four.
 3. Source gaps, overdue reviews, partial windows, stale live snapshots and detected paid media hold actionable work. Repair the owning source rather than editing the output to look successful.
-4. Deliver through the Control Center growth engine protocol: `node src/cli.mjs deliver --run-id CONTROL_CENTER_RUN_ID --out runtime/live`, with `CONTROL_CENTER_ENGINE_TOKEN` injected at run time, only where that secret already lives: the runner. No interactive session holds the engine token (ENGINE-ARCHITECTURE.md, decision 18). The outbox holds the protocol envelope, not the private report. Do not point the engine at growth/packs, dashboard APIs or a generic table-write endpoint.
+4. Deliver through the Control Center growth engine protocol: `node src/cli.mjs deliver --run-id CONTROL_CENTER_RUN_ID --out runtime/live`, with `CONTROL_CENTER_ENGINE_TOKEN` injected at run time, only where that secret already lives: the runner. No interactive session may hold the engine token (ENGINE-ARCHITECTURE.md, decision 18). The outbox holds the protocol envelope, not the private report. Do not point the engine at growth/packs, dashboard APIs or a generic table-write endpoint.
 5. Confirm the matching stored digest, then the run on Growth > Engines. The engine's delivered status proves only the digest readback; dashboard projection is Control Center's to verify.
 
 ## Approval and suppression
@@ -50,7 +50,7 @@ Control Center sends a `cc-growth-directive` repository dispatch at about 05:10 
 | 4 | `GET` the app export, `LEGIBILITY_EXPORT_URL` on `https://legibility.io` | Skipped when a `--snapshot` file is given. Otherwise reads the export (`src/lib/export-client.mjs`) and composes the snapshot; a failure holds with its code |
 | 5 | none | A served buyer replaces the snapshot's (`applyIcp`) |
 | 6 | `GET prior-outreach?contacts=` | Only with a snapshot, `features.prior_outreach` and at least one candidate with a `contact.contact_id`: copies each person's Mindmake record (contracts/README.md) |
-| 7 | `GET capabilities` | Only when an approved invitation could be a version 2 email action: asks whether the Draft press is served (`features.draft_press` at 1.12.0) |
+| 7 | `GET capabilities` | Only when a prepared invitation could be a version 2 email action: asks whether the Draft press is served (`features.draft_press` at 1.12.0) |
 | 8 | `GET capabilities`, `GET reports/<run_id>`, `POST reports`, `GET reports/<run_id>` | Checks the receiver takes the report's version, engine_id and product_slug; reconciles; posts once with `Idempotency-Key`; reads the stored digest back |
 | 9 | `GET decisions?since=` | Counts approvals whose `payload_sha256` equals a payload from this run. It never acts on them |
 | 10 | `POST attempts` | Closes the attempt: `succeeded`, `failed` with a lower_snake code, or `unknown` when a response was lost |
@@ -74,19 +74,19 @@ Every value is read at run time and never printed or written. `.env.example` lis
 
 With neither export variable set, the run is unchanged and its summary names `attribution_export_missing`; with one set alone it holds as `attribution_export_incomplete`.
 
-### What a dispatch measures today (27 October 2026)
+### What a dispatch measures today (28 October 2026)
 
 This paragraph is the one home for what a live run reports; other documents link here. Re-date it when a run changes it.
 
-The last live run, Actions run 40595794935 on 27 October, was the first to read the app's export (A4, legibility PR 47; `export.state: read`). Its report is `degraded`, not `held`: `weekly_builders` was measured and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. What the report still lacks, and what clears each:
+The last live run, Actions run 40607512910 on 28 October, read the app's export (A4, legibility PR 47; `export.state: read`) and, for the first time, Legibility's buyer from Control Center's 1.13.0 directive (`icp.state: approved`; control-center PR 588). Its report is `degraded`, not `held`: `weekly_builders` was measured and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. What the report still lacks, and what clears each:
 
 | In the report | Why | What clears it |
 |---|---|---|
-| Hold `icp_not_current_approved` (summary `icp.state: not_served`) | Production Control Center does not serve protocol 1.13.0 yet, so the directive carries no buyer | Control-center PR 588 (1.13.0), merging 27 Oct. The next run after it deploys reads buyer v2 and clears this hold, with no change here |
 | Hold `candidate_coverage_unknown` | The export owns no candidates: `composeSnapshot` leaves them empty with coverage false, and prepare holds every prospect while it is false | A candidate source: Phase 2's research step in the runner, or a `--snapshot` file prepared by hand (Wave 0) |
 | Hold `opportunity_coverage_unknown` | The export owns no distribution inventory | An opportunity source (directories and partners, Phase 5) |
 | Objectives `activated`, `returning`, `net` `missing` | The campaign clock in `config/policy.json` is not activated, so there is no campaign window to count in | Krish's ruling on the campaign clock (GET-GOING step 4) |
 | Objective `conversations_held` `missing` (`calendar_read_missing`) | No read of Krish's calendar exists | Control Center's read-only calendar read (Phase 1 asks) |
+| Hold `icp_not_current_approved` again, once the buyer is 30 days old | The buyer counts as current for 30 days after its `reviewed_at` (`icpCurrent` in `src/stages/prepare.mjs`). Buyer v2 was saved on 27 Oct, so it lapses about 26 Nov | Krish re-reviews the buyer in Growth > Buyers before then |
 
 So the buyer alone does not let an export-fed run prepare invitations: that also needs a candidate source. When the export cannot be read, the run has no snapshot and sends the held report instead: `held`, nothing measured, holds `source_snapshot_missing` and `icp_not_current_approved` (until the buyer is served) beside the export's own code. Even with a snapshot, `activated`, `returning` and `net` stay `missing` until the campaign clock is activated; then they report builders with a first trusted read, mature seven-day returning builders and qualified Founding members.
 

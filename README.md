@@ -31,7 +31,7 @@ node src/cli.mjs run --snapshot runtime/input/snapshot.json --out runtime/live
 node src/cli.mjs status --run-id RUN_ID --out runtime/live
 ```
 
-A hand `run` reads nothing from Control Center, so its envelope is always protocol 1.0.0 ([OPERATIONS.md](docs/OPERATIONS.md), "Cycle"). To deliver a run's envelope to Control Center by hand, where the engine token already lives (no interactive session holds it):
+A hand `run` reads nothing from Control Center, so its envelope is always protocol 1.0.0 ([OPERATIONS.md](docs/OPERATIONS.md), "Cycle"). To deliver a run's envelope to Control Center by hand, where the engine token already lives (no interactive session may hold the engine token):
 
 ```sh
 node src/cli.mjs deliver --run-id CONTROL_CENTER_RUN_ID --out runtime/live

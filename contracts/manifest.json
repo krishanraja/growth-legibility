@@ -12,7 +12,7 @@
     },
     {
       "path": "src/stages/prepare.mjs",
-      "sha256": "8d4a2b628968a5082754ba6fead48cfd761b37516ee960d95401605ce8099384"
+      "sha256": "d7970a7c5b165da3e8a9665f31c5713f76a53968e82b3a7612e87fcba3cbe014"
     },
     {
       "path": "config/policy.json",

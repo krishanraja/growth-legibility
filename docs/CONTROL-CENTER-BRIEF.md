@@ -74,7 +74,7 @@ The full spec is `docs/control-center/ENGINE-PROTOCOL.md`, with the report and d
 
 - The attribution allowlist for `app: legibility` (still omits Legibility at the 27 October source review).
 
-Until it exists, report the affected measures as missing with the reason. The `product_icp` read once owed here is built differently: protocol 1.13.0 carries the buyer in this engine's directive (control-center PR 588, merging 27 Oct; contracts/README.md).
+Until it exists, report the affected measures as missing with the reason. The `product_icp` read once owed here is built differently: protocol 1.13.0 carries the buyer in this engine's directive (control-center PR 588, merged as `20b8b51` and deployed 28 Oct; contracts/README.md).
 
 ## Acceptance
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://controlcenter.krishraja.com/schemas/engine-directive-1.0.0.json",
-  "title": "Growth engine directive, protocol 1.0.0 (ADR-038)",
+  "title": "Growth engine directive, protocol 1.0.0 to 1.13.0 (ADR-038)",
   "type": "object",
   "required": [
     "schema_version",
@@ -193,6 +193,35 @@
             "type": "string",
             "pattern": "^[0-9a-f]{64}$",
             "description": "Present when amended: SHA-256 of the canonical JSON of {amount_usd, exact_payload}."
+          },
+          "carried_out": {
+            "enum": [
+              "draft",
+              "message",
+              "submit"
+            ],
+            "description": "1.6.0, present when set: Krish carried it out himself from his home screen (a Gmail draft he sends, a message app opened with the words typed, a form submitted on his tap). Never send or submit it yourself."
+          },
+          "reason_code": {
+            "enum": [
+              "wrong_person",
+              "not_now",
+              "already_in_touch",
+              "too_small",
+              "wrong_audience",
+              "not_my_topic",
+              "pitch_off",
+              "other"
+            ],
+            "description": "1.6.0, present on a No he gave a reason for. Offer better, and do not offer that person, or anything like it on that reason, again."
+          },
+          "reason_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 1000,
+            "description": "1.6.0, with reason_code: his own words, when he gave any."
           }
         }
       }
@@ -304,6 +333,604 @@
               }
             }
           }
+        }
+      }
+    },
+    "aim_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "1.4.0: the parent product's North Star deadline."
+    },
+    "week_of": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date",
+      "description": "1.4.0: this week's rung of the parent product's weekly ladder."
+    },
+    "week_target": {
+      "type": [
+        "number",
+        "string",
+        "null"
+      ],
+      "description": "1.4.0: the parent product's target for this week."
+    },
+    "current": {
+      "type": [
+        "number",
+        "string",
+        "null"
+      ],
+      "description": "1.4.0: the parent product's latest reading."
+    },
+    "urgency": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 5,
+      "description": "1.4.0: U1 to U5 by ai-harness contract/north-star-metric.md; null when paused."
+    },
+    "urgency_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "1.4.0: why that urgency."
+    },
+    "north_star": {
+      "type": "object",
+      "description": "1.4.0: the parent product's number, the engine's own, and what urgency asks of it. The walls and caps never move with it.",
+      "properties": {
+        "parent": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "repo": {
+              "type": "string"
+            },
+            "metric": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "aim_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "week_of": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "week_target": {
+              "type": [
+                "number",
+                "string",
+                "null"
+              ],
+              "description": "A figure, or \"private\" for a repository whose figures are private."
+            },
+            "current": {
+              "type": [
+                "number",
+                "string",
+                "null"
+              ],
+              "description": "A figure, or \"private\" for a repository whose figures are private."
+            },
+            "urgency": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5
+            },
+            "urgency_reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "read_on": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "own": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "repo": {
+              "type": "string"
+            },
+            "metric": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "unit": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "aim_by": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "week_of": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date"
+            },
+            "week_target": {
+              "type": [
+                "number",
+                "string",
+                "null"
+              ],
+              "description": "A figure, or \"private\" for a repository whose figures are private."
+            },
+            "current": {
+              "type": [
+                "number",
+                "string",
+                "null"
+              ],
+              "description": "A figure, or \"private\" for a repository whose figures are private."
+            },
+            "urgency": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5
+            },
+            "urgency_reason": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "read_on": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        },
+        "intensity": {
+          "type": "object",
+          "properties": {
+            "urgency": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 1,
+              "maximum": 5
+            },
+            "drafts_multiplier": {
+              "type": "number"
+            },
+            "rule": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "taste": {
+      "type": "object",
+      "description": "1.5.0, optional. Krish's approved voice rules for what the engine drafts: follow them for how it is written, never to choose what it is about, never to judge. An empty list means none approved yet; absent means they could not be read.",
+      "required": [
+        "rule",
+        "approved_voice_rules"
+      ],
+      "properties": {
+        "rule": {
+          "type": "string"
+        },
+        "approved_voice_rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "layer",
+              "rule",
+              "his_words",
+              "what_it_means"
+            ],
+            "properties": {
+              "layer": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "rule": {
+                "type": "string"
+              },
+              "his_words": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "what_it_means": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "week_goals": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "string"
+      },
+      "description": "1.6.0, optional: his goals for this week in his own words, newest week. A row proposal's serves quotes one exactly. Empty when none set; absent when they could not be read."
+    },
+    "rows_rule": {
+      "type": "string",
+      "description": "1.6.0, Mindmake only, with week_goals: how to put people in front of him (ENGINE-PROTOCOL.md, The five rows), word for word."
+    },
+    "web_analytics": {
+      "type": "object",
+      "description": "1.10.0, optional: the Google Analytics readings of the site whose venture is this engine's product, for a site with the per-post (utm_content) breakdown (makeyourmindup) or one its engine reads without it (mindmake.co, no utm_content rows and events null). The last 28 days through the newest day captured, from web_analytics_daily. Counts only, no personal data. A part that cannot be read is null, with the reason in coverage, never zero. Absent for every other engine. 1.13.0 adds legibility.io for growth-legibility (no utm_content rows), and daily and health, wherever Control Center reads them.",
+      "required": [
+        "property",
+        "measurement_id",
+        "through",
+        "days",
+        "events",
+        "rows",
+        "coverage"
+      ],
+      "properties": {
+        "property": {
+          "type": "string",
+          "description": "The site's prefix in Control Center, for example mymu."
+        },
+        "measurement_id": {
+          "type": "string",
+          "pattern": "^G-[A-Z0-9]+$"
+        },
+        "through": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date",
+          "description": "The newest day captured, which the window ends on. Null when nothing could be read."
+        },
+        "days": {
+          "type": "integer",
+          "description": "The window, in days: 28."
+        },
+        "events": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "Each event name seen in the per-post rows. Null when no per-post row was captured in the window.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "key_event",
+              "count_28d"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "key_event": {
+                "type": "boolean",
+                "description": "True when its key events add up above zero in the window."
+              },
+              "count_28d": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Sessions in which the event happened, summed over the per-post rows of the window. A count of sessions, not of events."
+              }
+            }
+          }
+        },
+        "rows": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "Every breakdown row in the window, oldest day first. Null when the table could not be read or holds nothing for this site.",
+          "items": {
+            "type": "object",
+            "required": [
+              "date",
+              "dim_type",
+              "value",
+              "sessions",
+              "users",
+              "key_events"
+            ],
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "dim_type": {
+                "enum": [
+                  "source_medium",
+                  "landing_page",
+                  "utm_content"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "description": "source_medium: 'source / medium'. landing_page: the path. utm_content: '<utm_content>|<session source>|<event name>'; split it on the first and the last '|', never on every one, because a source can hold a '|'."
+              },
+              "sessions": {
+                "type": "number",
+                "minimum": 0
+              },
+              "users": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Google's users for that row: activeUsers on source and landing page rows, totalUsers on utm_content rows. Never add users across a post's event rows: the same people are in each."
+              },
+              "key_events": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "coverage": {
+          "type": "object",
+          "required": [
+            "complete",
+            "reason",
+            "dates"
+          ],
+          "properties": {
+            "complete": {
+              "type": "boolean",
+              "description": "True only when source, landing page and per-post rows are each on every day of the window, the newest day is current and nothing was cut."
+            },
+            "reason": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Why it is not complete, in plain words; null when complete. The per-post part is judged on its own days: when the per-post breakdown starts inside the window, or per-post rows are on fewer days than the window, it says so, because events and count_28d then cover only those days."
+            },
+            "dates": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "description": "The days that carry rows of each kind, oldest first; null when nothing could be read. A day missing from utm_content had no tagged visits or was not captured: unknown, never zero.",
+              "required": [
+                "source_medium",
+                "landing_page",
+                "utm_content"
+              ],
+              "properties": {
+                "source_medium": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                },
+                "landing_page": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                },
+                "utm_content": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "consent_gated": {
+          "const": true,
+          "description": "Present only for a site that counts a visitor once they press Allow (mindmake.co): every count is a floor."
+        },
+        "daily": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "1.13.0, optional: the site's headline totals a day from growth_metrics (<prefix>_sessions_1d, _users_1d, _pageviews_1d, _key_events_1d), only the days with at least one figure, oldest first, up to 28 days through the newest day on file there. A day missing from the list is unknown, and a figure not on file on a listed day is null, never zero. An empty list when nothing is on file; null when they could not be read.",
+          "items": {
+            "type": "object",
+            "required": [
+              "date",
+              "sessions",
+              "users",
+              "pageviews",
+              "key_events"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "date": {
+                "type": "string",
+                "format": "date"
+              },
+              "sessions": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "users": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "pageviews": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "key_events": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "health": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "1.13.0, optional: the newest daily check of the site (web_property_insights). Null when it could not be read or has never run.",
+          "required": [
+            "as_of",
+            "verdict",
+            "flags",
+            "line"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "as_of": {
+              "type": "string",
+              "format": "date"
+            },
+            "verdict": {
+              "enum": [
+                "no_access",
+                "api_disabled",
+                "wrong_stream",
+                "tag_missing",
+                "never_received",
+                "provisional",
+                "quiet",
+                "ok"
+              ]
+            },
+            "flags": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "consent_gated",
+                  "thresholded",
+                  "admin_unverified",
+                  "undercounting",
+                  "host_filter_off",
+                  "read_failed"
+                ]
+              }
+            },
+            "line": {
+              "type": "string",
+              "description": "The verdict and each flag in plain words."
+            }
+          }
+        }
+      }
+    },
+    "icp": {
+      "type": "object",
+      "description": "1.13.0, optional, growth-legibility only (features.icp): its own product's buyer from product_icp, in the shape it takes as snapshot.icp. Absent when it could not be read today, and for every other engine.",
+      "required": [
+        "product_slug",
+        "source",
+        "buyer_definition",
+        "status",
+        "revision",
+        "reviewed_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "product_slug": {
+          "type": "string",
+          "description": "The engine's own product, the row it was read from."
+        },
+        "source": {
+          "const": "control-center:product_icp"
+        },
+        "buyer_definition": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 4000,
+          "description": "The buyer in plain words, one field a line. Null unless approved."
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "missing"
+          ],
+          "description": "approved when the row is defined (buyer titles and a who line); missing with no row, an undefined row or words over 4,000 characters."
+        },
+        "revision": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Changes whenever the row does. Null with no row."
+        },
+        "reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "product_icp.updated_at, UTC to the millisecond. Null with no row."
         }
       }
     }

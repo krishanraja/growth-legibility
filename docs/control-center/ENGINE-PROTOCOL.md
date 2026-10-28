@@ -1,4 +1,4 @@
-<!-- Copied from krishanraja/control-center docs/app/growth/ENGINE-PROTOCOL.md at commit 4ef7ec4774d9f9c593eb4d3423cf4ed4a461d4cd (protocol 1.13.0, carried by control-center PR 588, merging 27 Oct; the 1.12.0 Draft press, PR 585, is merged as 23f733b and deployed) on 2026-10-27, with two changes: its links to Control Center's decision records are made absolute, and Krish's mailbox address is left out, because this repository is public. Control Center's copy is authoritative. engine-report.schema.json beside this copy is Control Center's at the same commit, which the stand-in validates against; engine-directive.schema.json is the 1.2-era copy, and Control Center's own is authoritative for later directive fields, including 1.13.0's icp and web_analytics daily and health. -->
+<!-- Copied from krishanraja/control-center docs/app/growth/ENGINE-PROTOCOL.md at commit 20b8b51cfc4173a679e9db7915ea8c3836925c62 (protocol 1.13.0, control-center PR 588, merged and deployed 28 Oct; the 1.12.0 Draft press, PR 585, merged as 23f733b and deployed) on 2026-10-28, with two changes: its links to Control Center's decision records are made absolute, and Krish's mailbox address is left out, because this repository is public. Control Center's copy is authoritative. engine-report.schema.json and engine-directive.schema.json beside this copy are Control Center's at the same commit; the stand-in validates reports against the first. -->
 # The growth engine protocol, version 1.13.0
 
 Every growth engine reports into Control Center through this one protocol, and Control Center pushes each engine its next move through it ([ADR-038](https://github.com/krishanraja/control-center/blob/main/docs/DECISIONS/038-one-protocol-for-growth-engines.md)). It replaces the per-engine receivers the handoffs asked for. The engines are:
@@ -20,7 +20,7 @@ Control Center only ever adds within 1.x: a new minor version adds fields, never
 
 - **Accept any 1.x** in what Control Center serves (the directive, capabilities, decisions), and ignore a field you do not know. Never require an exact version back.
 - **Send the version you speak.** `capabilities.schema_versions` lists every version Control Center takes; check that yours is in it.
-- **Raise yours only for a field you use.** 1.1.0 adds a proposal's `stage` and `parent_proposal_id`; 1.2.0 adds its `subject_ref`; 1.4.0 adds the North Star number and urgency to the directive (below), and nothing to the report. 1.5.0 adds `taste`, Krish's approved voice rules, to the directive (below), and nothing to the report. 1.6.0 adds a proposal's `row`, `rank`, `reach`, `amplifier_kind`, `features`, `serves` and `source_revision`, a version 2 action, 40 proposals a report, `week_goals` and `rows_rule` in the directive, `carried_out` and `reason_code` in a decision, and the research desk (below). 1.7.0 adds a row proposal's `because` and `brief`, which a row then needs, and the context's `mindmake_fit`, `sells_competing_services`, `known_since`, `email_last` and `quiet_ties` (below). 1.8.0 adds a row proposal's `card`, the full card a tap opens, which a row then needs, and the context's `email_inbound`, `email_outbound`, `source_list` and `last_post_at` (below). 1.9.0 lets a visibility or events row's email action name Jonny's box (`mailbox`), which Control Center drafts each day with no press, and adds each stage's podcast facts and booking route and each pitch's outcome to the context (below). 1.10.0 adds `web_analytics` to the directive for an engine whose product has a Google Analytics site with the per-post (`utm_content`) breakdown (Make Your Mind Up) or one its engine reads without it (Mindmake's mindmake.co, with `consent_gated`) (below); the meetings Krish held to Mindmake's context, with his good tap on his list (`features.meetings`); `origin_candidates` to Mindmake's report (below); the show-notes note, a version 2 action's `kind: show_notes_ask` (below); `withdrawn[]`, an engine taking back its own proposals he has not decided (below); and typed `facts[]` on each person row of Mindmake's context (`features.facts`, below). 1.11.0 adds the prior-outreach read, each person's Mindmake record, for growth-legibility only (below), and nothing to the report or the directive. 1.12.0 adds `prior_mindmake` to a version 2 email action, the Mindmake record its words were written from, so Clear drafts growth-legibility's approved email into Krish's own box (`features.draft_press`, below), and reads a send's version 2 action whole at the report. 1.13.0 adds the buyer (`icp`) to growth-legibility's directive (`features.icp`), legibility.io to its directive's `web_analytics`, the site's daily totals (`daily`) and its newest check (`health`) to that block, and the research desk to growth-legibility under its own caps (below), and nothing to the report.
+- **Raise yours only for a field you use.** 1.1.0 adds a proposal's `stage` and `parent_proposal_id`; 1.2.0 adds its `subject_ref`; 1.4.0 adds the North Star number and urgency to the directive (below), and nothing to the report. 1.5.0 adds `taste`, Krish's approved voice rules, to the directive (below), and nothing to the report. 1.6.0 adds a proposal's `row`, `rank`, `reach`, `amplifier_kind`, `features`, `serves` and `source_revision`, a version 2 action, 40 proposals a report, `week_goals` and `rows_rule` in the directive, `carried_out` and `reason_code` in a decision, and the research desk (below). 1.7.0 adds a row proposal's `because` and `brief`, which a row then needs, and the context's `mindmake_fit`, `sells_competing_services`, `known_since`, `email_last` and `quiet_ties` (below). 1.8.0 adds a row proposal's `card`, the full card a tap opens, which a row then needs, and the context's `email_inbound`, `email_outbound`, `source_list` and `last_post_at` (below). 1.9.0 lets a visibility or events row's email action name Jonny's box (`mailbox`), which Control Center drafts each day with no press, and adds each stage's podcast facts and booking route and each pitch's outcome to the context (below). 1.10.0 adds `web_analytics` to the directive for an engine whose product has a Google Analytics site with the per-post (`utm_content`) breakdown (Make Your Mind Up) or one its engine reads without it (Mindmake's mindmake.co, with `consent_gated`) (below); the meetings Krish held to Mindmake's context, with his good tap on his list (`features.meetings`); `origin_candidates` to Mindmake's report (below); the show-notes note, a version 2 action's `kind: show_notes_ask` (below); `withdrawn[]`, an engine taking back its own proposals he has not decided (below); typed `facts[]` on each person row of Mindmake's context (`features.facts`, below); and an engine's own latest live reports (`GET reports?recent=<n>`, `features.recent_reports`). 1.11.0 adds the prior-outreach read, each person's Mindmake record, for growth-legibility only (below), and nothing to the report or the directive. 1.12.0 adds `prior_mindmake` to a version 2 email action, the Mindmake record its words were written from, so Clear drafts growth-legibility's approved email into Krish's own box (`features.draft_press`, below), and reads a send's version 2 action whole at the report. 1.13.0 adds the buyer (`icp`) to growth-legibility's directive (`features.icp`), legibility.io to its directive's `web_analytics`, the site's daily totals (`daily`) and its newest check (`health`) to that block, and the research desk to growth-legibility under its own caps (below), and nothing to the report.
 
 On 2026-10-19 Control Center began serving 1.1.0. Legibility required exactly 1.0.0 back from capabilities, and Mindmake from the directive, so both stopped on every run (`receiver_contract_mismatch`, `directive_invalid`) and reported nothing for two days. That is why this rule exists.
 
@@ -131,15 +131,36 @@ an exact human-approved external action and a real independently verified receip
 
 | Method and path | Request | Response |
 |---|---|---|
-| `GET /api/growth/engines/<slug>/capabilities` | | `{ schema_version, schema_versions, autonomy, engine_id, product_slug, idempotency: true, activation: { state, activated_on }, features }` |
+| `GET /api/growth/engines/<slug>/capabilities` | | `{ schema_version, schema_versions, autonomy, engine_id, product_slug, idempotency: true, activation: { state, activated_on }, features[, research: { kinds, per_day }] }`; `research` only for an engine the research desk is open to (below) |
 | `GET /api/growth/engines/<slug>/directive[?date=YYYY-MM-DD]` | | `{ ok, chosen_by: 'rule'\|'krish', directive }` |
 | `POST /api/growth/engines/<slug>/reports` | header `Idempotency-Key: <run_id>`, body a report | `{ accepted: true, run_id, payload_sha256, replayed }` |
 | `GET /api/growth/engines/<slug>/reports/<run_id>` | | `{ accepted: true, run_id, payload_sha256, mode, accepted_at, report }`, or 404 |
+| `GET /api/growth/engines/<slug>/reports?recent=<n>` (1.10.0, `features.recent_reports`) | | `{ ok: true, reports: [{ run_id, accepted_at, status, activity }] }`: the engine's own latest live reports, newest first, `n` from 1 to 10, never the proposals or the full payload, so an engine counts its own proof runs without a ledger of its own |
 | `POST /api/growth/engines/<slug>/attempts` | an attempt | `{ ok: true, attempt[, replayed] }` |
 | `GET /api/growth/engines/<slug>/attempts/<attempt_id>` | | `{ ok: true, attempt }`, or 404 |
 | `GET /api/growth/engines/<slug>/decisions[?since=<time>]` | | `{ ok, decisions: [{ proposal_id, decision: 'approved'\|'declined'\|'done', decided_at, payload_sha256, stage, amended[, exact_payload, amount_usd, amended_sha256][, carried_out][, reason_code, reason_text] }] }` |
 | `POST /api/growth/engines/<slug>/research` | `{ requests: [...] }` (1.6.0, Mindmake; 1.13.0, Legibility, its own caps) | `{ ok, research: [{ request_id, kind, subject_ref, query, why, status, evidence, answer, requested_at, answered_at }] }` |
 | `GET /api/growth/engines/<slug>/research[/<request_id>]` | | `{ ok, research }`, or 404 |
+| `GET /api/growth/engines/<slug>/prior-outreach?contacts=<id>,<id>` | 1 to 50 contact ids (1.11.0, growth-legibility only; 404 `prior_outreach_not_supported` for any other engine) | `{ ok, schema_version, read_at, prior_outreach }`, each id's Mindmake record (below, "Prior Mindmake outreach") |
+
+The context, outcomes, prepare-action and execute routes are above, under 1.3.0.
+
+**Features.** `capabilities.features` names 22 flags (`api/_growthEngines.ts`). Each says whether this deployment serves that part to this engine; a false flag means do not use it.
+
+| Flag | Since | Which engine gets it |
+|---|---|---|
+| `directive`, `reports`, `attempts`, `decisions`, `synthetic` | 1.0.0 | every engine |
+| `stages`, `amendments` | 1.1.0 | every engine |
+| `subjects` | 1.2.0 | every engine |
+| `context`, `outcomes`, `exact_actions` | 1.3.0 | Mindmake |
+| `rows` | 1.6.0 | Mindmake |
+| `decline_reasons`, `carried_out` | 1.6.0 | every engine |
+| `research` | 1.6.0 (Mindmake), 1.13.0 (Legibility) | Mindmake and Legibility, each under its own caps |
+| `meetings`, `show_notes`, `facts` | 1.10.0 | Mindmake |
+| `withdrawn` | 1.10.0 | every engine |
+| `prior_outreach` | 1.11.0 | Legibility |
+| `draft_press` | 1.12.0 | Legibility |
+| `icp` | 1.13.0 | Legibility |
 
 **Errors.**
 - **400:** the report or attempt is malformed. The body names the field.
@@ -290,18 +311,20 @@ A read that fails leaves `icp` out of the directive: unknown, never a missing bu
 
 **The site** (`web_analytics`, 1.10.0's block). legibility.io's source and landing rows (`engineReads` in `src/lib/webProperties.ts`), as mindmake.co's reach growth-mindmake: no post is tagged, so no per-post part and `events` is null. 1.13.0 adds two parts to the block, for every engine that has one, wherever the store reads them:
 
-- `daily`: the site's headline totals a day from `growth_metrics` (`<prefix>_sessions_1d`, `_users_1d`, `_pageviews_1d`, `_key_events_1d`), oldest first, for the 28 days through the newest day on file: `{ date, sessions, users, pageviews, key_events }`. A figure not on file that day is null, never zero; null as a whole when it could not be read.
-- `health`: the newest daily check of the site (`web_property_insights`): `{ as_of, verdict, flags, line }`, where `verdict` is `ok`, `quiet`, `provisional`, `never_received`, `tag_missing`, `wrong_stream`, `api_disabled` or `no_access`, and `line` says it and each flag in plain words. Null when it could not be read or has never run.
+- `daily`: the site's headline totals a day from `growth_metrics` (`<prefix>_sessions_1d`, `_users_1d`, `_pageviews_1d`, `_key_events_1d`): `{ date, sessions, users, pageviews, key_events }`, only the days with at least one figure, oldest first, up to 28 days through the newest day on file (`webDaily` in `src/lib/growthEngines.ts`). A day missing from the list is unknown, and so is a figure that is null on a day that is there; never zero. `[]` when nothing is on file; null as a whole when it could not be read.
+- `health`: the newest daily check of the site (`web_property_insights`): `{ as_of, verdict, flags, line }`, where `verdict` is `ok`, `quiet`, `provisional`, `never_received`, `tag_missing`, `wrong_stream`, `api_disabled` or `no_access`; `flags` holds any of `consent_gated`, `thresholded`, `admin_unverified`, `undercounting`, `host_filter_off` and `read_failed`; and `line` says the verdict and each flag in plain words. Null when it could not be read or has never run.
+
+The site is chosen by the engine's product (`engineSiteFor`), so AEO-Engine, whose product is `mindmake`, gets mindmake.co's block too, `daily` and `health` included. That follows from the code; no test covers it.
 
 Read it to say what the site did, never to invent a figure: a day or a part with no reading is unknown.
 
 **The research desk.** `POST .../research` (1.6.0, above) is open to growth-legibility under its own caps, counted apart from Mindmake's: 10 `search` and 5 `question` a day, about $0.03 at the measured unit costs. No LinkedIn kind: `person_route` files a person as a Mindmake contact, and the Legibility engine has no ruling to file anyone. Any other kind is 400. `GET .../capabilities` carries `research: { kinds: ['search', 'question'], per_day: { search: 10, question: 5 } }`, and `GET .../research[/<request_id>]` reads its own answers back (it has no context read).
 
-**Its objectives.** The registry now lists `weekly_builders` (builders making trusted reads this week, the North Star number; 300, a week) and `conversations_held` (4 a fortnight, the Wave 1 bar), beside `activated`, `returning` and `net` (migration `20261112150000_legibility_number_objectives.sql`). Report them as objectives once the directive's `objectives` names them: `weekly_builders` measured or null with its reason, `conversations_held` null with its reason until the calendar read exists. Each morning Control Center reads `weekly_builders` from your latest live report (`READERS` in `api/_northStarRefresh.ts`) to refresh the state line in your `NOW.md`: unknown when it is null, not measured, synthetic, more than 36 hours old or not this ISO week's.
+**Its objectives.** The registry now lists `weekly_builders` (builders making trusted reads this week, the North Star number; 300, a week) and `conversations_held` (4 a fortnight, the Wave 1 bar), beside `activated`, `returning` and `net` (migration `20261112150000_legibility_number_objectives.sql`, applied to production on 2026-10-27 and read back: the row's objectives are `activated`, `returning`, `net`, `weekly_builders` and `conversations_held`). Report them as objectives once the directive's `objectives` names them: `weekly_builders` measured or null with its reason, `conversations_held` null with its reason until the calendar read exists. Each morning Control Center reads `weekly_builders` from your latest live report (`READERS` in `api/_northStarRefresh.ts`) to refresh the state line in your `NOW.md`: unknown when it is null, not measured, synthetic, more than 36 hours old or not this ISO week's.
 
 ### Prior Mindmake outreach (1.11.0)
 
-Ruling (Krish, 2026-10-27): "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product." Control Center is the one source of whether someone was reached for Mindmake (`api/_priorOutreach.ts`), and growth-legibility copies its answer unchanged into `candidate.contact.prior_mindmake`.
+Ruling (Krish, 2026-10-27): "We need to make sure that if I've already reached out to this person for MindMake, legibility is positioned as a partner product." The approved wording that came after it says Legibility is "one of the products we build at Mindmake", never a partner (Ruling, Krish, 2026-10-27; growth-legibility `docs/OUTREACH-TEMPLATE.md`, and F33 in its `docs/FAILURES.md`), which is why the word "partner" is held below. Control Center is the one source of whether someone was reached for Mindmake (`api/_priorOutreach.ts`), and growth-legibility copies its answer unchanged into `candidate.contact.prior_mindmake`.
 
 `GET /api/growth/engines/legibility/prior-outreach?contacts=<id>,<id>` takes 1 to 50 distinct Control Center contact ids, lowercase uuids, comma separated. It answers growth-legibility only: any other engine gets 404 `prior_outreach_not_supported`, and `features.prior_outreach` is true for Legibility alone. Anything else in `contacts` (a name, an uppercase id, a repeat, 51 ids, none) is 400 and reads nothing. It sits behind the same bearer and rate limit as every route here.
 
@@ -311,7 +334,8 @@ It returns `{ ok, schema_version, read_at, prior_outreach }`, where `prior_outre
 |---|---|---|---|---|
 | unknown | null | null | null | null |
 | none | null | null | null | the person's record |
-| open, client | null | null or a UTC time | null or a UTC time | the person's record |
+| open | null | null, always | null or a UTC time | the person's record |
+| client | null | null or a UTC time (when a pilot was booked or paid) | null or a UTC time | the person's record |
 | drafted | null | UTC | UTC, at or after state_at | the person's record |
 | sent, replied | krish or other | UTC | UTC, at or after state_at | the person's record |
 | met | krish | UTC | UTC, at or after state_at | the person's record |
@@ -322,14 +346,14 @@ It returns `{ ok, schema_version, read_at, prior_outreach }`, where `prior_outre
 
 - **Advisory** (`pilot_deals`). The stage comes from the stamps, never from the current state: `call_taken_at` is met, `replied_at` or `call_booked_at` replied, `sent_at` sent, `drafted_at` drafted, all by Krish, for the buyer, intro and collaborator ask kinds. A deal that is listed, drafted, replied, call booked or call taken now is open, whatever its kind. A deal booked or paid for a pilot is a client.
 - **growth-mindmake's proposals.** One carried out as a draft or a message is drafted, outside the visibility and events rows and Jonny's box. One pending and live that names the person as its recipient or its subject is open. Declined, expired and form submissions do not count.
-- **growth-mindmake's executor** (`growth_engine_actions`). Verified is sent by Krish; claimed, submitted or unknown is open.
+- **growth-mindmake's executor** (`growth_engine_actions`). Verified is sent by Krish; claimed, submitted or unknown is open. A verified send does not count when the Advisory deal it came from is not a buyer, intro or collaborator ask (a podcast pitch, a guest invite, press, or reconnect).
 - **People drafts** (`people_drafts`, by `contact_id`). The advisory job counts (Jonny's box is `other`); the job hunt never does. A draft in a colleague's box not yet sent, within 90 days, or booked and not recorded, is open. A show recorded is never met.
 
 **For Krish to confirm:** whether the `reconnect` ask kind counts as Mindmake outreach. Until he says, it does not (it is open while open).
 
 **The order** is unknown, then client, then open, then the furthest of met, replied, sent and drafted, then none. Krish's own rows decide the stage when he has any; otherwise a colleague's. `last_touch_at` is the latest counted touch.
 
-**Unknown is not none.** Every id is unknown when any source cannot be read, or comes back incomplete; an id is unknown on its own when it has no contact row (missing, or merged away into another) or carries a date Control Center cannot read or one after `read_at`. `none` means every source was read whole and nothing counted was found. Read again at the time you prepare: the record changes as he works.
+**Unknown is not none.** Every id is unknown when any source cannot be read, or comes back incomplete; an id is unknown on its own when it has no contact row (missing, or merged away into another), carries a date Control Center cannot read or one after `read_at`, has an Advisory deal whose ask kind Control Center does not know, or has a People draft whose job it does not know. `none` means every source was read whole and nothing counted was found. Read again at the time you prepare: the record changes as he works.
 
 **On his list.** Whatever route a Legibility send takes to his list, Control Center reads the record there too, and holds it off the list, counted and named, when: no one person is linked to it (`prior_outreach_unlinked`: name them in `subject_ref` as `contact:<id>`, or, at 1.0.0, put their record link in the evidence); the record is unknown (`mindmake_history_unknown`), open (`mindmake_thread_open`) or a client (`mindmake_client`); the last Mindmake touch is under 14 days old (`mindmake_touch_too_recent`); or the words contradict the record: someone reached for Mindmake whose words do not name Mindmake (`mindmake_not_named`), or someone never reached whose words do (`mindmake_named_without_touch`); someone reached whose words name Mindmake without the approved same-company line, that Legibility is one of the products we build at Mindmake (`mindmake_framing_missing`); or words that use "partner" in any form (`partner_wording`). One it allows shows the record in words on its evidence line.
 
@@ -345,7 +369,7 @@ Ruling (Krish, 2026-10-27): "Legibility drafts land in Krish's mindmake.co mailb
 ```
 
 - `prior_mindmake` is the basis: the record you wrote the words from, copied unchanged from `candidate.contact.prior_mindmake`. `state`, `state_at` and `last_touch_at` are required (a time or null); `by` and `record_url` may come too; nothing else. Only an email carries it.
-- `mailbox` is `krish` or null. Both are his own box, his mindmake.co mailbox (its address is left out of this copy); `jonny` is refused at the press.
+- `mailbox` is `krish` or null. Both mean his own box: the mailbox `GOOGLE_IMPERSONATE_SUBJECT` names, his mindmake.co mailbox (its address is left out of this copy); `jonny` is refused at the press.
 - Name the same person in `subject_ref` (`contact:<id>`) as in `recipient_contact_id`, and list the files the words were written from in `source_revision` (the template, for one).
 - At 1.12.0 a send's version 2 action is read whole at the report, so a malformed one is refused there, not at his press; an older report may not carry `prior_mindmake`. Plain words stay plain words: Clear approves them as before, and he copies them.
 
@@ -357,17 +381,29 @@ Ruling (Krish, 2026-10-27): "Legibility drafts land in Krish's mindmake.co mailb
 - the record, read again now by the one reader, is unknown (`mindmake_history_unknown`, any failed read included), open (`mindmake_thread_open`) or a client (`mindmake_client`);
 - it differs from the basis in state, or shows a Mindmake touch later than the basis's `last_touch_at` (`prior_outreach_changed`): write it again from the new record;
 - the last Mindmake touch is under 14 days old (`mindmake_touch_too_recent`), or the words contradict the record, as on his list (`mindmake_not_named`, `mindmake_framing_missing`, `mindmake_named_without_touch`, `partner_wording`);
-- Gmail does not confirm the token reaches his own box (`mailbox_unverified`, checked by `verifyMailbox` before every draft).
+- Gmail does not confirm the token reaches one of his own addresses (`mailbox_unverified`, checked by `verifyMailbox` before every draft; it accepts the address `GOOGLE_IMPERSONATE_SUBJECT` names or any in `KRISH_PRIVATE_ADDRESSES`).
 
 Otherwise the exact subject and words go into one Gmail draft in his box, to the address on record, and the proposal is recorded as carried out as a draft (`carried_out: draft` in your decisions). Never send it: he presses Send himself, and the executor refuses anything he carried out. A held proposal stays pending; the next run reads the record again and writes it anew.
 
+**What the press answers** (`pressLegibility` in `api/_rowPress.ts`, through `POST /api/act`):
+
+| Outcome | Status | Meaning |
+|---|---|---|
+| drafted | 200 | The draft is in his box, recorded as carried out, and the app opens it |
+| a hold above | 409 | Nothing drafted; the error names the reason and its code |
+| `mailbox_unverified` | 502 | Nothing drafted: Gmail did not confirm the box |
+| `moved_on` | 409 | The proposal is no longer pending, or it has expired |
+| `contacts_unavailable` | 500 | The people could not be read, so nothing was checked or drafted |
+| the draft could not be made | 502 | Gmail did not make the draft; nothing was recorded |
+| `drafted_not_recorded` | the status of the failed record write | The draft is in his box but the carried-out record failed. The press returns the draft's link; the list route passes on only the status and the code |
+
 ## The report
 
-The schema is [engine-report.schema.json](engine-report.schema.json). Every field is listed below. A field the protocol does not know is refused, never dropped.
+The schema is [engine-report.schema.json](engine-report.schema.json). It and the directive's schema keep the `$id` they were first published under (`...-1.0.0.json`): it names the schema, not the version, which is in each title. Every field is listed below. A field the protocol does not know is refused, never dropped.
 
 | Field | Meaning |
 |---|---|
-| `schema_version` | `"1.2.0"`, `"1.1.0"` without its subject, or `"1.0.0"` without the 1.1.0 fields either |
+| `schema_version` | Any of `capabilities.schema_versions` (1.0.0 to 1.13.0), the version you speak. A field newer than the version you send is refused |
 | `engine_id`, `product_slug` | Must equal the registry row for the token |
 | `run_id` | Stable id for this run. It is also the `Idempotency-Key` |
 | `mode` | `live` or `synthetic`. Synthetic reports are stored and read back, but never touch live progress, the directive, the list or `workflow_runs`. A live report is refused until Krish switches the engine on |
@@ -376,7 +412,7 @@ The schema is [engine-report.schema.json](engine-report.schema.json). Every fiel
 | `status` | `ready`, `held` (it ran and held its work, with reasons) or `degraded` (some sources missing). A business hold is not an error |
 | `objectives[]` | One reading per objective: `{ key, value, unit, window_start, window_end, timezone, availability: measured\|missing\|stale, reason }`. Unknown is `value: null` with a reason, never zero. A measured zero is `0` |
 | `activity[]` | What it did: `{ line, evidence_url }`, in plain words |
-| `proposals[]` | At most 10, each shaped as below |
+| `proposals[]` | At most 10, or 40 from 1.6.0, each shaped as below |
 | `events[]` | What closed: `{ event, proposal_id, at, evidence_url }`. An event closes a proposal only when it names that proposal and the event in its `close_condition`, and closes a walled proposal only after Krish approved it |
 | `holds[]` | `{ reason, detail }` for anything it held |
 | `withdrawn[]` | 1.10.0, optional (capabilities say `features.withdrawn: true`): your own pending proposals you take back, `{ proposal_id, reason }`, at most 40. Each one Krish has not decided becomes `expired` with your reason kept (`done_evidence: { kind: 'withdrawn', reason, run_id }`) and leaves his list; one he decided, or another engine's, is left as it is. A proposal may not be both proposed and withdrawn in one report, and a reason is words, never an address. Use it when the record a proposal rested on is gone, so it could never run |
@@ -499,6 +535,7 @@ The states are `inactive`, `never_reported`, `healthy`, `held`, `degraded`, `fai
 | A walled proposal | Home's one list, source `engine`, one per engine at a time and never beside Control Center's own copy of the same subject. Clear approves exactly that payload, Purge declines, Bump keeps it off until his next day (`api/_verbs.ts`, `actOnEngine`) |
 | An unwalled proposal | Growth > Engines, where he can pick it as tomorrow's push |
 | A row proposal (1.6.0) | His home screen widget, in the engine's rank within its row, and his one list like any walled proposal. On either, the press carries it out (`api/_rowPress.ts`): a Gmail draft in his box, or a message app opened with the words typed, recorded as `carried_out`. His No is recorded with its `reason_code` |
+| A growth-legibility send written as a version 2 email action (1.12.0) | Home's one list, once the person's Mindmake record allows it. Clear drafts it into his own box (`pressLegibility` in `api/_rowPress.ts`), recorded as `carried_out: draft`; otherwise it is held with a code, and nothing is drafted |
 | A meeting he held (1.10.0) | Home's one list, source `meeting`: "How was your meeting with <name>?", one at a time. Clear says it was good, Purge says it was not, Bump keeps it off until his next day (`api/_verbs.ts`, `actOnMeeting`). His answer, and where it came from, reach you in the context's `meetings` |
 | Objectives, activity, holds | Growth > Engines |
 | Media and copy to review | Growth > Packs, until packs join this protocol |

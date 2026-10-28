@@ -36,7 +36,7 @@ Lifecycle: building. The detail is in `README.md`.
 
 - 2026-10-27 **The app shipped its contract, A1 to A8** (legibility PRs 45 to 51), live in production apart from A3's Founding 200 page, deployed but paused until the Turnstile keys exist. A8's trial is granted by hand only, 5,000 trusted reads by default, no Stripe, `FOUNDING_AUTO_TRIAL` off. Status and what waits on Krish: [handoff/APP-PHASE-1.md](docs/handoff/APP-PHASE-1.md), section 12.
 
-- 2026-10-27 **Control Center's side.** The Draft press (protocol 1.12.0, control-center PR 585) is merged and deployed: a prepared invitation with a contact id and a Mindmake record travels as a version 2 email action, and Krish's Clear drafts it into his own Gmail; he sends. The objectives migration `20261112150000` is applied to production. Protocol 1.13.0 (the buyer, legibility.io's readings, the research desk) is control-center PR 588, merging today; the engine side is built (PR 15), so the next run after it deploys clears `icp_not_current_approved` with no change here ([contracts/README.md](contracts/README.md)).
+- 2026-10-27 **Control Center's side.** The Draft press (protocol 1.12.0, control-center PR 585) is merged and deployed: a prepared invitation with a contact id and a Mindmake record travels as a version 2 email action, and Krish's Clear drafts it into his own Gmail; he sends. The objectives migration `20261112150000` is applied to production. Protocol 1.13.0 (the buyer, legibility.io's readings, the research desk) is control-center PR 588, merged as `20b8b51` and deployed 28 Oct; with the engine side (PR 15), the run of 28 Oct (40607512910) read buyer v2 (`icp.state: approved`) and `icp_not_current_approved` cleared ([contracts/README.md](contracts/README.md)).
 
 - 2026-10-27 **The engine reads each person's Mindmake record from Control Center** (control-center PR 581, protocol 1.11.0), by contact id, unknown on any failure. No producer fills the contact id yet.
 
@@ -56,7 +56,6 @@ Lifecycle: building. The detail is in `README.md`.
 - **Waiting on Krish:**
   - remove `CONTROL_CENTER_ENGINE_TOKEN` from this cloud environment's variables (the environment menu in the session's title bar, then Edit): an interactive session held it on 27 Oct, against the rule that only the runner does (ENGINE-ARCHITECTURE.md, decision 18);
   - add a dedicated `LEGIBILITY_EXPORT_TOKEN` Actions secret and change the app's `GROWTH_EXPORT_TOKEN_SHA256` to its hash in the same step, so the engine's Control Center bearer stops opening the export (FAILURES F44);
-  - control-center PR 588 (1.13.0) is merging today; if it is still open, merge it once green, and the next run clears `icp_not_current_approved`;
   - create `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` so A3's Founding 200 page can go live;
   - create his MCP registry publishing key, publish `server.json` (`io.legibility/mcp` 0.4.0) and submit the directory listings by 5 Nov (A6 and A7);
   - mark `generate_lead`, `sign_up` and `test_run` as key events in Google Analytics admin (A2);

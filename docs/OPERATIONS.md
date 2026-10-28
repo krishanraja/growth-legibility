@@ -74,15 +74,14 @@ Every value is read at run time and never printed or written. `.env.example` lis
 
 With neither export variable set, the run is unchanged and its summary names `attribution_export_missing`; with one set alone it holds as `attribution_export_incomplete`.
 
-### What a dispatch measures today (27 October 2026)
+### What a dispatch measures today (28 October 2026)
 
 This paragraph is the one home for what a live run reports; other documents link here. Re-date it when a run changes it.
 
-The last live run, Actions run 40595794935 on 27 October, was the first to read the app's export (A4, legibility PR 47; `export.state: read`). Its report is `degraded`, not `held`: `weekly_builders` was measured and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. What the report still lacks, and what clears each:
+The last live run, Actions run 40607512910 on 28 October, read the app's export (A4, legibility PR 47; `export.state: read`) and, for the first time, Legibility's buyer from Control Center's 1.13.0 directive (`icp.state: approved`; control-center PR 588). Its report is `degraded`, not `held`: `weekly_builders` was measured and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. What the report still lacks, and what clears each:
 
 | In the report | Why | What clears it |
 |---|---|---|
-| Hold `icp_not_current_approved` (summary `icp.state: not_served`) | Production Control Center does not serve protocol 1.13.0 yet, so the directive carries no buyer | Control-center PR 588 (1.13.0), merging 27 Oct. The next run after it deploys reads buyer v2 and clears this hold, with no change here |
 | Hold `candidate_coverage_unknown` | The export owns no candidates: `composeSnapshot` leaves them empty with coverage false, and prepare holds every prospect while it is false | A candidate source: Phase 2's research step in the runner, or a `--snapshot` file prepared by hand (Wave 0) |
 | Hold `opportunity_coverage_unknown` | The export owns no distribution inventory | An opportunity source (directories and partners, Phase 5) |
 | Objectives `activated`, `returning`, `net` `missing` | The campaign clock in `config/policy.json` is not activated, so there is no campaign window to count in | Krish's ruling on the campaign clock (GET-GOING step 4) |

@@ -1,0 +1,6 @@
+{
+  "state": "held",
+  "since": "2026-10-29",
+  "ruling": "Ruling (Krish, 2026-10-29): Not ready means a held activation state: no wake, no asks on his list, no growth council move, and the bearer stays valid.",
+  "release": "Only Krish releases the engine: set state to active here and release it on Growth > Engines in Control Center. Anything but active reads as held."
+}

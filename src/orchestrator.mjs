@@ -81,7 +81,7 @@ export function directiveActivity(directive) {
   return { line: clip(`Pulled directive ${directive.directive_id} for ${directive.for_date}, with ${next}. Worked inside the walls: nothing was sent, posted, spent or deleted.`, 500), evidence_url: null };
 }
 
-function seal(body) { return validateEngineReport({ ...body, payload_sha256: sha256(body) }); }
+export function seal(body) { return validateEngineReport({ ...body, payload_sha256: sha256(body) }); }
 
 function constraintProposal(rec) {
   const strategy = rec.code === 'activate_campaign';

@@ -8,6 +8,8 @@ import { Outbox } from './outbox.mjs';
 import { APPROVED_ORIGIN, controlCenter, deliver } from './transport.mjs';
 import { operate } from './operate.mjs';
 import { exportFromEnv } from './lib/export-client.mjs';
+import { dropPriorMindmake } from './lib/prior-outreach.mjs';
+import { heldReport, readActivation } from './lib/hold.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)),'..');
 function args(argv) {
@@ -68,7 +70,7 @@ async function main() {
   if(corpusSha!==c.register.sha256) throw new Error('corpus_integrity_failed');
   const corpusSources=verifySources(c.register,createHash);
   if(opts.command==='doctor') {
-    console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',corpus_sources:corpusSources,policy:'pass',source_review_due:policy.source_review_due,
+    console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',corpus_sources:corpusSources,policy:'pass',source_review_due:policy.source_review_due,activation:readActivation(join(root,'config','activation.json')),
       campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0, or 1.12.0 when it serves the Draft press',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY),legibility_export_url:Boolean(process.env.LEGIBILITY_EXPORT_URL),legibility_export_token:Boolean(process.env.LEGIBILITY_EXPORT_TOKEN)}},null,2));
     return;
   }
@@ -89,10 +91,15 @@ async function main() {
     if(opts.command==='run') {
       if(!opts.snapshot) throw new Error('snapshot_required');
       const at=opts.at??new Date().toISOString();
-      const report=buildReport(loadJson(resolve(opts.snapshot)),policy,at,corpusSha);
+      const activation=readActivation(join(root,'config','activation.json'));
+      // Held, a snapshot's own Mindmake record is dropped as operate drops it, so each person holds as unknown.
+      const snapshot=activation.state==='active'?loadJson(resolve(opts.snapshot)):dropPriorMindmake(loadJson(resolve(opts.snapshot))).snapshot;
+      const report=buildReport(snapshot,policy,at,corpusSha);
       writeJson(join(output,`${report.run_id}.json`),report);
       // The protocol envelope is what the outbox holds and deliver sends; its run_id names the day, command and observation.
-      const envelope=engineReport(report,{runId:protocolRunId('run',report.observed_at,report.run_id.slice(3,19))});
+      let envelope=engineReport(report,{runId:protocolRunId('run',report.observed_at,report.run_id.slice(3,19))});
+      // Krish's own hold (Ruling, Krish, 2026-10-29): held, the envelope the outbox keeps carries no proposal, only the one hold.
+      if(activation.state!=='active') envelope=heldReport(envelope,{by:['krish_local'],policy});
       db.put(envelope);
       writeJson(join(output,`${envelope.run_id.replaceAll(':','_')}.envelope.json`),envelope);
       const summary=publicSummary(report);
@@ -101,6 +108,8 @@ async function main() {
     } else if(opts.command==='operate') {
       const {summary,privateReport}=await operate({client,outbox:db,policy,corpusSha,
         loadSnapshot:opts.snapshot?()=>loadJson(resolve(opts.snapshot)):null,invocation:plan.invocation,revision:plan.revision,directiveDate:plan.date,
+        // Krish's own hold (Ruling, Krish, 2026-10-29): a missing or unreadable file reads as held.
+        activation:readActivation(join(root,'config','activation.json')),
         // The app export is read only when both variables are set; neither set holds exactly as before (attribution_export_missing).
         appExport:opts.snapshot?{state:'absent'}:exportFromEnv(process.env)});
       if(privateReport) writeJson(join(output,`${privateReport.run_id}.json`),privateReport);
@@ -108,7 +117,8 @@ async function main() {
       if(summary.status!=='succeeded'||summary.journal!=='closed') process.exitCode=1;
     } else if(opts.command==='deliver') {
       if(!opts['run-id']) throw new Error('run_id_required');
-      console.log(JSON.stringify(await deliver(db,opts['run-id'],{client}),null,2));
+      // Held by the local flag or by Control Center, a row with proposals is refused before anything is posted.
+      console.log(JSON.stringify(await deliver(db,opts['run-id'],{client,activation:readActivation(join(root,'config','activation.json'))}),null,2));
     } else {
       const row=db.get(opts['run-id']??'');
       if(!row) throw new Error('outbox_report_missing');

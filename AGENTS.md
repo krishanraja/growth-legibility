@@ -34,6 +34,7 @@ This is the only exception to the rules below that say Krish acts by hand, and i
 
 **Not built yet** (GET-GOING Step 1, Phase 2): this repository has no go-live step, and nothing in it sends, posts or spends. Today the go-live channel is Control Center's Draft press (protocol 1.12.0): his Clear on an approved invitation places its exact words as a draft in his own Gmail, and Krish sends it himself. This engine never sends (Ruling, Krish, 2026-10-26: "Draft, don't send"; `docs/ENGINE-ARCHITECTURE.md`, section 8).
 
+**Held** (Ruling, Krish, 2026-10-29): Not ready means a held activation state: no wake, no asks on his list, no growth council move, and the bearer stays valid. While `config/activation.json` or Control Center holds this engine, a run measures and reports one `engine_held` hold naming what readiness needs, and proposes nothing (`src/lib/hold.mjs`; docs/OPERATIONS.md). Only Krish releases it.
 
 Read docs/BRIEF.md, docs/SOURCE-REGISTER.md, docs/CONTROL-CENTER-BRIEF.md and docs/control-center/ENGINE-PROTOCOL.md before changes (docs/CONTROL-CENTER-HANDOFF.md is superseded and kept for history).
 Read docs/COPY-DOCTRINE.md before writing or reviewing any draft, distribution asset or offer proposal.

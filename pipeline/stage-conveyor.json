@@ -24,7 +24,7 @@
       "completion":{"source":"independent_rederivation","evidence":"tests/prepare.test.mjs covers suppression, ICP, evidence and exact draft binding"}
     },
     {
-      "id":"plan","owner":"growth-orchestrator","owned_paths":["src/orchestrator.mjs","src/cli.mjs","src/lib/draft-press.mjs"],
+      "id":"plan","owner":"growth-orchestrator","owned_paths":["src/orchestrator.mjs","src/cli.mjs","src/lib/draft-press.mjs","src/lib/hold.mjs"],
       "inputs":["observed_snapshot","policy","run_clock","corpus_digest","scorecard","prepared_work","directive"],"outputs":["private_report","presentation_summary","engine_report"],"consumed_guards":["wire","outbox"],"side_effects":["private immutable report and local transport journal writes"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"runtime outbox row keyed by source, policy, clock and corpus seal","recovery_entrypoint":"plan-recovery"},
       "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs validates final private report digest, deduplicated scorecard and privacy projection; tests/protocol.test.mjs validates the protocol envelope against engine-report.schema.json and the worked-example digest; tests/draft-press.test.mjs shapes each approved invitation as a version 2 email action only when Control Center serves the Draft press, and sends 1.0.0 exactly as before otherwise"}

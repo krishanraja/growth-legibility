@@ -159,7 +159,13 @@ export async function deliver(outbox, runId, options = {}) {
   if (!row) throw fault('outbox_report_missing');
   const report = validateEngineReport(JSON.parse(row.payload));
   if (report.mode !== 'live' && !client.local) throw fault('synthetic_delivery_prohibited');
-  await client.capabilities({ version:report.schema_version });
+  // Held (Ruling, Krish, 2026-10-29): no ask reaches his list while the engine is held, by this repository's own flag
+  // (options.activation, readActivation's answer; the CLI always passes it) or by Control Center's activation state. A row
+  // with proposals is refused before anything is posted; a held report, which carries none, still goes.
+  const localHeld = options.activation !== undefined && options.activation?.state !== 'active';
+  if (localHeld && report.proposals.length) throw fault('engine_held_proposals_refused');
+  const cap = await client.capabilities({ version:report.schema_version });
+  if (cap?.activation === 'held' && report.proposals.length) throw fault('engine_held_proposals_refused');
   const ours = (receipt) => receipt?.payload_sha256 === report.payload_sha256;
   // Reconcile before any POST, especially after an ambiguous response or a restart.
   const existing = await client.readReport(runId);

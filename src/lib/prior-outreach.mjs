@@ -29,13 +29,23 @@ export function acceptableRecord(id, record, before) {
 const contactOf = c => c && typeof c === 'object' && c.contact && typeof c.contact === 'object' && !Array.isArray(c.contact) ? c.contact : null;
 
 /**
+ * Drop every contact.prior_mindmake the snapshot brought with it: the record comes only from Control Center's reader, so
+ * one already in a snapshot is never trusted. Returns a new snapshot and its contacts; the input is not changed. A held
+ * run calls this alone, reads no record, and so holds each person as mindmake_history_unknown exactly as a failed read.
+ */
+export function dropPriorMindmake(raw) {
+  const snapshot = structuredClone(raw);
+  const contacts = (Array.isArray(snapshot?.candidates) ? snapshot.candidates : []).map(contactOf).filter(Boolean);
+  for (const contact of contacts) delete contact.prior_mindmake;
+  return { snapshot, contacts };
+}
+
+/**
  * Read the Mindmake record for every candidate with a contact id and copy it into contact.prior_mindmake.
  * Returns a new snapshot (the input is not changed) and a summary of counts and codes.
  */
 export async function readPriorMindmake(client, raw) {
-  const snapshot = structuredClone(raw);
-  const contacts = (Array.isArray(snapshot?.candidates) ? snapshot.candidates : []).map(contactOf).filter(Boolean);
-  for (const contact of contacts) delete contact.prior_mindmake;
+  const { snapshot, contacts } = dropPriorMindmake(raw);
   const linked = contacts.filter(c => isContactId(c.contact_id));
   const ids = [...new Set(linked.map(c => c.contact_id))].sort();
   const summary = { state:'not_needed', reason:null, candidates:contacts.length, unlinked:contacts.length - linked.length, contacts:ids.length, copied:0, refused:0, unread:ids.length };

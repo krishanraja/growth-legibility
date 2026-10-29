@@ -8,7 +8,8 @@ import { Outbox } from './outbox.mjs';
 import { APPROVED_ORIGIN, controlCenter, deliver } from './transport.mjs';
 import { operate } from './operate.mjs';
 import { exportFromEnv } from './lib/export-client.mjs';
-import { readActivation } from './lib/hold.mjs';
+import { dropPriorMindmake } from './lib/prior-outreach.mjs';
+import { heldReport, readActivation } from './lib/hold.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)),'..');
 function args(argv) {
@@ -90,10 +91,15 @@ async function main() {
     if(opts.command==='run') {
       if(!opts.snapshot) throw new Error('snapshot_required');
       const at=opts.at??new Date().toISOString();
-      const report=buildReport(loadJson(resolve(opts.snapshot)),policy,at,corpusSha);
+      const activation=readActivation(join(root,'config','activation.json'));
+      // Held, a snapshot's own Mindmake record is dropped as operate drops it, so each person holds as unknown.
+      const snapshot=activation.state==='active'?loadJson(resolve(opts.snapshot)):dropPriorMindmake(loadJson(resolve(opts.snapshot))).snapshot;
+      const report=buildReport(snapshot,policy,at,corpusSha);
       writeJson(join(output,`${report.run_id}.json`),report);
       // The protocol envelope is what the outbox holds and deliver sends; its run_id names the day, command and observation.
-      const envelope=engineReport(report,{runId:protocolRunId('run',report.observed_at,report.run_id.slice(3,19))});
+      let envelope=engineReport(report,{runId:protocolRunId('run',report.observed_at,report.run_id.slice(3,19))});
+      // Krish's own hold (Ruling, Krish, 2026-10-29): held, the envelope the outbox keeps carries no proposal, only the one hold.
+      if(activation.state!=='active') envelope=heldReport(envelope,{by:['krish_local'],policy});
       db.put(envelope);
       writeJson(join(output,`${envelope.run_id.replaceAll(':','_')}.envelope.json`),envelope);
       const summary=publicSummary(report);
@@ -111,7 +117,8 @@ async function main() {
       if(summary.status!=='succeeded'||summary.journal!=='closed') process.exitCode=1;
     } else if(opts.command==='deliver') {
       if(!opts['run-id']) throw new Error('run_id_required');
-      console.log(JSON.stringify(await deliver(db,opts['run-id'],{client}),null,2));
+      // Held by the local flag or by Control Center, a row with proposals is refused before anything is posted.
+      console.log(JSON.stringify(await deliver(db,opts['run-id'],{client,activation:readActivation(join(root,'config','activation.json'))}),null,2));
     } else {
       const row=db.get(opts['run-id']??'');
       if(!row) throw new Error('outbox_report_missing');

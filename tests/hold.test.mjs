@@ -3,17 +3,20 @@
 // naming what readiness needs. Offline: every receiver is the loopback stand-in (tests/standin.mjs). Synthetic only.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { HOLD_REASON, heldBy, heldReport, readActivation, readinessNeeds } from '../src/lib/hold.mjs';
 import { buildReport, engineReport, protocolRunId } from '../src/orchestrator.mjs';
 import { validateEngineReport } from '../src/guards/wire.mjs';
 import { Outbox } from '../src/outbox.mjs';
-import { controlCenter } from '../src/transport.mjs';
+import { controlCenter, deliver } from '../src/transport.mjs';
 import { operate } from '../src/operate.mjs';
 import { standIn, schemaErrors, REPORT_SCHEMA, DIRECTIVE } from './standin.mjs';
 
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const json = path => JSON.parse(readFileSync(new URL(path, import.meta.url)));
 const policy = () => json('../config/policy.json');
 const AT = '2026-10-18T12:00:00Z';
@@ -112,4 +115,59 @@ test('held with no snapshot, the one hold names the missing source; released in 
   assert.equal(released.summary.activation.state, 'active');
   assert.ok(released.stored.proposals.length > 0);
   assert.ok(!released.stored.holds.some(h => h.reason === HOLD_REASON));
+});
+
+test('held, a Mindmake record the snapshot brought is never trusted: the hold names it unknown and prepares no more than an active run', async t => {
+  const snap = json('../fixtures/snapshot.json');
+  assert.ok(snap.candidates.some(c => c.contact?.prior_mindmake), 'the fixture carries a record of its own');
+  const held = await run(t, await standIn(t, { priorOutreach:{} }), { activation:HELD });
+  const active = await run(t, await standIn(t, { priorOutreach:{} }), { activation:ACTIVE });
+  assert.ok(active.stored.holds.some(h => h.reason === 'mindmake_history_unknown'), 'active, an empty answer holds as unknown');
+  assert.match(held.stored.holds[0].detail, /mindmake_history_unknown/, 'held, the one hold names it among what readiness needs');
+  for (const reason of new Set(active.stored.holds.map(h => h.reason))) assert.ok(held.stored.holds[0].detail.includes(reason), reason);
+  assert.ok(held.privateReport.actions.length <= active.privateReport.actions.length, 'held prepares nothing an active run would not');
+});
+
+function outboxWith(t, envelope) {
+  const db = new Outbox(join(tempDir(t), 'outbox.sqlite'));
+  t.after(() => { try { db.close(); } catch {} });
+  db.put(envelope);
+  return db;
+}
+function syntheticEnvelope() {
+  const r = buildReport(json('../fixtures/snapshot.json'), policy(), AT, 'a'.repeat(64));
+  return engineReport(r, { runId:protocolRunId('run', r.observed_at, r.run_id.slice(3, 19)), directive:DIRECTIVE });
+}
+
+test('deliver by hand refuses a row with proposals while either switch holds, and still sends a held report', async t => {
+  const live = syntheticEnvelope();
+  assert.ok(live.proposals.length > 0);
+
+  const local = await standIn(t);
+  await assert.rejects(deliver(outboxWith(t, live), live.run_id, { client:controlCenter({ token:local.token, base:local.base, testMode:true }), activation:HELD }), { code:'engine_held_proposals_refused' });
+  await assert.rejects(deliver(outboxWith(t, live), live.run_id, { client:controlCenter({ token:local.token, base:local.base, testMode:true }), activation:{ state:'held', reason:'local_flag_unreadable' } }), { code:'engine_held_proposals_refused' });
+  assert.equal(local.reports.size, 0, 'nothing reached his list');
+
+  const cc = await standIn(t, { capabilities:ccHeld });
+  await assert.rejects(deliver(outboxWith(t, live), live.run_id, { client:controlCenter({ token:cc.token, base:cc.base, testMode:true }), activation:ACTIVE }), { code:'engine_held_proposals_refused' });
+  assert.equal(cc.reports.size, 0, 'nothing reached his list');
+
+  const held = heldReport(live, { by:['krish_local'], policy:policy() });
+  const ok = await standIn(t);
+  await deliver(outboxWith(t, held), held.run_id, { client:controlCenter({ token:ok.token, base:ok.base, testMode:true }), activation:HELD });
+  assertHeld(ok.reports.get(held.run_id));
+});
+
+test('the run command, held by the shipped flag, keeps only a held envelope in its outbox', t => {
+  const out = join(ROOT, 'runtime', `test-hold-${process.pid}-${Date.now()}`);
+  t.after(() => { try { rmSync(out, { recursive:true, force:true, maxRetries:5, retryDelay:100 }); } catch {} });
+  const res = spawnSync(process.execPath, ['src/cli.mjs', 'run', '--snapshot', 'fixtures/snapshot.json', '--at', AT, '--out', out], { cwd:ROOT, encoding:'utf8' });
+  assert.equal(res.status, 0, res.stderr);
+  const file = readdirSync(out).find(f => f.endsWith('.envelope.json'));
+  assert.ok(file, 'an envelope was written');
+  const envelope = JSON.parse(readFileSync(join(out, file), 'utf8'));
+  assertHeld(envelope);
+  assert.match(envelope.holds[0].detail, /mindmake_history_unknown/);
+  const db = new Outbox(join(out, 'outbox.sqlite'));
+  try { assert.equal(JSON.parse(db.get(envelope.run_id).payload).proposals.length, 0, 'the outbox row carries no proposal'); } finally { db.close(); }
 });

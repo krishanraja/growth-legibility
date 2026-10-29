@@ -1,7 +1,7 @@
 import { deliver } from './transport.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId } from './orchestrator.mjs';
 import { captureExport, exportHold } from './lib/export-client.mjs';
-import { readPriorMindmake } from './lib/prior-outreach.mjs';
+import { dropPriorMindmake, readPriorMindmake } from './lib/prior-outreach.mjs';
 import { emailAction, templateRevision } from './lib/draft-press.mjs';
 import { applyIcp, readIcp, researchAvailability } from './lib/cc-signals.mjs';
 import { heldBy, heldReport } from './lib/hold.mjs';
@@ -117,9 +117,11 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       if (snapshot.mode !== 'live' && !client.local) throw Object.assign(new Error('synthetic_snapshot_refused'), { code:'synthetic_snapshot_refused' });
       // Each person's Mindmake record, from Control Center's reader only (1.11.0). A failed or partial read leaves the
       // record absent, which prepare holds as unknown; it never stops the run.
-      // Held, nothing is prepared, so no one's record is read.
-      if (!by.length) {
-        phase = 'prior_outreach';
+      // Held, nothing is proposed, so no one's record is read; a record the snapshot brought is still dropped, so every
+      // person holds as mindmake_history_unknown and the one hold names it among what readiness needs.
+      phase = 'prior_outreach';
+      if (by.length) ({ snapshot } = dropPriorMindmake(snapshot));
+      else {
         let read;
         ({ snapshot, summary:read } = await readPriorMindmake(client, snapshot));
         summary.prior_outreach = read;
@@ -155,7 +157,7 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     summary.report = { status:envelope.status, mode:envelope.mode, payload_sha256:envelope.payload_sha256,
       objectives:envelope.objectives.map(o => ({ key:o.key, availability:o.availability })), proposals:envelope.proposals.length, holds:envelope.holds.map(h => h.reason) };
     phase = 'report';
-    const receipt = await deliver(outbox, runId, { client });
+    const receipt = await deliver(outbox, runId, { client, activation });
     summary.report.readback = 'matched';
     summary.report.replayed = receipt.replayed;
     phase = 'decisions';

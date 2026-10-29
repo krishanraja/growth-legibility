@@ -4,9 +4,13 @@ import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { validatePolicy,validateSnapshot } from '../src/guards/wire.mjs';
 import { buildReport, engineReport, protocolRunId } from '../src/orchestrator.mjs';
+import { checkClock, formatWarning, sourceReviewWarning } from './review-due.mjs';
 const root=resolve(import.meta.dirname,'..');
 const json=p=>JSON.parse(readFileSync(join(root,p),'utf8'));
 validatePolicy(json('config/policy.json'));
+// A warning, never a failure: the source review is due a week before the lock (scripts/review-due.mjs).
+const reviewWarning=sourceReviewWarning(json('config/policy.json').source_review_due,checkClock());
+if(reviewWarning)console.log(formatWarning(reviewWarning));
 validateSnapshot(json('fixtures/snapshot.json'),'2026-10-18T12:00:00Z');
 const c=json('_corpus/manifest.json');
 if(createHash('sha256').update(readFileSync(join(root,'_corpus',c.file))).digest('hex')!==c.sha256)throw new Error('corpus_integrity_failed');

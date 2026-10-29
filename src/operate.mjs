@@ -4,6 +4,7 @@ import { captureExport, exportHold } from './lib/export-client.mjs';
 import { readPriorMindmake } from './lib/prior-outreach.mjs';
 import { emailAction, templateRevision } from './lib/draft-press.mjs';
 import { applyIcp, readIcp, researchAvailability } from './lib/cc-signals.mjs';
+import { heldBy, heldReport } from './lib/hold.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
 // inside the walls, report and read back, read Krish's decisions, close the attempt. Nothing here sends, posts,
@@ -38,9 +39,12 @@ export function matchDecisions(decisions, envelope) {
 
 // appExport is exportFromEnv()'s answer (src/lib/export-client.mjs). Absent, the run holds exactly as it did before the
 // export client existed, and the summary names attribution_export_missing; a --snapshot file takes precedence.
+// activation is this repository's own flag (readActivation in src/lib/hold.mjs, from config/activation.json; the CLI always
+// passes it, and a missing file reads as held). Held here or by Control Center, the run measures, proposes nothing and
+// reports one hold (Ruling, Krish, 2026-10-29).
 export async function operate({ client, outbox, policy, corpusSha, at = new Date().toISOString(), loadSnapshot = null, invocation,
   synthetic = false, revision = 'unversioned-local', directiveDate = null, clock = () => new Date().toISOString(), appExport = { state:'absent' },
-  sourceRevision = templateRevision }) {
+  sourceRevision = templateRevision, activation = { state:'active', reason:null } }) {
   const command = 'operate';
   const runId = protocolRunId(command, at, invocation);
   const attempt = { attempt_id:runId, command, run_id:runId, status:'started', phase:'start', error_code:null, started_at:new Date(at).toISOString() };
@@ -63,8 +67,10 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     // leaves the buyer absent, which holds exactly as before; it never stops the run.
     phase = 'icp';
     let served = { icp:null, state:'not_served', reason:'icp_not_served' };
+    let ccActivation = null;
     try {
       const cap = await client.capabilities();
+      ccActivation = cap.activation ?? null;
       served = readIcp(directive, cap.features, attempt.started_at);
       summary.research = researchAvailability(cap.features, cap.research);
     } catch (e) {
@@ -73,6 +79,8 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       summary.research = { state:'unavailable', kinds:[], per_day:{} };
     }
     summary.icp = { state:served.state, reason:served.reason, revision:served.icp?.revision ?? null };
+    const by = heldBy({ local:activation, activation:ccActivation, directive });
+    summary.activation = { state:by.length ? 'held' : 'active', by, local:activation?.state === 'active' ? 'active' : 'held', control_center:ccActivation };
     phase = 'capture';
     let snapshot = loadSnapshot ? loadSnapshot() : null;
     let observedAt = attempt.started_at;
@@ -109,10 +117,13 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       if (snapshot.mode !== 'live' && !client.local) throw Object.assign(new Error('synthetic_snapshot_refused'), { code:'synthetic_snapshot_refused' });
       // Each person's Mindmake record, from Control Center's reader only (1.11.0). A failed or partial read leaves the
       // record absent, which prepare holds as unknown; it never stops the run.
-      phase = 'prior_outreach';
-      let read;
-      ({ snapshot, summary:read } = await readPriorMindmake(client, snapshot));
-      summary.prior_outreach = read;
+      // Held, nothing is prepared, so no one's record is read.
+      if (!by.length) {
+        phase = 'prior_outreach';
+        let read;
+        ({ snapshot, summary:read } = await readPriorMindmake(client, snapshot));
+        summary.prior_outreach = read;
+      }
       phase = 'plan';
       privateReport = buildReport(snapshot, policy, observedAt, corpusSha);
       // 1.12.0: an invitation that can be a version 2 email action travels as one only when Control Center serves the Draft
@@ -120,7 +131,7 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       // sends 1.0.0 exactly as before; it never stops the run.
       phase = 'draft_press';
       let draftPress = null;
-      const draftable = privateReport.actions.filter(a => emailAction(a).ok).length;
+      const draftable = by.length ? 0 : privateReport.actions.filter(a => emailAction(a).ok).length;
       summary.draft_press = { state:'not_needed', reason:null, actions:draftable };
       if (draftable) {
         let features = null;
@@ -139,6 +150,7 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     } else {
       envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp });
     }
+    if (by.length) envelope = heldReport(envelope, { by, policy });
     outbox.put(envelope);
     summary.report = { status:envelope.status, mode:envelope.mode, payload_sha256:envelope.payload_sha256,
       objectives:envelope.objectives.map(o => ({ key:o.key, availability:o.availability })), proposals:envelope.proposals.length, holds:envelope.holds.map(h => h.reason) };

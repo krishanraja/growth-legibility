@@ -32,6 +32,8 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
 
+- 2026-10-29 **Prepaid credits (protocol 1.16.0).** Ruling (Krish, 2026-10-29): an engine may spend up to its placement share of a tool's prepaid credits each cycle with no per-batch approval, and reports what it made in `credits_spent`. Legibility's pools are Apify main ($5.80 of $29, resets the 21st) and 21st Dev main (about 133 of 500, resets the 1st); while held it spends nothing. The protocol copy is at 1.16.0; the code is the next unticked Phase 2 item ([CONTROL-CENTER-BRIEF.md](docs/CONTROL-CENTER-BRIEF.md), "Prepaid credits"). North Star check (2026-10-29): holds.
+
 - 2026-10-29 **Held by Krish.** Ruling (Krish, 2026-10-29): Not ready means a held activation state: no wake, no asks on his list, no growth council move, and the bearer stays valid. `config/activation.json` ships held, and Control Center's hold is read from its capabilities and directive: a held run still measures, proposes nothing and reports one `engine_held` hold naming what readiness needs ([OPERATIONS.md](docs/OPERATIONS.md), FAILURES F46). `npm run check` now warns from 16 Nov, under 10 days before the source review lock of 26 Nov (FAILURES F47).
 
 - 2026-10-27 **Documentation audit applied.** Every doc was checked against the code and the live state; what a live run reports now lives once, in [OPERATIONS.md](docs/OPERATIONS.md), "What a dispatch measures today", beside the environment, the run summary and a failure runbook. The session deny list gained Descript, a retired route.

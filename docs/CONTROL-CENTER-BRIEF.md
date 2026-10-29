@@ -70,6 +70,25 @@ The full spec is `docs/control-center/ENGINE-PROTOCOL.md`, with the report and d
 | `mode: synthetic` | Unchanged, and enforced on the server |
 | Readback `{accepted, run_id, payload_sha256}` | Unchanged, and it also returns the report |
 
+## Prepaid credits (protocol 1.16.0)
+
+Ruling (Krish, 2026-10-29): a growth engine may spend up to its placement share of a tool's prepaid credits each cycle with no per-batch approval, and reports what it made. Control Center's spec is [ENGINE-PROTOCOL.md](control-center/ENGINE-PROTOCOL.md), "Prepaid credits: spend your share before it is wiped (1.16.0)".
+
+**Your pools.** Krish's placements put Legibility on two:
+
+| Pool | Your share | Resets | What it is for |
+|---|---|---|---|
+| Apify, main | $5.80 of the $29 included usage | the 21st | builder discovery and other repeatable extraction through existing actors |
+| 21st Dev, main | about 133 of 500 AI credits a month | the 1st | building interfaces, once the design is decided |
+
+The directive's `credits` block is the live figure, never this table: `{ rule, pools[] }`, each pool with `share`, `share_amount`, `spent_this_cycle`, `remaining_for_you`, `pool_balance`, `resets_on`, `days_left` and `unit_costs`.
+
+**What to do.** When capabilities say `features.credits: true` and the directive carries `credits`, spend up to `remaining_for_you` of each pool on work that moves this engine's objectives (`weekly_builders` first), with no proposal. Report each spend in the report's `credits_spent[]`, `{ pool, amount, asset, objective_key }`, at most 40, at `schema_version` 1.16.0: `asset` says in words what it made, never an address. A missing `credits` block is unknown, never a share of zero: spend nothing.
+
+**The walls.** Never past `remaining_for_you`. Apify's usage over the $29 included is new money, so never exceed the share. Never a top-up, a plan change or new money. Nothing it makes is published, posted or sent without its own approval: a component or a dataset is prepared work, and the send, post and spend walls stay exactly where they are.
+
+**Held.** While this engine is held (AGENTS.md, "Held"; `config/activation.json`), it proposes nothing and spends nothing. The share applies once Krish releases it.
+
 ## Still owed by Control Center (named, not built)
 
 - The attribution allowlist for `app: legibility` (still omits Legibility at the 27 October source review).

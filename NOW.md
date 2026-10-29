@@ -1,7 +1,7 @@
 ---
 repo: krishanraja/growth-legibility
 product: Legibility growth engine
-as_of: 2026-10-27
+as_of: 2026-10-29
 head: see Git HEAD
 lifecycle: building
 production_url: none
@@ -26,9 +26,13 @@ Companies whose agents or products need product data they can trust: reached, fr
 
 <!-- north-star-state {"week_of": "2026-10-26", "week_target": 1, "current": 0, "current_as_of": "2026-10-27", "current_source": "Supabase legibility: accounts with a trusted read (product returned, confidence set) since Monday 00:00 UTC, internal accounts excluded; read-only count, 2026-10-27 20:46 UTC", "urgency": 4, "urgency_reason": "0 against 1 this week, under 40%"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: 0 against 1 this week (measured 27 Oct), on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits.
 
+Held by Krish (2026-10-29): not in motion for a few weeks; Control Center sends no wake.
+
 Lifecycle: building. The detail is in `README.md`.
 
 ## What changed recently
+
+- 2026-10-29 **Held by Krish.** Ruling (Krish, 2026-10-29): Not ready means a held activation state: no wake, no asks on his list, no growth council move, and the bearer stays valid. `config/activation.json` ships held, and Control Center's hold is read from its capabilities and directive: a held run still measures, proposes nothing and reports one `engine_held` hold naming what readiness needs ([OPERATIONS.md](docs/OPERATIONS.md), FAILURES F46). `npm run check` now warns from 16 Nov, under 10 days before the source review lock of 26 Nov (FAILURES F47).
 
 - 2026-10-27 **Documentation audit applied.** Every doc was checked against the code and the live state; what a live run reports now lives once, in [OPERATIONS.md](docs/OPERATIONS.md), "What a dispatch measures today", beside the environment, the run summary and a failure runbook. The session deny list gained Descript, a retired route.
 
@@ -64,6 +68,7 @@ Lifecycle: building. The detail is in `README.md`.
   - grant each tester's trial by hand on `/dashboard/waitlist` when they accept (A8);
   - add the spend-capped `ANTHROPIC_API_KEY` as an Actions secret when Phase 2 needs it, with the cap set at the provider;
   - run the Cowork brand-kit prompt.
+- North Star check (2026-10-29): holds. Krish has held the engine for a few weeks, so nothing it proposes reaches his list until he releases it; it keeps measuring the number while held.
 - North Star check (2026-10-28): holds. The buyer no longer expires (Ruling, Krish, 2026-10-28), so nothing stops the engine on a date. The number is measured at 0 against 1 this week (U4); the engine now counts it from the app's export every day, and the next steps above (attribution, then a candidate source) are what let it prepare invitations that move it.
 
 ## Read next

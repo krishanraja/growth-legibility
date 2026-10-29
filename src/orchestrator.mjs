@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
-import { validateReport, validateEngineReport, sha256, VERSION, DRAFT_PRESS_VERSION } from './guards/wire.mjs';
+import { validateReport, validateEngineReport, sha256, VERSION, DRAFT_PRESS_VERSION, CREDITS_VERSION } from './guards/wire.mjs';
 import { emailAction } from './lib/draft-press.mjs';
-import { siteActivity } from './lib/cc-signals.mjs';
+import { creditsActivity, siteActivity } from './lib/cc-signals.mjs';
 import { isoWeek } from './stages/measure.mjs';
 import { capture } from './capture.mjs';
 import { measure } from './stages/measure.mjs';
@@ -178,7 +178,9 @@ function numberObjectives(registered, wb) {
 // draftPress is { source_revision } only when Control Center's capabilities serve the Draft press (features.draft_press at
 // 1.12.0 or later); then each invitation that can be a version 2 email action travels as one, and the report says 1.12.0.
 // Without it, or with no invitation that can be one, the envelope is exactly the 1.0.0 one.
-export function engineReport(report, { runId, directive = null, directiveHold = null, draftPress = null }) {
+// credits is the run's 1.16.0 read ({ read, held, spent }, src/lib/cc-signals.mjs readCredits): its lines join the activity,
+// and only a run that spent something carries credits_spent and says 1.16.0. The runner spends nothing, so today it never does.
+export function engineReport(report, { runId, directive = null, directiveHold = null, draftPress = null, credits = null }) {
   validateReport(report);
   const { campaign, metrics, recommendation } = report.scorecard;
   const stale = report.holds.some(h => h.code === 'stale_snapshot');
@@ -206,16 +208,24 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
     { line:clip(`Weekly production agents: ${fmt(metrics.production_agents_weekly)}. Weekly median trusted reads per active account: ${fmt(metrics.weekly_median_trusted_reads_per_active_account)}. Mainnet agent revenue USD: ${fmt(metrics.mainnet_agent_revenue_usd)}; testnet volume is never counted as revenue.`, 500), evidence_url:null },
     { line:`Distribution inventory holds ${report.opportunities.length} verified opportunit${report.opportunities.length === 1 ? 'y' : 'ies'}, ${report.opportunities.filter(o => o.status === 'uncovered').length} uncovered.`, evidence_url:null },
     ...siteActivity(directive?.web_analytics),
-  ].filter(Boolean);
+    ...creditsActivity(credits?.read, { held:credits?.held }),
+  ].filter(Boolean).slice(0, 40);
   const proposals = [...report.actions.map(a => actionProposal(a, draftPress)), constraintProposal(recommendation)].slice(0, 10);
   const holds = protocolHolds(report.holds);
   if (directiveHold) holds.push(directiveHold);
   const status = report.status === 'ready' && directiveHold ? 'degraded' : report.status;
+  const spent = creditsSpent(credits);
   return seal({
-    schema_version:proposals.some(p => p.source_revision) ? DRAFT_PRESS_VERSION : VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
+    schema_version:spent ? CREDITS_VERSION : proposals.some(p => p.source_revision) ? DRAFT_PRESS_VERSION : VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
     observed_at:report.observed_at, source:{ revision:report.source.snapshot_sha256, captured_at:report.source.captured_at },
-    status, objectives, activity, proposals, events:[], holds,
+    status, objectives, activity, proposals, events:[], holds, ...(spent ? { credits_spent:spent } : {}),
   });
+}
+
+// The credits a run spent, as credits_spent wants them, or null when it spent none (a held run never does).
+function creditsSpent(credits) {
+  if (!credits || credits.held || !Array.isArray(credits.spent) || !credits.spent.length) return null;
+  return credits.spent.slice(0, 40).map(c => ({ pool:c.pool, amount:c.amount, asset:clip(c.asset, 300), objective_key:c.objective_key ?? null }));
 }
 
 // A run with no source snapshot still reports, honestly: held, nothing measured, and the missing inputs named.
@@ -224,7 +234,7 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
 // icp is the buyer Control Center's directive carried (src/lib/cc-signals.mjs readIcp), or null. Only a current approved
 // one (prepare's own rule, icpCurrent) clears icp_not_current_approved; with none, the report is exactly the one sent
 // before the directive carried a buyer.
-export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [], icp = null }) {
+export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [], icp = null, credits = null }) {
   const inactive = !policy?.campaign?.activated_at;
   const reason = `No source snapshot from the Legibility app reached this run, so nothing was measured.${inactive ? ' The campaign clock has not been activated either.' : ''}`;
   const objectives = OBJECTIVES.map(({ key, unit }) => ({ key, value:null, unit, window_start:policy?.campaign?.activated_at ?? null, window_end:null, timezone:'UTC', availability:'missing', reason }));
@@ -245,7 +255,7 @@ export function heldEngineReport({ runId, at, revision, mode = 'live', policy, d
   return seal({
     schema_version:VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode, observed_at:at,
     source:{ revision:String(revision).slice(0, 128), captured_at:at }, status:'held', objectives,
-    activity:[directiveActivity(directive), held, ...siteActivity(directive?.web_analytics)].filter(Boolean),
+    activity:[directiveActivity(directive), held, ...siteActivity(directive?.web_analytics), ...creditsActivity(credits?.read, { held:credits?.held })].filter(Boolean).slice(0, 40),
     proposals:[constraintProposal(rec)], events:[], holds,
   });
 }

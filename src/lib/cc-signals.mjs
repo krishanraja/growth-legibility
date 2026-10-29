@@ -78,3 +78,60 @@ export function siteActivity(web) {
   const said = (s, n) => s.days ? `${s.total} session${s.total === 1 ? '' : 's'} (${s.days} of ${n} days read)` : 'unknown (no day read)';
   return [{ line:clip(`legibility.io traffic, from Google Analytics through Control Center: ${said(now, 7)} in the 7 days to ${last}, against ${said(before, 7)} the 7 days before.${health}`, 500), evidence_url:null }];
 }
+
+// Protocol 1.16.0, the prepaid credits (ENGINE-PROTOCOL.md, "Prepaid credits: spend your share before it is wiped"):
+// each pool placed on Legibility, this engine's share of it and what is left. The runner reads it and spends nothing:
+// the spending is a scheduled session's, recorded through Control Center (docs/CREDITS-SESSION.md). While the engine is
+// held nothing is spent at all. Absent is unknown, never a share of zero.
+const POOL = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const amount = v => typeof v === 'number' && Number.isFinite(v) && v >= 0;
+const said = (v, unit) => unit === 'usd' ? `$${v.toFixed(2)}` : `${Math.round(v * 100) / 100} ${unit}`;
+
+/**
+ * The credits block the directive carries. Returns { credits, state, reason }: state is not_served (the capabilities do not
+ * say features.credits), unread (served, but not in today's directive, so unknown), refused (a pool broke the shape) or ok.
+ * Only ok returns pools, each { pool, tool, unit, share, share_amount, spent_this_cycle, remaining_for_you, use_by, days_left }.
+ */
+export function readCredits(directive, features) {
+  if (features?.credits !== true) return { credits:null, state:'not_served', reason:'credits_not_served' };
+  const raw = directive?.credits;
+  if (raw === undefined || raw === null) return { credits:null, state:'unread', reason:'credits_unread' };
+  if (typeof raw !== 'object' || !Array.isArray(raw.pools) || raw.pools.length < 1 || raw.pools.length > 20) return { credits:null, state:'refused', reason:'credits_shape' };
+  const pools = [];
+  for (const p of raw.pools) {
+    const ok = p && typeof p === 'object' && POOL.test(p.pool ?? '') && typeof p.tool === 'string' && p.tool.length > 0 && p.tool.length <= 80
+      && typeof p.unit === 'string' && /^[a-z][a-z ]{0,20}$/.test(p.unit) && ['main', 'some'].includes(p.share)
+      && amount(p.share_amount) && amount(p.spent_this_cycle) && amount(p.remaining_for_you) && p.remaining_for_you <= p.share_amount
+      && DAY_RE.test(p.use_by ?? '') && Number.isInteger(p.days_left) && p.days_left >= 0;
+    if (!ok) return { credits:null, state:'refused', reason:'credits_pool_shape' };
+    pools.push({ pool:p.pool, tool:p.tool, unit:p.unit, share:p.share, share_amount:p.share_amount, spent_this_cycle:p.spent_this_cycle,
+      remaining_for_you:p.remaining_for_you, use_by:p.use_by, days_left:p.days_left });
+  }
+  return { credits:{ pools }, state:'ok', reason:null };
+}
+
+/**
+ * Whether spending `amount` from `pool` fits what is left of this engine's share after `spent` (this run's own
+ * credits_spent entries). Held, unknown, an unplaced pool or past the share is refused before anything runs.
+ */
+export function reserveCredit({ credits, held, spent = [] }, pool, cost) {
+  if (held) return { ok:false, error:'credits_held' };
+  if (!credits) return { ok:false, error:'credits_unknown' };
+  const p = credits.pools.find(c => c.pool === pool);
+  if (!p) return { ok:false, error:'credits_no_pool' };
+  const used = spent.filter(s => s.pool === pool).reduce((n, s) => n + s.amount, 0);
+  const left = p.remaining_for_you - used;
+  if (!amount(cost) || cost <= 0 || cost > left + 1e-9) return { ok:false, error:'credits_over_share', remaining_for_you:Math.max(0, left) };
+  return { ok:true, remaining_after:Math.round((left - cost) * 100) / 100 };
+}
+
+/** Activity lines on the credits: one per pool with what is left and its use-by day, or one saying it is unknown. Nothing when not served. */
+export function creditsActivity(read, { held = false } = {}) {
+  if (!read || read.state === 'not_served') return [];
+  const tail = held ? ' Held by Krish, so this run spent none of it.' : ' The runner spent none of it; the scheduled session spends it (docs/CREDITS-SESSION.md).';
+  if (read.state !== 'ok') return [{ line:clip(`Prepaid credits: unknown today (${read.reason}), so nothing was spent from any pool.`, 500), evidence_url:null }];
+  return read.credits.pools.map(p => ({
+    line:clip(`Prepaid credits, ${p.tool} (${p.share} share): ${said(p.remaining_for_you, p.unit)} left of ${said(p.share_amount, p.unit)} this cycle, use by ${p.use_by} (${p.days_left} day${p.days_left === 1 ? '' : 's'}).${tail}`, 500),
+    evidence_url:null,
+  }));
+}

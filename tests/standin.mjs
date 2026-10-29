@@ -47,7 +47,9 @@ export function schemaErrors(value, schema, path = '$', errors = []) {
 // Control Center's reading of a report at efad4667 (src/lib/growthEngines.ts: PROTOCOL_VERSIONS, proposalKeys, parseActionV2,
 // parseBasis, the source_revision rule of parseRowFields and parseProposal's 1.12.0 branch for a send off the rows), ported
 // line for line so a report the stand-in takes is one Control Center would take. Only what this engine can send is ported.
-export const CC_VERSIONS = Object.freeze(['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0']);
+// Raised to 1.16.0 on 2026-10-29 for credits_spent (PROTOCOL_VERSIONS in Control Center's src/lib/growthEngines.ts); no
+// proposal rule changed between 1.12.0 and 1.16.0.
+export const CC_VERSIONS = Object.freeze(['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0', '1.14.0', '1.15.0', '1.16.0']);
 const CC_PROPOSAL_KEYS = ['proposal_id', 'title', 'why', 'kind', 'wall', 'amount_usd', 'channel', 'objective_key', 'exact_payload', 'payload_sha256', 'evidence', 'close_condition', 'expires_at'];
 const CC_PROPOSAL_KEYS_1_8 = [...CC_PROPOSAL_KEYS, 'stage', 'parent_proposal_id', 'subject_ref', 'row', 'rank', 'reach', 'amplifier_kind', 'features', 'serves', 'source_revision', 'because', 'brief', 'card'];
 const ccIsObj = v => !!v && typeof v === 'object' && !Array.isArray(v);

@@ -89,6 +89,8 @@ The directive's `credits` block is the live figure, never this table: `{ rule, p
 
 **Held.** While this engine is held (AGENTS.md, "Held"; `config/activation.json`), it proposes nothing and spends nothing. The share applies once Krish releases it.
 
+**Who spends it (built 29 Oct).** The runner holds no Apify or 21st Dev key, so it reads the share, writes one activity line per pool and spends nothing (`readCredits` and `reserveCredit` in `src/lib/cc-signals.mjs`). The spending is a daily scheduled Claude session's, recorded through the Control Center connector (`get_engine_credits`, `reserve_credit_spend`, `settle_credit_spend`), which Control Center takes off the share as it does `credits_spent`. Its playbook and release prerequisites are [CREDITS-SESSION.md](CREDITS-SESSION.md). A report carries `credits_spent` only for a spend the runner itself made, which today is none.
+
 ## Still owed by Control Center (named, not built)
 
 - The attribution allowlist for `app: legibility` (still omits Legibility at the 27 October source review).

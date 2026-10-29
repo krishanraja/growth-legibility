@@ -50,7 +50,8 @@ export function heldReport(envelope, { by, policy }) {
   const who = by.includes('control_center') && by.includes('krish_local') ? 'on Growth > Engines in Control Center and in config/activation.json'
     : by.includes('control_center') ? 'on Growth > Engines in Control Center' : 'in config/activation.json';
   const detail = clip(`Krish has held this engine until it is ready (Ruling, Krish, 2026-10-29), ${who}. Ready needs: ${needs.length ? needs.join(', ') : 'nothing open in this run'}. It clears when each of those is cleared and Krish releases the engine in both places. Nothing was proposed and nothing was sent.`, 1000);
-  const { payload_sha256, ...body } = envelope;
+  // A held run spends no credits, so it carries no credits_spent and says 1.0.0.
+  const { payload_sha256, credits_spent, ...body } = envelope;
   return seal({
     ...body,
     schema_version:VERSION,

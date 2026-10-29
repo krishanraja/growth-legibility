@@ -3,7 +3,7 @@ import { buildReport, engineReport, heldEngineReport, protocolRunId } from './or
 import { captureExport, exportHold } from './lib/export-client.mjs';
 import { dropPriorMindmake, readPriorMindmake } from './lib/prior-outreach.mjs';
 import { emailAction, templateRevision } from './lib/draft-press.mjs';
-import { applyIcp, readIcp, researchAvailability } from './lib/cc-signals.mjs';
+import { applyIcp, readCredits, readIcp, researchAvailability } from './lib/cc-signals.mjs';
 import { heldBy, heldReport } from './lib/hold.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
@@ -67,20 +67,26 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     // leaves the buyer absent, which holds exactly as before; it never stops the run.
     phase = 'icp';
     let served = { icp:null, state:'not_served', reason:'icp_not_served' };
+    let creditsRead = { credits:null, state:'not_served', reason:'credits_not_served' };
     let ccActivation = null;
     try {
       const cap = await client.capabilities();
       ccActivation = cap.activation ?? null;
       served = readIcp(directive, cap.features, attempt.started_at);
+      // 1.16.0: this engine's share of the prepaid credits. The runner spends none of it (docs/CREDITS-SESSION.md).
+      creditsRead = readCredits(directive, cap.features);
       summary.research = researchAvailability(cap.features, cap.research);
     } catch (e) {
       if (errorCode(e) === 'receiver_unauthorized') throw e;
       served = { icp:null, state:'unavailable', reason:errorCode(e) };
+      creditsRead = { credits:null, state:'unavailable', reason:errorCode(e) };
       summary.research = { state:'unavailable', kinds:[], per_day:{} };
     }
     summary.icp = { state:served.state, reason:served.reason, revision:served.icp?.revision ?? null };
     const by = heldBy({ local:activation, activation:ccActivation, directive });
     summary.activation = { state:by.length ? 'held' : 'active', by, local:activation?.state === 'active' ? 'active' : 'held', control_center:ccActivation };
+    const credits = { read:creditsRead, held:by.length > 0, spent:[] };
+    summary.credits = { state:creditsRead.state, reason:creditsRead.reason, pools:creditsRead.credits?.pools.length ?? 0, spent:0 };
     phase = 'capture';
     let snapshot = loadSnapshot ? loadSnapshot() : null;
     let observedAt = attempt.started_at;
@@ -148,9 +154,9 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
         }
       }
       phase = 'plan';
-      envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress });
+      envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress, credits });
     } else {
-      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp });
+      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp, credits });
     }
     if (by.length) envelope = heldReport(envelope, { by, policy });
     outbox.put(envelope);

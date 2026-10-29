@@ -5,6 +5,9 @@ export const VERSION = '1.0.0';
 // (ENGINE-PROTOCOL.md, "Legibility drafts in his own box"). This engine raises its report to 1.12.0 only for that field, only
 // when the capabilities serve it (features.draft_press), and otherwise sends 1.0.0 exactly as before.
 export const DRAFT_PRESS_VERSION = '1.12.0';
+// Control Center protocol 1.16.0: a report may carry credits_spent[], the prepaid credits the run spent of this engine's
+// share (ENGINE-PROTOCOL.md, "Prepaid credits"). The report says 1.16.0 only for that field, and only when it carries one.
+export const CREDITS_VERSION = '1.16.0';
 // Control Center only ever adds within 1.x (ENGINE-PROTOCOL.md, "Versions"), so what it
 // serves may be any 1.x while this engine sends 1.0.0. On 2026-10-19 it began serving 1.1.0
 // and an exact match here stopped every run with receiver_contract_mismatch.
@@ -248,9 +251,9 @@ export function validateSourceRevision(revs) {
 const SUBJECT_REF = /^contact:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export function validateEngineEnvelope(r) {
-  keys(r,['schema_version','engine_id','product_slug','run_id','mode','observed_at','source','status','objectives','activity','proposals','events','holds','payload_sha256'],'engine_report');
-  fail([VERSION, DRAFT_PRESS_VERSION].includes(r.schema_version) && line(r.engine_id, 64) && line(r.product_slug, 64), 'engine_report_identity');
-  const draftPress = r.schema_version === DRAFT_PRESS_VERSION;
+  keys(r,['schema_version','engine_id','product_slug','run_id','mode','observed_at','source','status','objectives','activity','proposals','events','holds','credits_spent','payload_sha256'],'engine_report');
+  fail([VERSION, DRAFT_PRESS_VERSION, CREDITS_VERSION].includes(r.schema_version) && line(r.engine_id, 64) && line(r.product_slug, 64), 'engine_report_identity');
+  const draftPress = r.schema_version === DRAFT_PRESS_VERSION || r.schema_version === CREDITS_VERSION;
   fail(protocolId(r.run_id) && allowed(r.mode,['live','synthetic']) && dateTime(r.observed_at), 'engine_report_run');
   fail(allowed(r.status,['ready','held','degraded']), 'engine_report_status');
   keys(r.source,['revision','captured_at'],'engine_report_source');
@@ -296,7 +299,14 @@ export function validateEngineEnvelope(r) {
     fail(snake(p.close_condition.event) && orNull(p.close_condition.reference, v => str(v, 500)), 'engine_close_condition');
   }
   // Raise the version only for the field it is for: a 1.12.0 report carries at least one version 2 email action.
-  fail(!draftPress || (r.proposals ?? []).some(p => isActionV2Text(p.exact_payload)), 'engine_report_1_12_0_without_action_v2');
+  fail(r.schema_version !== DRAFT_PRESS_VERSION || (r.proposals ?? []).some(p => isActionV2Text(p.exact_payload)), 'engine_report_1_12_0_without_action_v2');
+  // 1.16.0: the credits this run spent, at most 40, and the version only for them.
+  fail(r.credits_spent === undefined ? r.schema_version !== CREDITS_VERSION : r.schema_version === CREDITS_VERSION && Array.isArray(r.credits_spent) && r.credits_spent.length >= 1 && r.credits_spent.length <= 40, 'engine_report_credits_spent_version');
+  for (const c of r.credits_spent ?? []) {
+    keys(c,['pool','amount','asset','objective_key'],'engine_credit_spent');
+    fail(typeof c.pool === 'string' && /^[a-z0-9][a-z0-9_-]{0,63}$/.test(c.pool) && typeof c.amount === 'number' && Number.isFinite(c.amount) && c.amount > 0
+      && line(c.asset, 300) && !/@|https?:\/\//i.test(c.asset) && orNull(c.objective_key, snake), 'engine_credit_spent');
+  }
   list(r.events, 40, 'engine_report_events');
   for (const e of r.events ?? []) { keys(e,['event','proposal_id','at','evidence_url'],'engine_event'); fail(snake(e.event) && orNull(e.proposal_id, v => typeof v === 'string') && dateTime(e.at) && orNull(e.evidence_url, https), 'engine_event'); }
   list(r.holds, 40, 'engine_report_holds');

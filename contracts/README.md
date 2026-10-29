@@ -12,7 +12,7 @@ Reports are private. Only publicSummary() is designed for presentation outside t
 payload_sha256 hashes canonical sorted JSON excluding that field. run_id binds normalized source, policy, clock and corpus revision.
 Idempotent delivery uses the same immutable report. A changed clock produces a new observation/run, never a second copy of the same frozen report.
 
-What travels to Control Center is the protocol 1.0.0 envelope (or 1.12.0 when it serves the Draft press, below) (docs/control-center/engine-report.schema.json), built by engineReport() in src/orchestrator.mjs and checked by validateEngineReport() in src/guards/wire.mjs. contracts/example-engine-report.json is the frozen envelope for the synthetic fixture; npm run check rebuilds both examples and fails on drift. The private report above never leaves the runtime spool. Existing growth/packs and attribution routes are incompatible.
+What travels to Control Center is the protocol 1.0.0 envelope (or 1.12.0 when it serves the Draft press, or 1.16.0 when the run spent prepaid credits, both below) (docs/control-center/engine-report.schema.json), built by engineReport() in src/orchestrator.mjs and checked by validateEngineReport() in src/guards/wire.mjs. contracts/example-engine-report.json is the frozen envelope for the synthetic fixture; npm run check rebuilds both examples and fails on drift. The private report above never leaves the runtime spool. Existing growth/packs and attribution routes are incompatible.
 
 ## Additions within producer contract 1.0.0 (27 October 2026)
 
@@ -103,3 +103,6 @@ On 27 October every live run held `icp_not_current_approved` though Krish had sa
 
 manifest.json was refrozen for `src/guards/wire.mjs` (`validateIcp`) and `src/stages/prepare.mjs` (`icpCurrent`, the same rule exported). Both frozen examples were rebuilt and are unchanged: they are built with no directive. docs/control-center/ENGINE-PROTOCOL.md and engine-report.schema.json were copied again from Control Center at 1.13.0.
 
+## Prepaid credits: credits_spent (protocol 1.16.0, 29 October 2026)
+
+`validateEngineEnvelope` takes 1.16.0 beside 1.0.0 and 1.12.0, for one field: `credits_spent[]`, 1 to 40 entries of exactly `pool` (a pool key), `amount` (positive), `asset` (what was made in words, at most 300 characters, never an address or a link) and `objective_key` (snake case or null). A 1.16.0 report must carry it, and it travels at no other version; a 1.16.0 report may also carry version 2 email actions. A held report never carries it and says 1.0.0. The runner reads the directive's `credits` (`readCredits`, src/lib/cc-signals.mjs) and spends nothing, so today no report carries the field: the spending is the scheduled session's ([docs/CREDITS-SESSION.md](../docs/CREDITS-SESSION.md)), recorded in Control Center, never in a report. manifest.json was refrozen for `src/guards/wire.mjs` only; both frozen examples are unchanged. The stand-in (tests/standin.mjs) now takes the versions through 1.16.0.

@@ -85,7 +85,9 @@ The directive's `credits` block is the live figure, never this table: `{ rule, p
 
 **What to do.** When capabilities say `features.credits: true` and the directive carries `credits`, spend up to `remaining_for_you` of each pool on work that moves this engine's objectives (`weekly_builders` first), with no proposal. Report each spend in the report's `credits_spent[]`, `{ pool, amount, asset, objective_key }`, at most 40, at `schema_version` 1.16.0: `asset` says in words what it made, never an address. A missing `credits` block is unknown, never a share of zero: spend nothing.
 
-**The walls.** Never past `remaining_for_you`. Apify's usage over the $29 included is new money, so never exceed the share. Never a top-up, a plan change or new money. Nothing it makes is published, posted or sent without its own approval: a component or a dataset is prepared work, and the send, post and spend walls stay exactly where they are.
+**Apify is a ceiling** (Ruling, Krish, 2026-10-29: "apify is pay as you go, always"). Each pool carries `mode`: `use_it` (21st Dev) is prepaid and wiped at the reset, so spend it; `ceiling` (Apify) is pay as you go, so its share is the most this engine may spend in a cycle, never a target, and leaving it unspent loses nothing. Run Apify only for a decision that needs it, choose the actor by `get_apify_learnings` (what a kept result cost, `keep`, `trial` or `drop`), and settle each run with its `actor`, `job`, `items` and `used`. A pool with no `mode` reads as `use_it`.
+
+**The walls.** Never past `remaining_for_you`. Every Apify dollar is real money, so stay under the share. Never a top-up, a plan change or new money. Nothing it makes is published, posted or sent without its own approval: a component or a dataset is prepared work, and the send, post and spend walls stay exactly where they are.
 
 **Held.** While this engine is held (AGENTS.md, "Held"; `config/activation.json`), it proposes nothing and spends nothing. The share applies once Krish releases it.
 

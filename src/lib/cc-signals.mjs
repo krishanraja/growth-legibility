@@ -102,9 +102,11 @@ export function readCredits(directive, features) {
     const ok = p && typeof p === 'object' && POOL.test(p.pool ?? '') && typeof p.tool === 'string' && p.tool.length > 0 && p.tool.length <= 80
       && typeof p.unit === 'string' && /^[a-z][a-z ]{0,20}$/.test(p.unit) && ['main', 'some'].includes(p.share)
       && amount(p.share_amount) && amount(p.spent_this_cycle) && amount(p.remaining_for_you) && p.remaining_for_you <= p.share_amount
-      && DAY_RE.test(p.use_by ?? '') && Number.isInteger(p.days_left) && p.days_left >= 0;
+      && DAY_RE.test(p.use_by ?? '') && Number.isInteger(p.days_left) && p.days_left >= 0
+      && (p.mode === undefined || p.mode === 'use_it' || p.mode === 'ceiling');
     if (!ok) return { credits:null, state:'refused', reason:'credits_pool_shape' };
-    pools.push({ pool:p.pool, tool:p.tool, unit:p.unit, share:p.share, share_amount:p.share_amount, spent_this_cycle:p.spent_this_cycle,
+    // mode ceiling is pay as you go (Apify): the share is a cap, never a target. Absent reads as use_it.
+    pools.push({ pool:p.pool, mode:p.mode ?? 'use_it', tool:p.tool, unit:p.unit, share:p.share, share_amount:p.share_amount, spent_this_cycle:p.spent_this_cycle,
       remaining_for_you:p.remaining_for_you, use_by:p.use_by, days_left:p.days_left });
   }
   return { credits:{ pools }, state:'ok', reason:null };
@@ -131,7 +133,9 @@ export function creditsActivity(read, { held = false } = {}) {
   const tail = held ? ' Held by Krish, so this run spent none of it.' : ' The runner spent none of it; the scheduled session spends it (docs/CREDITS-SESSION.md).';
   if (read.state !== 'ok') return [{ line:clip(`Prepaid credits: unknown today (${read.reason}), so nothing was spent from any pool.`, 500), evidence_url:null }];
   return read.credits.pools.map(p => ({
-    line:clip(`Prepaid credits, ${p.tool} (${p.share} share): ${said(p.remaining_for_you, p.unit)} left of ${said(p.share_amount, p.unit)} this cycle, use by ${p.use_by} (${p.days_left} day${p.days_left === 1 ? '' : 's'}).${tail}`, 500),
+    line:clip(p.mode === 'ceiling'
+      ? `Pay as you go, ${p.tool} (${p.share} share): a cap of ${said(p.share_amount, p.unit)} this cycle, never a target, with ${said(p.remaining_for_you, p.unit)} under it through ${p.use_by}.${tail}`
+      : `Prepaid credits, ${p.tool} (${p.share} share): ${said(p.remaining_for_you, p.unit)} left of ${said(p.share_amount, p.unit)} this cycle, use by ${p.use_by} (${p.days_left} day${p.days_left === 1 ? '' : 's'}).${tail}`, 500),
     evidence_url:null,
   }));
 }

@@ -48,6 +48,17 @@ test('the credits are read only when served; left out is unknown, never a share 
   assert.match(creditsActivity(readCredits({}, { credits:true }))[0].line, /unknown today \(credits_unread\), so nothing was spent/);
 });
 
+test('a ceiling pool is pay as you go: a cap, never a target; a pool with no mode reads as use_it', () => {
+  assert.equal(readCredits({ credits:CREDITS }, { credits:true }).credits.pools[0].mode, 'use_it');
+  const capped = readCredits({ credits:{ ...CREDITS, pools:[{ ...POOL, mode:'ceiling' }] } }, { credits:true });
+  assert.equal(capped.credits.pools[0].mode, 'ceiling');
+  const [line] = creditsActivity(capped);
+  assert.match(line.line, /^Pay as you go, Apify \(main share\): a cap of .* this cycle, never a target/);
+  assert.doesNotMatch(line.line, /use by/);
+  assert.match(creditsActivity(readCredits({ credits:CREDITS }, { credits:true }))[0].line, /^Prepaid credits, Apify .* use by 2026-11-20/);
+  assert.equal(readCredits({ credits:{ ...CREDITS, pools:[{ ...POOL, mode:'spend_all' }] } }, { credits:true }).state, 'refused', 'an unknown mode');
+});
+
 test('a spend past the share, while held or with the block unknown, is refused before it runs', () => {
   const { credits } = readCredits({ credits:CREDITS }, { credits:true });
   assert.deepEqual(reserveCredit({ credits, held:false }, 'apify', 2), { ok:true, remaining_after:2.5 });

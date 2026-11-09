@@ -38,5 +38,16 @@
       "mcp__n8n__call_agent",
       "mcp__n8n__publish_agent"
     ]
+  },
+  "extraKnownMarketplaces": {
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": true
   }
 }

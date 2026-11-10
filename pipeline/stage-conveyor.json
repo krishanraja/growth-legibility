@@ -18,7 +18,7 @@
       "completion":{"source":"independent_rederivation","evidence":"tests/measure.test.mjs independently checks cohorts, unknown coverage and calibrated trust"}
     },
     {
-      "id":"prepare","owner":"growth-action-preparation","owned_paths":["src/stages/prepare.mjs"],
+      "id":"prepare","owner":"growth-action-preparation","owned_paths":["src/stages/prepare.mjs","src/lib/reader.mjs"],
       "inputs":["observed_snapshot","policy","run_clock"],"outputs":["prepared_work"],"consumed_guards":["wire"],"side_effects":["none"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Private action content and source hashes in final report","recovery_entrypoint":"prepare-recovery"},
       "completion":{"source":"independent_rederivation","evidence":"tests/prepare.test.mjs covers suppression, ICP, evidence and exact draft binding"}

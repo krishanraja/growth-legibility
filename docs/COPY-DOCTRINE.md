@@ -166,6 +166,17 @@ Audience (approved ICP and trigger), Desire (their stated or observed need), Awa
 
 Use the corpus bands. A 0 on Proof or Ethics holds the draft whatever the total. An unsupported Mindmake or earlier-contact claim scores 0 on Ethics. A high score proves only that the draft is worth Krish's review, not that it will work.
 
+## The reader check
+
+A simulated reader is a way to find the weak link in an invitation before Krish reads it. It is never evidence that the invitation works (Ruling, Krish, 2026-11-10).
+
+- Each reader is built only from the candidate record (company, project, current signal, relationship) and reads the exact draft. A buyer's reader is a commercial leader, a builder's is the builder. A fresh-context sub-agent answers, never the session that wrote the draft (`npm run reader`, src/lib/reader.mjs).
+- Each reader says whether they would reply within 7 days, whether they or an engineer would run the test on their own products this week, which link of the persuasion chain above stops them, and whether they felt remembered or worked. Counts are kept by impact angle.
+- The verdicts are counted in shadow. They hold nothing, propose nothing, never count toward the number and are never a Learning Judge verdict: the Judge's verdict per impact angle still comes from real first reads. A reader's words are never quoted as a reply or a testimonial.
+- Every prediction is kept in a private ledger by candidate id and brief digest, with no words, and scored against what happened from a typed outcomes file in runtime/input (sent, replied and first trusted read times) once a send is 7 days old.
+- The stop rule is set before the first run: too early until 20 sends are 7 days old with at least 3 replies; then it earns weight only when it beats the majority guess and drafts it said would get a reply were answered at least twice as often as drafts it said would not; otherwise it is retired. First trusted reads are reported beside it.
+- It works while the engine is held, because it sends and proposes nothing.
+
 ## Where this engine's rules change the corpus
 
 1. No sender, publisher, list buyer or payment executor. The corpus's distribution and follow-up advice ends at a prepared draft; Krish acts.

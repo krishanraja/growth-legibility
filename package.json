@@ -15,6 +15,7 @@
     "doctor": "node src/cli.mjs doctor",
     "engine": "node src/cli.mjs",
     "check:docs": "node scripts/check-docs.mjs",
-    "check:invitation": "node scripts/check-invitation.mjs"
+    "check:invitation": "node scripts/check-invitation.mjs",
+    "reader": "node scripts/reader.mjs"
   }
 }

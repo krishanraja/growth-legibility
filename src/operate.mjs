@@ -5,6 +5,7 @@ import { dropPriorMindmake, readPriorMindmake } from './lib/prior-outreach.mjs';
 import { emailAction, templateRevision } from './lib/draft-press.mjs';
 import { applyIcp, readCredits, readIcp, researchAvailability } from './lib/cc-signals.mjs';
 import { heldBy, heldReport } from './lib/hold.mjs';
+import { instructionAcks, instructionSummary, readInstruction, servesEngineState } from './lib/engine-state.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
 // inside the walls, report and read back, read Krish's decisions, close the attempt. Nothing here sends, posts,
@@ -42,9 +43,12 @@ export function matchDecisions(decisions, envelope) {
 // activation is this repository's own flag (readActivation in src/lib/hold.mjs, from config/activation.json; the CLI always
 // passes it, and a missing file reads as held). Held here or by Control Center, the run measures, proposes nothing and
 // reports one hold (Ruling, Krish, 2026-10-29).
+// repo is this repository's own state (readRepoState in src/lib/engine-state.mjs; the CLI passes it): with Control Center's
+// 1.20.0 the report carries the engine's priorities, obsessions and next steps from it, and acks Krish's instruction by id
+// (Ruling, Krish, 2026-11-11). His words never reach the summary, which is printed: only the id and a digest do.
 export async function operate({ client, outbox, policy, corpusSha, at = new Date().toISOString(), loadSnapshot = null, invocation,
   synthetic = false, revision = 'unversioned-local', directiveDate = null, clock = () => new Date().toISOString(), appExport = { state:'absent' },
-  sourceRevision = templateRevision, activation = { state:'active', reason:null } }) {
+  sourceRevision = templateRevision, activation = { state:'active', reason:null }, repo = null }) {
   const command = 'operate';
   const runId = protocolRunId(command, at, invocation);
   const attempt = { attempt_id:runId, command, run_id:runId, status:'started', phase:'start', error_code:null, started_at:new Date(at).toISOString() };
@@ -68,10 +72,11 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     phase = 'icp';
     let served = { icp:null, state:'not_served', reason:'icp_not_served' };
     let creditsRead = { credits:null, state:'not_served', reason:'credits_not_served' };
-    let ccActivation = null;
+    let ccActivation = null, ccFeatures = null;
     try {
       const cap = await client.capabilities();
       ccActivation = cap.activation ?? null;
+      ccFeatures = cap.features ?? null;
       served = readIcp(directive, cap.features, attempt.started_at);
       // 1.16.0: this engine's share of the prepaid credits. The runner spends none of it (docs/CREDITS-SESSION.md).
       creditsRead = readCredits(directive, cap.features);
@@ -87,6 +92,10 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     summary.activation = { state:by.length ? 'held' : 'active', by, local:activation?.state === 'active' ? 'active' : 'held', control_center:ccActivation };
     const credits = { read:creditsRead, held:by.length > 0, spent:[] };
     summary.credits = { state:creditsRead.state, reason:creditsRead.reason, pools:creditsRead.credits?.pools.length ?? 0, spent:0 };
+    // 1.20.0: Krish's instruction and the engine's state, only when the directive and the capabilities both serve them.
+    const instructionRead = readInstruction(directive);
+    const state = { served:servesEngineState(directive, ccFeatures), repo, instruction:instructionRead.instruction, by, at:attempt.started_at };
+    summary.instruction = instructionSummary(instructionRead, state.served ? instructionAcks(state.instruction, { by, at:state.at }) : []);
     phase = 'capture';
     let snapshot = loadSnapshot ? loadSnapshot() : null;
     let observedAt = attempt.started_at;
@@ -154,14 +163,15 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
         }
       }
       phase = 'plan';
-      envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress, credits });
+      envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress, credits, state });
     } else {
-      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp, credits });
+      envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp, credits, state });
     }
     if (by.length) envelope = heldReport(envelope, { by, policy });
     outbox.put(envelope);
-    summary.report = { status:envelope.status, mode:envelope.mode, payload_sha256:envelope.payload_sha256,
-      objectives:envelope.objectives.map(o => ({ key:o.key, availability:o.availability })), proposals:envelope.proposals.length, holds:envelope.holds.map(h => h.reason) };
+    summary.report = { status:envelope.status, mode:envelope.mode, schema_version:envelope.schema_version, payload_sha256:envelope.payload_sha256,
+      objectives:envelope.objectives.map(o => ({ key:o.key, availability:o.availability })), proposals:envelope.proposals.length, holds:envelope.holds.map(h => h.reason),
+      engine_state:{ served:state.served, priorities:envelope.priorities?.length ?? 0, obsessions:envelope.obsessions?.length ?? 0, next_steps:envelope.next_steps?.length ?? 0, instruction_acks:envelope.instruction_acks?.length ?? 0 } };
     phase = 'report';
     const receipt = await deliver(outbox, runId, { client, activation });
     summary.report.readback = 'matched';

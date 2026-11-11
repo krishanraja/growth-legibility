@@ -106,3 +106,23 @@ manifest.json was refrozen for `src/guards/wire.mjs` (`validateIcp`) and `src/st
 ## Prepaid credits: credits_spent (protocol 1.16.0, 29 October 2026)
 
 `validateEngineEnvelope` takes 1.16.0 beside 1.0.0 and 1.12.0, for one field: `credits_spent[]`, 1 to 40 entries of exactly `pool` (a pool key), `amount` (positive), `asset` (what was made in words, at most 300 characters, never an address or a link) and `objective_key` (snake case or null). A 1.16.0 report must carry it, and it travels at no other version; a 1.16.0 report may also carry version 2 email actions. A held report never carries it and says 1.0.0. The runner reads the directive's `credits` (`readCredits`, src/lib/cc-signals.mjs) and spends nothing, so today no report carries the field: the spending is the scheduled session's ([docs/CREDITS-SESSION.md](../docs/CREDITS-SESSION.md)), recorded in Control Center, never in a report. manifest.json was refrozen for `src/guards/wire.mjs` only; both frozen examples are unchanged. The stand-in (tests/standin.mjs) now takes the versions through 1.16.0.
+
+## Krish's instruction and the engine's state (protocol 1.20.0, 11 November 2026)
+
+Ruling (Krish, 2026-11-11): every growth engine's priorities, obsessions, next steps and outstanding items feed live across Control Centre, and Krish instructs each engine with his next best action, which starts it. Control Center's spec is [docs/control-center/ENGINE-PROTOCOL.md](../docs/control-center/ENGINE-PROTOCOL.md), "Krish's instruction and the engine's state (1.20.0)".
+
+`validateEngineEnvelope` takes 1.20.0 for four optional fields, each closed, by Control Center's own rules (`validateEngineState` in `src/guards/wire.mjs`): `priorities[]` (at most 5 `{ rank 1..5, line, objective_key }`), `obsessions[]` (at most 3 `{ line, since }`), `next_steps[]` (at most 5 `{ line, waits_on: engine | krish | other, when }`) and `instruction_acks[]` (at most 5 `{ instruction_id: ki_ and 24 hex, state: received | started | done | blocked, line, at, evidence_url }`). A line is plain text on one line, at most 200 characters (an ack's 280), with no address or phone number by Control Center's `lineCarriesContact`. A 1.20.0 report must carry at least one of them, and they travel at no other version; it may also carry version 2 email actions and `credits_spent`.
+
+They travel only when the directive says `features.engine_state` and the capabilities serve and take 1.20.0 (`servesEngineState`, `src/lib/engine-state.mjs`); before that the report is exactly as it was. Where each comes from, never a model and never inferred:
+
+| Field | Source |
+|---|---|
+| `priorities` | the North Star block of docs/NORTH_STAR.md with this run's own `weekly_builders` reading and this week's rung, then the run's recommended constraint |
+| `obsessions` | Krish's quoted aims in `config/engine-state.json`, each standing word for word in the document it names (`tests/engine-state.test.mjs`) |
+| `next_steps` | docs/GET-GOING.md's first unticked phase item (`waits_on: engine`), then NOW.md's "Waiting on Krish" (`waits_on: krish`) |
+| `instruction_acks` | the directive's `krish_instruction`, by id only |
+
+**His instruction.** The directive's `krish_instruction` (`{ id, words, given_at, given_by, supersedes }`, or null) is read by `readInstruction`. A run whose directive carries one puts one activity line first naming it by id, the day it was given and a digest of the words, and acks it `received`, then `blocked` with why: `engine held` while `config/activation.json` (or Control Center) holds the engine, or, released, that this runner works by rule and cannot carry out free-text words. It keeps no memory between runs, so it acks every run the instruction is carried; Control Center applies acks forward only and counts a repeat as stale. The words never reach the run summary, a log line, the outbox or the report: the summary's `instruction` carries the id and a SHA-256 digest. An instruction is never an approval: the walls do not move. A second wake the same day is a second run: `run_id` carries the GitHub run id and attempt (`gh<run>.<attempt>`).
+
+manifest.json was refrozen for `src/guards/wire.mjs` only; both frozen examples are unchanged, because they are built with no directive. docs/control-center/ENGINE-PROTOCOL.md and both schemas were copied again from Control Center at 1.20.0 (`14379de`), and the stand-in (tests/standin.mjs) takes the versions through 1.20.0 and refuses the state as Control Center's `parseEngineState` does.
+

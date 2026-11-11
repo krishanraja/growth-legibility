@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "Krish's own quoted aims, sent to Control Center as this engine's obsessions (protocol 1.20.0). Each quote stands word for word in its source document (tests/engine-state.test.mjs). Only Krish's words: never a paraphrase, never one invented.",
+  "obsessions": [
+    {
+      "quote": "By 31 December 2026, the Founding 200 targets are met for real: 75 builders with a first trusted read and 30 returning, each earned by a useful product test or a rich named invitation, never a list.",
+      "since": "2026-10-18",
+      "source": "docs/NORTH_STAR.md"
+    },
+    {
+      "quote": "the engine shows me what it is going to do, I approve, it gets up to go-live and asks me to review.",
+      "since": "2026-10-19",
+      "source": "AGENTS.md"
+    },
+    {
+      "quote": "test and learn what works",
+      "since": "2026-10-27",
+      "source": "docs/OUTREACH-TEMPLATE.md"
+    }
+  ]
+}

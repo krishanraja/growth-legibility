@@ -106,7 +106,8 @@ So the buyer alone does not let an export-fed run prepare invitations: that also
 | `prior_outreach` | `state`: `read`, `partial`, `unavailable`, `unlinked`, `not_needed`; counts | The Mindmake records read (contracts/README.md) |
 | `activation` | `state`: `held`, `active`; `by`: `krish_local`, `control_center`; `local`; `control_center` | Who holds the engine this run (`src/lib/hold.mjs`). Held, the report carries only the `engine_held` hold and no proposal |
 | `draft_press` | `state`: `served`, `not_served`, `unavailable`, `not_needed`; `actions` | Whether invitations went as version 2 email actions (contracts/README.md) |
-| `report` | `status`, `mode`, `payload_sha256`, objectives with availability, proposal count, hold codes, `readback`, `replayed` | The envelope sent and its matched readback |
+| `instruction` | `state`: `present`, `none`, `unread`, `refused`, `not_served`; `id`; `words_sha256`; `acks` | Krish's instruction from the directive (protocol 1.20.0), by id and SHA-256 digest only: his words are never printed, because this repository's Actions logs are public. `acks` lists the states this run reported (`received`, `blocked`) |
+| `report` | `status`, `mode`, `schema_version`, `payload_sha256`, objectives with availability, proposal count, hold codes, `engine_state` (whether 1.20.0 is served and how many priorities, obsessions, next steps and acks travelled), `readback`, `replayed` | The envelope sent and its matched readback |
 | `decisions` | `approved_exact`, `approved_changed`, `approved_elsewhere`, `declined`, `done` | Krish's decisions of the last seven days against this run's proposals |
 
 ### When a run fails

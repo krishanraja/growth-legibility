@@ -1,7 +1,8 @@
-import { atLeast, CREDITS_VERSION, DRAFT_PRESS_VERSION, isContactId, PROTOCOL, receiverTakes, SERVED, VERSION, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
+import { atLeast, CREDITS_VERSION, DRAFT_PRESS_VERSION, ENGINE_STATE_VERSION, isContactId, PROTOCOL, receiverTakes, SERVED, VERSION, validateAttempt, validateDecision, validateDirective, validateEngineReport } from './guards/wire.mjs';
 
 // The one Control Center client for this engine (ADR-038, docs/control-center/ENGINE-PROTOCOL.md). It sends protocol
-// 1.0.0 reports, or 1.12.0 when an invitation travels as a version 2 email action for the Draft press, and accepts any 1.x
+// 1.0.0 reports, or 1.12.0 when an invitation travels as a version 2 email action for the Draft press, 1.16.0 for
+// credits_spent and 1.20.0 for the engine's state and Krish's instruction's acks, and accepts any 1.x
 // Control Center serves (F19); it also reads the 1.11.0 prior-outreach route, each person's Mindmake record, when the
 // capabilities say it is served.
 // HTTPS to the approved origin only, no redirects, bounded timeouts, JSON only. The bearer is read by the caller at run
@@ -68,7 +69,10 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
       : null;
     // 1.16.0: the directive carries this engine's share of the prepaid credit pools (features.credits).
     const credits = cap.features?.credits === true && atLeast(cap.schema_version, CREDITS_VERSION);
-    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress, icp:cap.features?.icp === true, research:research !== null, credits }, research };
+    // 1.20.0: the engine's state and Krish's instruction. Counts only when the receiver serves 1.20.0 or later and takes a
+    // 1.20.0 report, so a report carrying them is never sent to a receiver that would refuse it.
+    const engineState = cap.features?.engine_state === true && atLeast(cap.schema_version, ENGINE_STATE_VERSION) && receiverTakes(cap, ENGINE_STATE_VERSION);
+    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress, icp:cap.features?.icp === true, research:research !== null, credits, engine_state:engineState }, research };
   }
 
   // 1.11.0: each person's Mindmake record, for 1 to 50 distinct contact ids. Only the asked ids leave this function, each

@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { validateReport, validateEngineReport, sha256, VERSION, DRAFT_PRESS_VERSION, CREDITS_VERSION } from './guards/wire.mjs';
+import { validateReport, validateEngineReport, sha256, VERSION, DRAFT_PRESS_VERSION, CREDITS_VERSION, ENGINE_STATE_KEYS, ENGINE_STATE_VERSION } from './guards/wire.mjs';
+import { engineStateFields, instructionActivity } from './lib/engine-state.mjs';
 import { emailAction } from './lib/draft-press.mjs';
 import { creditsActivity, siteActivity } from './lib/cc-signals.mjs';
 import { isoWeek } from './stages/measure.mjs';
@@ -180,7 +181,10 @@ function numberObjectives(registered, wb) {
 // Without it, or with no invitation that can be one, the envelope is exactly the 1.0.0 one.
 // credits is the run's 1.16.0 read ({ read, held, spent }, src/lib/cc-signals.mjs readCredits): its lines join the activity,
 // and only a run that spent something carries credits_spent and says 1.16.0. The runner spends nothing, so today it never does.
-export function engineReport(report, { runId, directive = null, directiveHold = null, draftPress = null, credits = null }) {
+// state is the run's 1.20.0 read ({ served, repo, instruction, by, at }, src/lib/engine-state.mjs): only when Control Center
+// serves the engine's state does the report carry priorities, obsessions, next_steps and Krish's instruction's acks, with
+// one activity line first naming the instruction by id, and say 1.20.0. Without it the envelope is exactly as before.
+export function engineReport(report, { runId, directive = null, directiveHold = null, draftPress = null, credits = null, state = null }) {
   validateReport(report);
   const { campaign, metrics, recommendation } = report.scorecard;
   const stale = report.holds.some(h => h.code === 'stale_snapshot');
@@ -200,6 +204,7 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
   }));
   const pending = report.actions.filter(a => a.status === 'pending_human').length;
   const activity = [
+    instructionActivity(state?.served ? state.instruction : null, { by:state?.by }),
     directiveActivity(directive),
     { line:clip(`Measured the Founding 200 funnel from a ${report.mode} source snapshot captured ${report.source.captured_at} (digest ${report.source.snapshot_sha256.slice(0, 12)}).`, 500), evidence_url:null },
     weeklyBuildersLine(metrics.weekly_builders, report.scorecard.north_star?.weekly_builders_window),
@@ -215,11 +220,19 @@ export function engineReport(report, { runId, directive = null, directiveHold = 
   if (directiveHold) holds.push(directiveHold);
   const status = report.status === 'ready' && directiveHold ? 'degraded' : report.status;
   const spent = creditsSpent(credits);
+  const engineState = engineStateFields(state, { recommendation, objectiveFor, weeklyBuilders:metrics.weekly_builders ?? null, registered:registeredObjectives(directive).weekly_builders });
   return seal({
-    schema_version:spent ? CREDITS_VERSION : proposals.some(p => p.source_revision) ? DRAFT_PRESS_VERSION : VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
+    schema_version:reportVersion(engineState, spent, proposals), engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode:report.mode,
     observed_at:report.observed_at, source:{ revision:report.source.snapshot_sha256, captured_at:report.source.captured_at },
-    status, objectives, activity, proposals, events:[], holds, ...(spent ? { credits_spent:spent } : {}),
+    status, objectives, activity, proposals, events:[], holds, ...(spent ? { credits_spent:spent } : {}), ...engineState,
   });
+}
+
+// The version a report says: the newest field it carries names it, and nothing raises it without its field.
+function reportVersion(engineState, spent, proposals) {
+  if (ENGINE_STATE_KEYS.some(k => engineState[k] !== undefined)) return ENGINE_STATE_VERSION;
+  if (spent) return CREDITS_VERSION;
+  return proposals.some(p => p.source_revision) ? DRAFT_PRESS_VERSION : VERSION;
 }
 
 // The credits a run spent, as credits_spent wants them, or null when it spent none (a held run never does).
@@ -234,7 +247,8 @@ function creditsSpent(credits) {
 // icp is the buyer Control Center's directive carried (src/lib/cc-signals.mjs readIcp), or null. Only a current approved
 // one (prepare's own rule, icpCurrent) clears icp_not_current_approved; with none, the report is exactly the one sent
 // before the directive carried a buyer.
-export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [], icp = null, credits = null }) {
+// state is the run's 1.20.0 read, as engineReport takes it: with nothing measured, the North Star priority says so.
+export function heldEngineReport({ runId, at, revision, mode = 'live', policy, directive = null, directiveHold = null, extraHolds = [], icp = null, credits = null, state = null }) {
   const inactive = !policy?.campaign?.activated_at;
   const reason = `No source snapshot from the Legibility app reached this run, so nothing was measured.${inactive ? ' The campaign clock has not been activated either.' : ''}`;
   const objectives = OBJECTIVES.map(({ key, unit }) => ({ key, value:null, unit, window_start:policy?.campaign?.activated_at ?? null, window_end:null, timezone:'UTC', availability:'missing', reason }));
@@ -252,10 +266,12 @@ export function heldEngineReport({ runId, at, revision, mode = 'live', policy, d
   const held = buyer
     ? { line:`Held measurement and preparation: no source snapshot reached the runner. The approved buyer did, from Control Center product_icp (revision ${String(icp.revision).replace(/^sha256:/, '').slice(0, 12)}, reviewed ${icp.reviewed_at}). No objective was guessed and nothing was sent.`, evidence_url:null }
     : { line:'Held measurement and preparation: no source snapshot or canonical ICP reached the runner. No objective was guessed and nothing was sent.', evidence_url:null };
+  const engineState = engineStateFields(state, { recommendation:rec, objectiveFor, weeklyBuilders:null, registered:registeredObjectives(directive).weekly_builders });
+  const proposals = [constraintProposal(rec)];
   return seal({
-    schema_version:VERSION, engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode, observed_at:at,
+    schema_version:reportVersion(engineState, null, proposals), engine_id:'growth-legibility', product_slug:'legibility', run_id:runId, mode, observed_at:at,
     source:{ revision:String(revision).slice(0, 128), captured_at:at }, status:'held', objectives,
-    activity:[directiveActivity(directive), held, ...siteActivity(directive?.web_analytics), ...creditsActivity(credits?.read, { held:credits?.held })].filter(Boolean).slice(0, 40),
-    proposals:[constraintProposal(rec)], events:[], holds,
+    activity:[instructionActivity(state?.served ? state.instruction : null, { by:state?.by }), directiveActivity(directive), held, ...siteActivity(directive?.web_analytics), ...creditsActivity(credits?.read, { held:credits?.held })].filter(Boolean).slice(0, 40),
+    proposals, events:[], holds, ...engineState,
   });
 }

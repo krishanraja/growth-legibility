@@ -8,6 +8,28 @@ export const DRAFT_PRESS_VERSION = '1.12.0';
 // Control Center protocol 1.16.0: a report may carry credits_spent[], the prepaid credits the run spent of this engine's
 // share (ENGINE-PROTOCOL.md, "Prepaid credits"). The report says 1.16.0 only for that field, and only when it carries one.
 export const CREDITS_VERSION = '1.16.0';
+// Control Center protocol 1.20.0: a report may carry priorities, obsessions, next_steps and instruction_acks, the engine's
+// state on every place in Control Center and what it did with Krish's instruction (ENGINE-PROTOCOL.md, "Krish's instruction
+// and the engine's state"). They travel only when the directive says features.engine_state, and the report says 1.20.0 only
+// when it carries one of them. Within 1.x Control Center only adds, so a 1.20.0 report may also carry a version 2 email
+// action or credits_spent.
+export const ENGINE_STATE_VERSION = '1.20.0';
+export const ENGINE_STATE_KEYS = Object.freeze(['priorities', 'obsessions', 'next_steps', 'instruction_acks']);
+// Control Center's limits (src/lib/growthEngines.ts, PRIORITIES_MAX and its neighbours).
+export const STATE_LIMITS = Object.freeze({ priorities:5, obsessions:3, next_steps:5, instruction_acks:5, line:200, ack_line:280 });
+/** Krish's instruction id, as Control Center mints it: ki_ and 24 hex characters. */
+export const INSTRUCTION_ID = /^ki_[0-9a-f]{24}$/;
+// Control Center refuses the whole report when a state line names an address or a phone number (lineCarriesContact), so
+// this boundary refuses it first, by the same two patterns.
+const EMAIL_IN_TEXT = /[^\s@]+@[^\s@]+\.[a-z]{2,}/i;
+const PHONE_RUN = /\+?\d[\d\s().-]{8,}\d/g;
+/** Whether a line names an address or a phone number, by Control Center's own rule. */
+export const lineCarriesContact = t => EMAIL_IN_TEXT.test(t) || (t.match(PHONE_RUN) ?? []).some(r => r.replace(/\D/g, '').length >= 10);
+const CONTROL_CHAR = /[\u0000-\u001f\u007f]/;
+/** One plain state line: text on one line, trimmed, at most `max`, with no address or phone number. */
+export const stateLine = (v, max) => typeof v === 'string' && v.length > 0 && v.length <= max && v.trim() === v && !CONTROL_CHAR.test(v) && !lineCarriesContact(v);
+const ymd = v => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(`${v}T00:00:00Z`)) && new Date(`${v}T00:00:00Z`).toISOString().slice(0, 10) === v;
+export { ymd as calendarDay };
 // Control Center only ever adds within 1.x (ENGINE-PROTOCOL.md, "Versions"), so what it
 // serves may be any 1.x while this engine sends 1.0.0. On 2026-10-19 it began serving 1.1.0
 // and an exact match here stopped every run with receiver_contract_mismatch.
@@ -251,9 +273,9 @@ export function validateSourceRevision(revs) {
 const SUBJECT_REF = /^contact:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export function validateEngineEnvelope(r) {
-  keys(r,['schema_version','engine_id','product_slug','run_id','mode','observed_at','source','status','objectives','activity','proposals','events','holds','credits_spent','payload_sha256'],'engine_report');
-  fail([VERSION, DRAFT_PRESS_VERSION, CREDITS_VERSION].includes(r.schema_version) && line(r.engine_id, 64) && line(r.product_slug, 64), 'engine_report_identity');
-  const draftPress = r.schema_version === DRAFT_PRESS_VERSION || r.schema_version === CREDITS_VERSION;
+  keys(r,['schema_version','engine_id','product_slug','run_id','mode','observed_at','source','status','objectives','activity','proposals','events','holds','credits_spent',...ENGINE_STATE_KEYS,'payload_sha256'],'engine_report');
+  fail([VERSION, DRAFT_PRESS_VERSION, CREDITS_VERSION, ENGINE_STATE_VERSION].includes(r.schema_version) && line(r.engine_id, 64) && line(r.product_slug, 64), 'engine_report_identity');
+  const draftPress = [DRAFT_PRESS_VERSION, CREDITS_VERSION, ENGINE_STATE_VERSION].includes(r.schema_version);
   fail(protocolId(r.run_id) && allowed(r.mode,['live','synthetic']) && dateTime(r.observed_at), 'engine_report_run');
   fail(allowed(r.status,['ready','held','degraded']), 'engine_report_status');
   keys(r.source,['revision','captured_at'],'engine_report_source');
@@ -300,8 +322,9 @@ export function validateEngineEnvelope(r) {
   }
   // Raise the version only for the field it is for: a 1.12.0 report carries at least one version 2 email action.
   fail(r.schema_version !== DRAFT_PRESS_VERSION || (r.proposals ?? []).some(p => isActionV2Text(p.exact_payload)), 'engine_report_1_12_0_without_action_v2');
-  // 1.16.0: the credits this run spent, at most 40, and the version only for them.
-  fail(r.credits_spent === undefined ? r.schema_version !== CREDITS_VERSION : r.schema_version === CREDITS_VERSION && Array.isArray(r.credits_spent) && r.credits_spent.length >= 1 && r.credits_spent.length <= 40, 'engine_report_credits_spent_version');
+  // 1.16.0: the credits this run spent, at most 40, and the version only for them (or 1.20.0, which also carries the state).
+  fail(r.credits_spent === undefined ? r.schema_version !== CREDITS_VERSION : [CREDITS_VERSION, ENGINE_STATE_VERSION].includes(r.schema_version) && Array.isArray(r.credits_spent) && r.credits_spent.length >= 1 && r.credits_spent.length <= 40, 'engine_report_credits_spent_version');
+  validateEngineState(r);
   for (const c of r.credits_spent ?? []) {
     keys(c,['pool','amount','asset','objective_key'],'engine_credit_spent');
     fail(typeof c.pool === 'string' && /^[a-z0-9][a-z0-9_-]{0,63}$/.test(c.pool) && typeof c.amount === 'number' && Number.isFinite(c.amount) && c.amount > 0
@@ -313,6 +336,30 @@ export function validateEngineEnvelope(r) {
   for (const h of r.holds ?? []) { keys(h,['reason','detail'],'engine_hold'); fail(line(h.reason, 200) && orNull(h.detail, v => str(v, 1000)), 'engine_hold'); }
   const { payload_sha256, ...body } = r;
   fail(hex64(payload_sha256) && payload_sha256 === sha256(body), 'engine_report_digest');
+  return r;
+}
+// 1.20.0: the engine's state, each field optional, each entry closed, and the version only for them: a 1.20.0 report carries
+// at least one, and none travels at any other version. Control Center refuses the whole report on one bad entry, so this
+// boundary refuses it first.
+export function validateEngineState(r) {
+  const has = ENGINE_STATE_KEYS.some(k => r[k] !== undefined);
+  fail(has ? r.schema_version === ENGINE_STATE_VERSION : r.schema_version !== ENGINE_STATE_VERSION, 'engine_report_state_version');
+  const max = STATE_LIMITS;
+  for (const k of ENGINE_STATE_KEYS) fail(r[k] === undefined || (Array.isArray(r[k]) && r[k].length <= max[k]), `engine_report_${k}`);
+  for (const p of r.priorities ?? []) {
+    keys(p, ['rank','line','objective_key'], 'engine_priority');
+    fail(Number.isInteger(p.rank) && p.rank >= 1 && p.rank <= max.priorities && stateLine(p.line, max.line) && orNull(p.objective_key, snake), 'engine_priority');
+  }
+  for (const o of r.obsessions ?? []) { keys(o, ['line','since'], 'engine_obsession'); fail(stateLine(o.line, max.line) && orNull(o.since, ymd), 'engine_obsession'); }
+  for (const n of r.next_steps ?? []) {
+    keys(n, ['line','waits_on','when'], 'engine_next_step');
+    fail(stateLine(n.line, max.line) && allowed(n.waits_on, ['engine','krish','other']) && orNull(n.when, ymd), 'engine_next_step');
+  }
+  for (const a of r.instruction_acks ?? []) {
+    keys(a, ['instruction_id','state','line','at','evidence_url'], 'engine_instruction_ack');
+    fail(typeof a.instruction_id === 'string' && INSTRUCTION_ID.test(a.instruction_id) && allowed(a.state, ['received','started','done','blocked'])
+      && stateLine(a.line, max.ack_line) && dateTime(a.at) && orNull(a.evidence_url, https), 'engine_instruction_ack');
+  }
   return r;
 }
 // The envelope this engine may send: bound to its own registry row and carrying every collection.

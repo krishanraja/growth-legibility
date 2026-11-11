@@ -93,6 +93,16 @@ The directive's `credits` block is the live figure, never this table: `{ rule, p
 
 **Who spends it (built 29 Oct).** The runner holds no Apify or 21st Dev key, so it reads the share, writes one activity line per pool and spends nothing (`readCredits` and `reserveCredit` in `src/lib/cc-signals.mjs`). The spending is a daily scheduled Claude session's, recorded through the Control Center connector (`get_engine_credits`, `reserve_credit_spend`, `settle_credit_spend`), which Control Center takes off the share as it does `credits_spent`. Its playbook and release prerequisites are [CREDITS-SESSION.md](CREDITS-SESSION.md). A report carries `credits_spent` only for a spend the runner itself made, which today is none.
 
+## Krish's instruction and the engine's state (protocol 1.20.0)
+
+Ruling (Krish, 2026-11-11): every growth engine's priorities, obsessions, next steps and outstanding items feed live across Control Centre, and Krish instructs each engine with his next best action, which starts it. Control Center's spec is [ENGINE-PROTOCOL.md](control-center/ENGINE-PROTOCOL.md), "Krish's instruction and the engine's state (1.20.0)"; this engine's side is in [contracts/README.md](../contracts/README.md).
+
+**What Control Center shows.** On every place (the Engine drawer, the rail, Home), this engine's priorities, obsessions and next steps exactly as it reports them, "Not reported yet" for a field it leaves out, and NOW.md's "Where it is right now" as the state of play.
+
+**His instruction.** He gives it through Control Center's one door. While this engine is held in Control Center it is not woken and its directive carries `krish_instruction: null`; once he releases it there, the directive carries it until it is done, withdrawn, replaced or a week old. The runner acks it by id, `received` and then `blocked`: `engine held` while `config/activation.json` still holds the engine, and, once it is active, that this runner works by rule, with no model, so a session on this repository (or Phase 2's model step) carries out the words. Never his words in a log: this repository and its Actions logs are public.
+
+**The walls.** An instruction is never an approval. A send, post, spend, delete or permission change it asks for still comes back to Krish as a walled proposal he approves by its digest.
+
 ## Still owed by Control Center (named, not built)
 
 - The attribution allowlist for `app: legibility` (still omits Legibility at the 27 October source review).

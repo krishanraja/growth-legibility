@@ -10,6 +10,7 @@ import { operate } from './operate.mjs';
 import { exportFromEnv } from './lib/export-client.mjs';
 import { dropPriorMindmake } from './lib/prior-outreach.mjs';
 import { heldReport, readActivation } from './lib/hold.mjs';
+import { readRepoState } from './lib/engine-state.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)),'..');
 function args(argv) {
@@ -71,7 +72,7 @@ async function main() {
   const corpusSources=verifySources(c.register,createHash);
   if(opts.command==='doctor') {
     console.log(JSON.stringify({node:process.version,corpus_integrity:'pass',corpus_sources:corpusSources,policy:'pass',source_review_due:policy.source_review_due,activation:readActivation(join(root,'config','activation.json')),
-      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0, or 1.12.0 when it serves the Draft press',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY),legibility_export_url:Boolean(process.env.LEGIBILITY_EXPORT_URL),legibility_export_token:Boolean(process.env.LEGIBILITY_EXPORT_TOKEN)}},null,2));
+      campaign_activation:policy.campaign.activated_at??'not activated',receiver:'Control Center growth engine protocol 1.0.0, or 1.12.0 when it serves the Draft press, 1.16.0 for credits spent, 1.20.0 when it serves the engine state',credentials:{control_center_token:Boolean(process.env.CONTROL_CENTER_ENGINE_TOKEN),control_center_url:Boolean(process.env.CONTROL_CENTER_URL),product_api:Boolean(process.env.LEGIBILITY_API_KEY),legibility_export_url:Boolean(process.env.LEGIBILITY_EXPORT_URL),legibility_export_token:Boolean(process.env.LEGIBILITY_EXPORT_TOKEN)}},null,2));
     return;
   }
   if(opts.command==='help') {
@@ -110,6 +111,8 @@ async function main() {
         loadSnapshot:opts.snapshot?()=>loadJson(resolve(opts.snapshot)):null,invocation:plan.invocation,revision:plan.revision,directiveDate:plan.date,
         // Krish's own hold (Ruling, Krish, 2026-10-29): a missing or unreadable file reads as held.
         activation:readActivation(join(root,'config','activation.json')),
+        // 1.20.0: the engine's priorities, obsessions and next steps, from this repository's own files (never a model).
+        repo:readRepoState(root),
         // The app export is read only when both variables are set; neither set holds exactly as before (attribution_export_missing).
         appExport:opts.snapshot?{state:'absent'}:exportFromEnv(process.env)});
       if(privateReport) writeJson(join(output,`${privateReport.run_id}.json`),privateReport);

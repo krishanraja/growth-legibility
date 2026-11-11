@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { seal } from '../orchestrator.mjs';
-import { VERSION } from '../guards/wire.mjs';
+import { ENGINE_STATE_KEYS, ENGINE_STATE_VERSION, VERSION } from '../guards/wire.mjs';
 
 // Ruling (Krish, 2026-10-29): Not ready means a held activation state: no wake, no asks on his list, no growth council
 // move, and the bearer stays valid. A held run still measures, inside the walls, so the North Star number stays read; it
@@ -50,11 +50,13 @@ export function heldReport(envelope, { by, policy }) {
   const who = by.includes('control_center') && by.includes('krish_local') ? 'on Growth > Engines in Control Center and in config/activation.json'
     : by.includes('control_center') ? 'on Growth > Engines in Control Center' : 'in config/activation.json';
   const detail = clip(`Krish has held this engine until it is ready (Ruling, Krish, 2026-10-29), ${who}. Ready needs: ${needs.length ? needs.join(', ') : 'nothing open in this run'}. It clears when each of those is cleared and Krish releases the engine in both places. Nothing was proposed and nothing was sent.`, 1000);
-  // A held run spends no credits, so it carries no credits_spent and says 1.0.0.
+  // A held run spends no credits, so it carries no credits_spent and says 1.0.0, or 1.20.0 when it carries the engine's
+  // state (src/lib/engine-state.mjs): what it chases and what is next are not asks, and Krish's instruction is acked
+  // blocked, engine held, so they stay.
   const { payload_sha256, credits_spent, ...body } = envelope;
   return seal({
     ...body,
-    schema_version:VERSION,
+    schema_version:ENGINE_STATE_KEYS.some(k => body[k] !== undefined) ? ENGINE_STATE_VERSION : VERSION,
     status:'held',
     activity:[...body.activity.filter(a => !ASK_LINES.test(a.line)),
       { line:clip(`Held by Krish: measured inside the walls, proposed nothing and put no ask on his list. Ready needs ${needs.length} item${needs.length === 1 ? '' : 's'}.`, 500), evidence_url:null }].slice(0, 40),

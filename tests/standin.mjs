@@ -48,8 +48,9 @@ export function schemaErrors(value, schema, path = '$', errors = []) {
 // parseBasis, the source_revision rule of parseRowFields and parseProposal's 1.12.0 branch for a send off the rows), ported
 // line for line so a report the stand-in takes is one Control Center would take. Only what this engine can send is ported.
 // Raised to 1.16.0 on 2026-10-29 for credits_spent (PROTOCOL_VERSIONS in Control Center's src/lib/growthEngines.ts); no
-// proposal rule changed between 1.12.0 and 1.16.0.
-export const CC_VERSIONS = Object.freeze(['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0', '1.14.0', '1.15.0', '1.16.0']);
+// proposal rule changed between 1.12.0 and 1.16.0. Raised to 1.20.0 on 2026-11-11 for the engine's state (control-center
+// 6012ec21, parseEngineState, ported below); no proposal rule this engine uses changed between 1.16.0 and 1.20.0.
+export const CC_VERSIONS = Object.freeze(['1.0.0', '1.1.0', '1.2.0', '1.3.0', '1.4.0', '1.5.0', '1.6.0', '1.7.0', '1.8.0', '1.9.0', '1.10.0', '1.11.0', '1.12.0', '1.13.0', '1.14.0', '1.15.0', '1.16.0', '1.17.0', '1.18.0', '1.19.0', '1.20.0']);
 const CC_PROPOSAL_KEYS = ['proposal_id', 'title', 'why', 'kind', 'wall', 'amount_usd', 'channel', 'objective_key', 'exact_payload', 'payload_sha256', 'evidence', 'close_condition', 'expires_at'];
 const CC_PROPOSAL_KEYS_1_8 = [...CC_PROPOSAL_KEYS, 'stage', 'parent_proposal_id', 'subject_ref', 'row', 'rank', 'reach', 'amplifier_kind', 'features', 'serves', 'source_revision', 'because', 'brief', 'card'];
 const ccIsObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -92,6 +93,31 @@ export function ccParseActionV2(text) {
   }
   return { ok:true, value:{ version:2, channel:a.channel, recipient_contact_id:recipient, subject:a.channel === 'email' ? subject : null, body, form:null, mailbox, ...(basis ? { prior_mindmake:basis } : {}) } };
 }
+// Control Center's parseEngineState and lineCarriesContact at 6012ec21 (src/lib/growthEngines.ts), ported line for line.
+const CC_EMAIL_IN_TEXT = /[^\s@]+@[^\s@]+\.[a-z]{2,}/i;
+const CC_PHONE_RUN = /\+?\d[\d\s().-]{8,}\d/g;
+const ccLineCarriesContact = t => CC_EMAIL_IN_TEXT.test(t) || (t.match(CC_PHONE_RUN) ?? []).some(r => r.replace(/\D/g, '').length >= 10);
+const ccStateLine = (v, max) => { const t = ccStr(v, max); return t && !/[\u0000-\u001f\u007f]/.test(t) && !ccLineCarriesContact(t) ? t : null; };
+const ccYmdOrNull = v => (v === null || v === undefined ? null : typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(`${v}T00:00:00Z`)) ? v : undefined);
+const CC_ID = /^[A-Za-z0-9][A-Za-z0-9:._-]{0,119}$/;
+const CC_KEY = /^[a-z][a-z0-9_]{0,63}$/;
+/** Why Control Center would refuse a report's 1.20.0 state at `version`, or null when it takes it. */
+export function ccEngineStateRefusal(body, version) {
+  const keys = ['priorities', 'obsessions', 'next_steps', 'instruction_acks'];
+  if (!keys.some(k => body[k] !== undefined)) return null;
+  if (!ccAtLeast(version, '1.20.0')) return 'state_needs_1_20_0';
+  const list = (k, max) => body[k] === undefined ? [] : Array.isArray(body[k]) && body[k].length <= max ? body[k] : null;
+  const pr = list('priorities', 5), ob = list('obsessions', 3), ns = list('next_steps', 5), ak = list('instruction_acks', 5);
+  if (!pr || !ob || !ns || !ak) return 'state_list';
+  for (const x of pr) if (!ccIsObj(x) || ccExtra(x, ['rank', 'line', 'objective_key']) || !Number.isInteger(x.rank) || x.rank < 1 || x.rank > 5 || !ccStateLine(x.line, 200)
+    || !(x.objective_key === undefined || x.objective_key === null || (typeof x.objective_key === 'string' && CC_KEY.test(x.objective_key)))) return 'priority';
+  for (const x of ob) if (!ccIsObj(x) || ccExtra(x, ['line', 'since']) || !ccStateLine(x.line, 200) || ccYmdOrNull(x.since) === undefined) return 'obsession';
+  for (const x of ns) if (!ccIsObj(x) || ccExtra(x, ['line', 'waits_on', 'when']) || !ccStateLine(x.line, 200) || !['engine', 'krish', 'other'].includes(x.waits_on) || ccYmdOrNull(x.when) === undefined) return 'next_step';
+  for (const x of ak) if (!ccIsObj(x) || ccExtra(x, ['instruction_id', 'state', 'line', 'at', 'evidence_url']) || typeof x.instruction_id !== 'string' || !CC_ID.test(x.instruction_id)
+    || !['received', 'started', 'done', 'blocked'].includes(x.state) || !ccStateLine(x.line, 280) || !ccIsTime(x.at) || ccHttpsOrNull(x.evidence_url) === undefined) return 'instruction_ack';
+  return null;
+}
+
 /** Why Control Center would refuse one proposal of a report at `version`, or null when it takes it. */
 export function ccProposalRefusal(p, version) {
   if (!ccIsObj(p) || ccExtra(p, version === '1.0.0' ? CC_PROPOSAL_KEYS : CC_PROPOSAL_KEYS_1_8)) return 'unknown_field';
@@ -154,13 +180,15 @@ export async function standIn(t, options = {}) {
     priorOutreach = null, priorOutreachStatus = 200,
     // Serve the Draft press (1.12.0, features.draft_press). `capabilities` may reshape the answer, to serve less.
     draftPress = false, capabilities = cap => cap,
+    // Serve 1.20.0 (features.engine_state and features.krish_instruction): the engine's state and Krish's instruction.
+    engineState = false,
   } = options;
   const reports = new Map(), attempts = new Map(), log = [], priorOutreachReads = [];
   const capabilitiesBody = () => {
-    const served = draftPress ? { schema_version:'1.12.0', schema_versions:[...CC_VERSIONS] }
+    const served = engineState ? { schema_version:'1.20.0', schema_versions:[...CC_VERSIONS] } : draftPress ? { schema_version:'1.12.0', schema_versions:[...CC_VERSIONS] }
       : priorOutreach ? { schema_version:'1.11.0', schema_versions:['1.0.0','1.1.0','1.2.0','1.11.0'] } : { schema_version:'1.2.0', schema_versions:['1.0.0','1.1.0','1.2.0'] };
     return { ...served, engine_id:'growth-legibility', product_slug:wrongCapability ? 'other' : 'legibility', idempotency:true, activation:{ state:'active', activated_on:'2026-10-18' },
-      features:{ directive:true, ...(priorOutreach ? { prior_outreach:true } : {}), ...(draftPress ? { draft_press:true } : {}) } };
+      features:{ directive:true, ...(priorOutreach ? { prior_outreach:true } : {}), ...(draftPress ? { draft_press:true } : {}), ...(engineState ? { engine_state:true, krish_instruction:true } : {}) } };
   };
   let posts = 0, hidden = 0;
   if (conflictWith) reports.set(conflictWith.run_id, conflictWith);
@@ -208,6 +236,7 @@ export async function standIn(t, options = {}) {
       const cap = capabilities(capabilitiesBody());
       if (!(Array.isArray(cap.schema_versions) ? cap.schema_versions : [cap.schema_version]).includes(r.schema_version)) return send(400, { error:'schema_version' });
       if (r.proposals.some(p => ccProposalRefusal(p, r.schema_version))) return send(400, { error:'proposal' });
+      if (ccEngineStateRefusal(r, r.schema_version)) return send(400, { error:'engine_state' });
       if (req.headers['idempotency-key'] !== r.run_id) return send(400, { error:'idempotency_key_mismatch' });
       if (r.engine_id !== 'growth-legibility' || r.product_slug !== 'legibility') return send(403, { error:'wrong_engine' });
       if (inactive && r.mode === 'live') return send(409, { error:'engine_inactive' });

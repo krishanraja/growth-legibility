@@ -3,6 +3,8 @@
 > **Status, 2026-10-19: adopted.** The engine speaks protocol 1.0.0 through `src/transport.mjs` and `src/operate.mjs`, and `.github/workflows/operate.yml` answers the `cc-growth-directive` dispatch. See `docs/OPERATIONS.md`, "The Control Center loop".
 >
 > **Status, 2026-10-27: live, not only tested against the stand-in.** The first live run on 2026-10-19 succeeded: it journaled its attempt, read the directive, sent a report, read it back by digest and read Krish's decisions. The daily dispatch has run every day since, apart from the 33.5-hour gap on 20 and 21 October that 2b65ea6 fixed ([history log](history/LOG.md)). The engine's architecture and build plan is [ENGINE-ARCHITECTURE.md](ENGINE-ARCHITECTURE.md). What a run reports today is in [OPERATIONS.md](OPERATIONS.md), "What a dispatch measures today".
+>
+> **Status, 2026-11-12: held since 29 October.** Krish held the engine that day (Ruling, Krish, 2026-10-29), so Control Center sends no wake and the last live run is the dispatch of 29 October 05:10 UTC. Protocols 1.16.0 (prepaid credits) and 1.20.0 (his instruction and the engine's state) are built on this side and have not run live yet (below).
 
 Written 2026-10-18 by Control Center. This brief **supersedes `docs/CONTROL-CENTER-HANDOFF.md`**. Most of your proposal is now the protocol for every engine: your paths, your envelope, your digest rule and your idempotency. Krish ruled that every growth engine conforms to one protocol (ADR-038 in Control Center).
 
@@ -10,7 +12,7 @@ Written 2026-10-18 by Control Center. This brief **supersedes `docs/CONTROL-CENT
 
 - **Built your receiver, generalised**, under `/api/growth/engines/legibility/`.
 - **Writes one `workflow_runs` row** per accepted live report, with `agent_id: maya` and the metadata you asked for. A business hold is not an error.
-- **Pushes you one next action every day, chosen by rule.**
+- **Pushes you one next action every day, chosen by rule**, and no wake at all while it holds you.
 - **Puts your `approval_required` packets on Krish's one list**, and returns his decision bound to the text hash.
 - **Isolates synthetic reports on the server.**
 
@@ -22,9 +24,9 @@ Written 2026-10-18 by Control Center. This brief **supersedes `docs/CONTROL-CENT
 | `engine_id` | `growth-legibility` |
 | `product_slug` | `legibility` |
 | Aim | The Founding 200 targets are met for real: 75 builders with a first trusted read and 30 returning, each earned by a useful product test or a rich named invitation, never a list. By 2026-12-31 |
-| Objectives | `activated`: 75; `returning`: 30; `net`: 200 (campaign window) |
+| Objectives | `activated`: 75; `returning`: 30; `net`: 200 (campaign window). Since protocol 1.13.0 (Control Center migration `20261112150000`) also `weekly_builders`: 300 (this ISO week, the North Star number, which Control Center's North Star reader takes from your latest live report) and `conversations_held`: 4 (a fortnight) |
 | Cadence | daily |
-| State | Switched on 2026-10-18, with dispatch on. Your bearer arrives in this repository's secrets as `CONTROL_CENTER_ENGINE_TOKEN`, with `CONTROL_CENTER_URL` as a variable. Until then, build against `mode: synthetic` |
+| State | Switched on 2026-10-18, with dispatch on; held by Krish since 2026-10-29 (`activation_state: held`, read 12 Nov): no wake, no asks on his list, and the bearer stays valid. The bearer is in this repository's secrets as `CONTROL_CENTER_ENGINE_TOKEN`, with `CONTROL_CENTER_URL` as a variable; build against `mode: synthetic` and the stand-in |
 
 ## The protocol, in short
 
@@ -99,7 +101,7 @@ Ruling (Krish, 2026-11-11): every growth engine's priorities, obsessions, next s
 
 **What Control Center shows.** On every place (the Engine drawer, the rail, Home), this engine's priorities, obsessions and next steps exactly as it reports them, "Not reported yet" for a field it leaves out, and NOW.md's "Where it is right now" as the state of play.
 
-**His instruction.** He gives it through Control Center's one door. While this engine is held in Control Center it is not woken and its directive carries `krish_instruction: null`; once he releases it there, the directive carries it until it is done, withdrawn, replaced or a week old. The runner acks it by id, `received` and then `blocked`: `engine held` while `config/activation.json` still holds the engine, and, once it is active, that this runner works by rule, with no model, so a session on this repository (or Phase 2's model step) carries out the words. Never his words in a log: this repository and its Actions logs are public.
+**His instruction.** He gives it through Control Center's one door. While this engine is held in Control Center it is not woken and its directive carries `krish_instruction: null`; once he releases it there, the directive carries it until it is done, withdrawn, replaced or a week old. The runner acks it by id, `received` and then `blocked`: `engine held` while `config/activation.json` still holds the engine, and, once it is active, that this runner works by rule, with no model, so a session Krish opens on this repository (or, once built, Phase 2's model step) carries out the words; nothing starts one by itself. Never his words in a log: this repository and its Actions logs are public.
 
 **The walls.** An instruction is never an approval. A send, post, spend, delete or permission change it asks for still comes back to Krish as a walled proposal he approves by its digest.
 

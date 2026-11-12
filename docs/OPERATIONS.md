@@ -32,7 +32,7 @@ Restore an older producer through normal Git review if code fails. Reproduce pri
 
 ## Operating cadence and useful work
 
-The daily run is Control Center's dispatch (below). No other schedule is enabled. The corpus's five London-time moments are suggested work stages, not five required full runs. Keep one active material acquisition experiment, maximum five new approval/work items per run, one human-reviewed follow-up and zero paid media.
+The daily run is Control Center's dispatch (below). No other schedule is enabled: CI's `fold` job (below, "Closeout notes") runs on a push to main, never on a clock. The corpus's five London-time moments are suggested work stages, not five required full runs. Keep one active material acquisition experiment, maximum five new approval/work items per run, one human-reviewed follow-up and zero paid media.
 
 Review activation and mature return by source before reach. Work through the minimum-sample tripwires; do not rewrite strategy from tiny denominators. Review honest coverage and high failure methods before adding distribution. Only consented aggregate benchmark evidence can become a public draft, and publication remains a separate approved action.
 
@@ -40,13 +40,13 @@ A production agent flag must be supported by actual deployment evidence retained
 
 ## The Control Center loop
 
-Control Center sends a `cc-growth-directive` repository dispatch at about 05:10 UTC each day; `workflow_dispatch` runs the same job by hand. `.github/workflows/operate.yml` checks out the code with read-only permissions, runs `npm run check`, then `node src/cli.mjs operate`. One job runs at a time, for at most 15 minutes, and nothing from `runtime/` is uploaded. The order below is `src/operate.mjs`.
+Control Center sends a `cc-growth-directive` repository dispatch at about 05:10 UTC each day, and Krish's instruction (protocol 1.20.0) can send another the same day, with the instruction's id in its payload beside the directive id and the engine id (`operate.yml` passes only the two ids; the instruction itself is read from the directive). While Control Center holds the engine it sends no dispatch at all. `workflow_dispatch` runs the same job by hand. `.github/workflows/operate.yml` checks out the code with read-only permissions, runs `npm run check`, then `node src/cli.mjs operate`. One job runs at a time, for at most 15 minutes, and nothing from `runtime/` is uploaded. The order below is `src/operate.mjs`.
 
 | Step | Request | What the engine does |
 |---|---|---|
 | 1 | `POST attempts` | Journals `started` with its attempt and run id, before reading any source. Without a journaled start, nothing else runs |
-| 2 | `GET directive` | Pulls the next action, objectives and recent decisions (and, from protocol 1.13.0, the buyer and legibility.io's readings). If it cannot be read, the run continues inside the walls and holds `directive_unavailable` |
-| 3 | `GET capabilities` | Reads which features Control Center serves. With `features.icp` it takes the directive's buyer (`readIcp`); it records whether the research desk is open (`research`), and asks it nothing before Phase 2 |
+| 2 | `GET directive` | Pulls the next action, objectives and recent decisions; from protocol 1.13.0 the buyer and legibility.io's readings; from 1.16.0 the prepaid credits; from 1.20.0 Krish's instruction (`krish_instruction`, read by `readInstruction`) and `features`, which says whether the engine's state is served. If it cannot be read, the run continues inside the walls and holds `directive_unavailable` |
+| 3 | `GET capabilities` | Reads which features Control Center serves and whether it holds the engine (`activation`). With `features.icp` it takes the directive's buyer (`readIcp`); with `features.credits` it reads this engine's share of the credits (`readCredits`) and spends none; it records whether the research desk is open (`research`), and asks it nothing before Phase 2. With `features.engine_state` here and in the directive (`servesEngineState`), the report carries the engine's state and its acks of his instruction (contracts/README.md) |
 | 4 | `GET` the app export, `LEGIBILITY_EXPORT_URL` on `https://legibility.io` | Skipped when a `--snapshot` file is given. Otherwise reads the export (`src/lib/export-client.mjs`) and composes the snapshot; a failure holds with its code |
 | 5 | none | A served buyer replaces the snapshot's (`applyIcp`) |
 | 6 | `GET prior-outreach?contacts=` | Only with a snapshot, `features.prior_outreach` and at least one candidate with a `contact.contact_id`: copies each person's Mindmake record (contracts/README.md) |
@@ -76,11 +76,13 @@ Every value is read at run time and never printed or written. `.env.example` lis
 
 With neither export variable set, the run is unchanged and its summary names `attribution_export_missing`; with one set alone it holds as `attribution_export_incomplete`.
 
-### What a dispatch measures today (28 October 2026)
+### What a dispatch measures today (12 November 2026)
 
 This paragraph is the one home for what a live run reports; other documents link here. Re-date it when a run changes it.
 
-The last live run, Actions run 40607512910 on 28 October, read the app's export (A4, legibility PR 47; `export.state: read`) and, for the first time, Legibility's buyer from Control Center's 1.13.0 directive (`icp.state: approved`; control-center PR 588). Its report is `degraded`, not `held`: `weekly_builders` was measured and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. What the report still lacks, and what clears each:
+**No live run since 29 October.** Krish held the engine in Control Center on 29 October (Ruling, Krish, 2026-10-29), and Control Center sends no dispatch while it holds it, so Actions run 40821897430, the daily dispatch at 05:10 UTC that morning, before the hold, is the last live run (checked on 12 November in the Actions run list and Control Center's stored reports). The next run happens only after Krish releases the engine, or when he starts the job by hand. While `config/activation.json` still says `held`, that run sends the held report (above): measured, one `engine_held` hold, no proposal.
+
+That last run, like the two on 28 October (Actions runs 40607512910 and 40636474031), read the app's export (A4, legibility PR 47; `export.state: read`) and Legibility's buyer from Control Center's 1.13.0 directive (`icp.state: approved`; control-center PR 588). Its report is `degraded`, not `held`: `weekly_builders` was measured (0 in the ISO week of 26 October) and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. It came before protocols 1.16.0 and 1.20.0 reached this engine, so its summary has no `activation`, `credits` or `instruction`, and its report no engine state. What the report still lacks, and what clears each:
 
 | In the report | Why | What clears it |
 |---|---|---|
@@ -105,6 +107,7 @@ So the buyer alone does not let an export-fed run prepare invitations: that also
 | `export` | `state`: `read`, `held`, `absent`; `reason` | The app export. Absent when no `--snapshot` was given and neither export variable is set |
 | `prior_outreach` | `state`: `read`, `partial`, `unavailable`, `unlinked`, `not_needed`; counts | The Mindmake records read (contracts/README.md) |
 | `activation` | `state`: `held`, `active`; `by`: `krish_local`, `control_center`; `local`; `control_center` | Who holds the engine this run (`src/lib/hold.mjs`). Held, the report carries only the `engine_held` hold and no proposal |
+| `credits` | `state`: `ok`, `not_served`, `unread`, `refused`, `unavailable`; `reason`; `pools`; `spent` | This engine's share of the prepaid credits from the directive (`readCredits`, protocol 1.16.0). The runner spends none, so `spent` is always 0 (docs/CREDITS-SESSION.md) |
 | `draft_press` | `state`: `served`, `not_served`, `unavailable`, `not_needed`; `actions` | Whether invitations went as version 2 email actions (contracts/README.md) |
 | `instruction` | `state`: `present`, `none`, `unread`, `refused`, `not_served`; `id`; `words_sha256`; `acks` | Krish's instruction from the directive (protocol 1.20.0), by id and SHA-256 digest only: his words are never printed, because this repository's Actions logs are public. `acks` lists the states this run reported (`received`, `blocked`) |
 | `report` | `status`, `mode`, `schema_version`, `payload_sha256`, objectives with availability, proposal count, hold codes, `engine_state` (whether 1.20.0 is served and how many priorities, obsessions, next steps and acks travelled), `readback`, `replayed` | The envelope sent and its matched readback |
@@ -153,3 +156,7 @@ The export never fails a run; it holds, and the attempt still `succeeded`:
 | `work_required` task, recommended constraint | Proposal with `wall: none` (activating the campaign clock is `wall: strategy`, a ruling for Krish) |
 | `opportunities[]` | One activity line; the uncovered ones already arrive as work proposals |
 | `holds[]` | `holds[]`, one per code, with the engine's own next step as the detail |
+
+## Closeout notes
+
+A session that changes this repository closes out with a note, `now-notes/YYYY-MM-DD-<slug>.md` (`Status:`, optionally `Changed:`, `Next:` and one dated North Star check line), never an edit to NOW.md, so two pull requests never conflict over it (Ruling, Krish, 2026-10-28; ai-harness `docs/steward/SCHEMA.md`, "Closeout notes"). When a note reaches main, the `fold` job in `.github/workflows/ci.yml` runs ai-harness's own closeout hook (`.claude/hooks/harness-closeout.mjs --fold`, read from ai-harness main at run time) and pushes one `docs(closeout)` commit: the status goes on top of "Where it is right now", `Changed` on top of "What changed recently", the next action replaces the `- Next (YYYY-MM-DD):` line and the check line replaces the old one under "What is next and what is waiting on Krish", `as_of` moves forward, and the note is deleted. NOW.md matters beyond this repository: Control Center shows its "Where it is right now" as this engine's state of play on every place, and its "What is next" when a report carries no `next_steps`.

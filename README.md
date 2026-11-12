@@ -1,6 +1,6 @@
 # Legibility growth engine
 
-An executable, evidence-led growth producer for [Legibility](https://legibility.io). It prepares qualified acquisition work, measures trusted product use, produces consent-safe benchmark aggregates and selects the next funnel constraint. It reports to Control Center through the one growth engine protocol that every growth engine shares: it sends version 1.0.0, or 1.12.0 when a report carries an email action for Control Center's Draft press (contracts/README.md).
+An executable, evidence-led growth producer for [Legibility](https://legibility.io). It prepares qualified acquisition work, measures trusted product use, produces consent-safe benchmark aggregates and selects the next funnel constraint. It reports to Control Center through the one growth engine protocol that every growth engine shares. It sends version 1.0.0 and raises a report only for a field it carries: 1.12.0 for an email action for Control Center's Draft press, 1.16.0 for prepaid credits spent, 1.20.0 for its state on every place in Control Center and its acks of Krish's instruction (contracts/README.md).
 
 The acquisition mechanism is **a useful product test that earns a builder's integration**, followed by partner distribution, rich named invitations, integration recipes and agent-native discovery. The engine optimises for trusted API/MCP reads and returning builders, then weekly production-agent dependency and settled mainnet-agent revenue. A signup count alone cannot establish that the product works.
 
@@ -39,12 +39,12 @@ node src/cli.mjs deliver --run-id CONTROL_CENTER_RUN_ID --out runtime/live
 
 ## The daily Control Center loop
 
-Every morning at about 05:10 UTC Control Center wakes this repository with a `cc-growth-directive` dispatch. [`.github/workflows/operate.yml`](.github/workflows/operate.yml) then runs `node src/cli.mjs operate`, which does one run in the protocol's order:
+Every morning at about 05:10 UTC Control Center wakes this repository with a `cc-growth-directive` dispatch, and an instruction from Krish can wake it again the same day. [`.github/workflows/operate.yml`](.github/workflows/operate.yml) then runs `node src/cli.mjs operate`, which does one run in the protocol's order. While Control Center holds the engine it sends no wake at all, so no run has happened since 29 October (NOW.md).
 
 1. Journals the attempt as `started`, before it reads any source.
-2. Pulls today's directive: the next action, the objectives, Krish's recent decisions and, from protocol 1.13.0, Legibility's buyer.
-3. Reads Control Center's capabilities: whether it serves the buyer, the Mindmake record, the Draft press and the research desk.
-4. Reads the app's export (or takes a `--snapshot` file), measures it and prepares inside the walls, reading each candidate's Mindmake record from Control Center first.
+2. Pulls today's directive: the next action, the objectives, Krish's recent decisions and, from protocol 1.13.0, Legibility's buyer; from 1.16.0 the prepaid credits placed on it; from 1.20.0 Krish's instruction (`krish_instruction`) and whether the engine's state is served (`features`).
+3. Reads Control Center's capabilities: whether it serves the buyer, the Mindmake record, the Draft press, the research desk, the credits and the engine's state, and whether Control Center holds the engine.
+4. Reads the app's export (or takes a `--snapshot` file), measures it and prepares inside the walls, reading each candidate's Mindmake record from Control Center first. When the directive carries Krish's instruction, the report puts it first and acks it by id, never quoting his words: `received`, then `blocked`, because this runner works by rule, with no model, and cannot carry out free-text words (a session on this repository can, inside the walls). When the state is served, the report also says the engine's priorities, Krish's quoted aims and its next steps, read from this repository's own files.
 5. Posts the report envelope with `Idempotency-Key` set to its `run_id`, then reads it back and compares the stored `payload_sha256`.
 6. Reads Krish's decisions of the last seven days and counts which approvals match an exact payload digest from this run.
 7. Closes the attempt as `succeeded`, `failed` with a lower_snake code, or `unknown` when a response was lost.
@@ -64,7 +64,7 @@ The client speaks HTTPS to two pinned origins only (Control Center and the app's
 | Protect approval | Exact supplied wording, source/revision hashes, 48-hour expiry and one follow-up limit; unsafe copy becomes a work task |
 | Reuse product evidence | Consent-aware benchmark with sample sizes, method/failure buckets and separate calibration strata |
 | Optimise | Minimum-sample funnel tripwires, source ranking by activation before traffic, one recommended constraint |
-| Report reliably | Protocol 1.0.0 envelope (1.12.0, with a version 2 email action for the Draft press, only when Control Center serves it) with a canonical digest, private SQLite transport spool, three total delivery attempts across restarts, independent readback and a journaled attempt per run |
+| Report reliably | Protocol 1.0.0 envelope, raised only for a field it carries (1.12.0 for a version 2 email action for the Draft press, 1.16.0 for credits spent, 1.20.0 for the engine's state and instruction acks, each only when Control Center serves it), with a canonical digest, private SQLite transport spool, three total delivery attempts across restarts, independent readback and a journaled attempt per run |
 
 This producer measures source-owned data: the app's export supplies accounts, reads, events and settlements, and everything else (candidates, opportunities, partners, feedback, billing) arrives only in a `--snapshot` file until Phase 2 builds a candidate source. It does not pretend to discover prospects, verify emails or instrument the production app from a fixture. The app work it depends on (A1 to A8) is in [handoff/APP-PHASE-1.md](docs/handoff/APP-PHASE-1.md), with its status.
 

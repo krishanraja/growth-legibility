@@ -14,8 +14,9 @@ import { INSTRUCTION_ID, STATE_LIMITS, calendarDay, sha256, stateLine } from '..
 //   - the engine's state, from this repository's own files and this run's own reading: priorities (the North Star line in
 //     docs/NORTH_STAR.md and the run's recommended constraint), obsessions (only Krish's quoted aims, from
 //     config/engine-state.json, each pinned to the document it is quoted from by tests/engine-state.test.mjs) and next
-//     steps (docs/GET-GOING.md's first unticked phase item and NOW.md's "Waiting on Krish"). Never inferred, never a model:
-//     a field with no source is left out, and Control Center then says "Not reported yet".
+//     steps (docs/GET-GOING.md's first unticked phase item and NOW.md's "Waiting on Krish", leaving out any step whose own
+//     deadline has passed). Never inferred, never a model: a field with no source is left out, and Control Center then says
+//     "Not reported yet".
 // Nothing new travels unless the directive says features.engine_state and Control Center takes 1.20.0.
 
 const clip = (text, max) => {
@@ -26,6 +27,39 @@ const clip = (text, max) => {
 };
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const longDate = day => { const d = new Date(`${day}T00:00:00Z`); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+
+// A step's own deadline: "by 5 Nov", "on 2026-11-09", "before Monday 9 November 2026". Only a date after by, on or before
+// counts, so a date inside an id or in a step's history does not. A day and month with no year take the year of `today`,
+// or the next year when that would put it more than half a year behind (a "by 5 Jan" read in December).
+const ABBR = MONTHS.map(m => m.slice(0, 3));
+const DEADLINE = /\b(?:by|on|before) (?:(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday) )?(?:(\d{4}-\d{2}-\d{2})|(\d{1,2}) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?(?: (\d{4}))?)(?![\w-])/g;
+/** The deadlines a step names, as YYYY-MM-DD, earliest first. `today` is YYYY-MM-DD. Pure. */
+export function deadlines(text, today) {
+  const year = Number(String(today).slice(0, 4));
+  const out = [];
+  for (const m of String(text ?? '').matchAll(DEADLINE)) {
+    let day = m[1] ?? null;
+    if (!day && Number.isInteger(year)) {
+      const at = y => `${y}-${String(ABBR.indexOf(m[3]) + 1).padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+      day = m[4] ? at(m[4]) : at(year);
+      if (!m[4] && Date.parse(`${today}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`) > 183 * 86400000) day = at(year + 1);
+    }
+    if (day && calendarDay(day)) out.push(day);
+  }
+  return out.sort();
+}
+/**
+ * A next step as Control Center takes it, or null. A step whose own deadline has passed is left out: a dated line nobody
+ * updated ("submit the directory listings by 5 Nov") would otherwise be shown on every place as something still to do.
+ * A step with a deadline still ahead carries its earliest one as `when`.
+ */
+export function nextStep(text, waits_on, today) {
+  const line = plainLine(text, STATE_LIMITS.line);
+  if (!line) return null;
+  const due = calendarDay(today ?? '') ? deadlines(text, today) : [];
+  if (due.some(d => d < today)) return null;
+  return { line, waits_on, when:due[0] ?? null };
+}
 
 /** Whether this run may report the engine's state: the directive says so and the receiver takes 1.20.0 (its capabilities). */
 export function servesEngineState(directive, features) {
@@ -69,8 +103,9 @@ export const BY_RULE_LINE = 'This runner works by rule, with no model, so it can
 /**
  * The acks this run sends: received, then blocked with why. Held (`by`, heldBy's answer: the local flag or Control Center), the engine acts
  * on nothing until Krish releases it in both places; active, this runner has no model to carry out words, so it says so.
- * It keeps no memory between runs, so every run whose directive carries the instruction acks it again; Control Center
- * applies acks forward only and counts a repeat as stale, so a repeat changes nothing.
+ * It keeps no memory between runs, so every run whose directive carries the instruction acks it again. Control Center
+ * applies acks forward only: a repeated blocked with the same line changes nothing, one with a new line and a later `at`
+ * replaces the line Krish sees, and the repeated received, a step back from blocked, is ignored and counted stale.
  */
 export function instructionAcks(instruction, { by = [], at }) {
   if (!instruction) return [];
@@ -130,17 +165,21 @@ function stepLine(raw) {
   return head ? (first ? `${head}: ${first.charAt(0).toLowerCase()}${first.slice(1)}` : head) : sentence(first);
 }
 
-/** NOW.md's "What is next and what is waiting on Krish": { single: line|null, krish: [lines] }, or null. */
+/**
+ * NOW.md's "What is next and what is waiting on Krish": { single: line|null, krish: [lines] }, or null. The single next
+ * step is the closeout fold's `- Next (YYYY-MM-DD): ...` line (ai-harness .claude/hooks/harness-closeout.mjs, run by the
+ * fold job in .github/workflows/ci.yml), or the older `- **Single next step:**` line.
+ */
 export function parseNowNext(markdown) {
   const section = /\n## What is next and what is waiting on Krish\n([\s\S]*?)(?:\n## |$)/.exec(markdown ?? '')?.[1];
   if (!section) return null;
   const lines = section.split('\n');
-  const single = lines.find(l => /^- \*\*Single next step:\*\*/.test(l));
+  const single = lines.find(l => /^- Next(?: \(\d{4}-\d{2}-\d{2}\))?:\s*\S/.test(l)) ?? lines.find(l => /^- \*\*Single next step:\*\*/.test(l));
   const krish = [];
   const at = lines.findIndex(l => /^- \*\*Waiting on Krish:\*\*/.test(l));
   if (at >= 0) for (let j = at + 1; j < lines.length && /^\s+- /.test(lines[j]); j++) krish.push(lines[j]);
   const tidy = raw => {
-    const text = stripMarkdown(raw.replace(/^\s*- (?:\*\*[^*]+\*\*\s*)?/, '')).replace(/[;.]$/, '');
+    const text = stripMarkdown(raw.replace(/^\s*- (?:\*\*[^*]+\*\*\s*|Next(?: \(\d{4}-\d{2}-\d{2}\))?:\s*)?/, '')).replace(/[;.]$/, '');
     // The clause before an explanation (": " after a whole instruction) is the step; the rest is why.
     const head = /^(.{20,}?): /.exec(text)?.[1];
     return sentence(head ?? text);
@@ -219,13 +258,14 @@ export function stateFields({ repo = null, recommendation = null, objectiveFor =
   if (obsessions.length) out.obsessions = obsessions;
 
   const steps = [];
+  const today = new Date(at).toISOString().slice(0, 10);
   const own = repo?.getGoing ?? repo?.now?.single ?? null;
-  const ownLine = own ? plainLine(own, STATE_LIMITS.line) : null;
-  if (ownLine) steps.push({ line:ownLine, waits_on:'engine', when:null });
+  const ownStep = own ? nextStep(own, 'engine', today) : null;
+  if (ownStep) steps.push(ownStep);
   for (const item of repo?.now?.krish ?? []) {
     if (steps.length >= STATE_LIMITS.next_steps) break;
-    const line = plainLine(item, STATE_LIMITS.line);
-    if (line && !steps.some(s => s.line === line)) steps.push({ line, waits_on:'krish', when:null });
+    const step = nextStep(item, 'krish', today);
+    if (step && !steps.some(s => s.line === step.line)) steps.push(step);
   }
   if (steps.length) out.next_steps = steps;
   return out;

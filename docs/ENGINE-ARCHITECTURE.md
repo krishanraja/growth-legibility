@@ -95,7 +95,7 @@
    - **Warm intros** stay introduction requests.
    - **Sending:** Krish sends from his mindmake.co mailbox (decision 16). Control Center's Draft press is live (control-center PR 585, protocol 1.12.0, merged and deployed 27 Oct): his Clear places the approved words as a draft in his own Gmail. It drafts only for an invitation that carries a contact id and a Mindmake record; anything else he copies by hand.
 4. **Booking: reply to book** (decision 17; Appendix D). An invitation asks for a reply, and Krish books the call himself in his Google Calendar, with the invitation id in the event. The engine counts held conversations from a read-only read of those events and never writes to his calendar.
-5. **The buyer: saved 27 Oct.** Krish defines Legibility's buyer in Control Center Growth > Buyers (`product_icp`), the canonical ICP: now commercial leaders at companies that buy product data (decision 12). The proposed wording is in Drive `01_Growth/01_Strategy`. Buyer v2 was written to `product_icp` at 20:45 UTC on 27 Oct on Krish's authority; the read-back shows it defined, with 10 titles. The engine reads it from the 1.13.0 directive (built 27 Oct, PR 15); it clears `icp_not_current_approved` once control-center PR 588 deploys. Prospecting also needs a candidate source (Phase 2).
+5. **The buyer: saved 27 Oct.** Krish defines Legibility's buyer in Control Center Growth > Buyers (`product_icp`), the canonical ICP: now commercial leaders at companies that buy product data (decision 12). The proposed wording is in Drive `01_Growth/01_Strategy`. Buyer v2 was written to `product_icp` at 20:45 UTC on 27 Oct on Krish's authority; the read-back shows it defined, with 10 titles. The engine reads it from the 1.13.0 directive (built 27 Oct, PR 15); it cleared `icp_not_current_approved` on 28 Oct, the first run after control-center PR 588 deployed. Prospecting also needs a candidate source (Phase 2).
 6. **Brand kit.** Krish runs the Cowork prompt (Appendix A, v2). The next session verifies it through the Canva connector:
    - a kit named Legibility exists;
    - designs a to g exist;
@@ -106,8 +106,8 @@
 ## 1. Lose nothing: the inventory every phase preserves
 
 **Live jobs.**
-- `operate.yml`: daily at 05:10 UTC on Control Center dispatch.
-- `ci.yml`: Linux and Windows.
+- `operate.yml`: daily at 05:10 UTC on Control Center dispatch (none while Control Center holds the engine, which it has since 29 Oct).
+- `ci.yml`: Linux and Windows, and since 12 Nov the `fold` job on main (docs/OPERATIONS.md, "Closeout notes").
 - Both keep their current steps until Wave 1's first measured report proves the new route. The one addition is Phase 2's research and drafting steps inside the same `operate.yml` job (decision 18), behind tests; the existing steps stay as they are.
 
 **Code.** The test suite (`npm test` prints the count; the docs no longer hand-write it, F13), the policy locks, the transport, outbox and lease logic, and the corpus byte checks. Reuse these rather than rewrite them:
@@ -145,7 +145,7 @@
 **Contracts.**
 - `contracts/manifest.json` is refrozen only in the pull request that changes a pinned file, with the reason.
 - `PROTOCOL_VERSION` (envelope) is split from the producer contract `VERSION` (policy and snapshot, 1.0.0).
-- The repo's protocol copy is refreshed to Control Center's 1.9.0, as documentation only (since refreshed to 1.13.0).
+- The repo's protocol copy is refreshed to Control Center's 1.9.0, as documentation only (since refreshed to 1.21.0).
 
 **Untouched.** All branches, the corpus bytes and the history.
 

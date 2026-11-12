@@ -9,8 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
-  BY_RULE_LINE, CC_HELD_LINE, HELD_LINE, RECEIVED_LINE, firstUnticked, fitLine, instructionAcks, ladderRung, parseNorthStar, parseNowNext,
-  parseObsessions, readInstruction, readRepoState, servesEngineState, stateFields,
+  BY_RULE_LINE, CC_HELD_LINE, HELD_LINE, RECEIVED_LINE, deadlines, firstUnticked, fitLine, instructionAcks, ladderRung, nextStep, parseNorthStar,
+  parseNowNext, parseObsessions, readInstruction, readRepoState, servesEngineState, stateFields,
 } from '../src/lib/engine-state.mjs';
 import { HOLD_REASON } from '../src/lib/hold.mjs';
 import { ENGINE_STATE_VERSION, lineCarriesContact, sha256, validateEngineReport } from '../src/guards/wire.mjs';
@@ -231,6 +231,10 @@ test('the state is read from this repository\'s own files: the North Star block,
 
   const nowMd = '# Now\n## What is next and what is waiting on Krish\n\n- **Single next step:** Ship the synthetic fields: so the export can ask.\n- **Waiting on Krish:**\n  - add a synthetic `SECRET_NAME` Actions secret (the settings page): an interactive session held it;\n  - rule on the synthetic clock;\n- North Star check (2026-10-29): holds.\n\n## Read next\n';
   assert.deepEqual(parseNowNext(nowMd), { single:'Ship the synthetic fields', krish:['Add a synthetic SECRET_NAME Actions secret (the settings page)', 'Rule on the synthetic clock'] });
+  // The closeout fold writes the single next step as `- Next (YYYY-MM-DD): ...`, and it wins over the older form.
+  const foldedMd = nowMd.replace('\n\n- **Single next step:**', '\n\n- Next (2026-11-12): Ship the folded fields: so the export can ask.\n- **Single next step:**');
+  assert.equal(parseNowNext(foldedMd).single, 'Ship the folded fields');
+  assert.equal(parseNowNext('# Now\n## What is next and what is waiting on Krish\n\n- Next: Ship the plain fields.\n').single, 'Ship the plain fields');
 
   assert.equal(fitLine('Short enough.', 200), 'Short enough.');
   assert.equal(fitLine(`Keep this ${'word '.repeat(20)}(drop this aside) and end.`, 120).includes('aside'), false, 'asides in brackets go first');
@@ -247,10 +251,28 @@ test('the state is read from this repository\'s own files: the North Star block,
   assert.deepEqual(fields.next_steps, [{ line:'Ship it', waits_on:'engine', when:null }, { line:'Rule on it', waits_on:'krish', when:null }], 'no repeat, and no address');
   assert.deepEqual(stateFields({ repo:null, at:AT }), {}, 'no source, no field: Control Center says "Not reported yet"');
 
+  // A step whose own deadline has passed is never sent; one still ahead says when.
+  assert.deepEqual(deadlines('Publish it by 5 Nov (A6), then review the register by 19 Nov 2026 (lock 26 Nov)', '2026-11-12'), ['2026-11-05', '2026-11-19']);
+  assert.deepEqual(deadlines('Sign the spec on Monday 9 November; read it on 2026-11-20', '2026-11-12'), ['2026-11-09', '2026-11-20']);
+  assert.deepEqual(deadlines('Read run gms-2026-11-09 and the 27 Oct report; held since 29 Oct', '2026-11-12'), [], 'a date in an id or in history is no deadline');
+  assert.deepEqual(deadlines('Submit it by 5 Jan', '2026-12-20'), ['2027-01-05'], 'a day and month far behind today is next year\'s');
+  assert.equal(nextStep('Submit the directory listings by 5 Nov (A6 and A7)', 'krish', '2026-11-12'), null);
+  assert.deepEqual(nextStep('Review the source register by 19 Nov 2026 (lock 26 Nov)', 'engine', '2026-11-12'), { line:'Review the source register by 19 Nov 2026 (lock 26 Nov)', waits_on:'engine', when:'2026-11-19' });
+  assert.deepEqual(nextStep('Submit the directory listings by 5 Nov', 'krish', 'not a day'), { line:'Submit the directory listings by 5 Nov', waits_on:'krish', when:null }, 'with no day to compare, nothing is dropped');
+  const dated = stateFields({ repo:{ northStar:null, getGoing:'Review the register by 19 Nov 2026', now:{ single:null, krish:['Submit the listings by 5 Nov', 'Rule on the clock'] } }, at:'2026-11-12T05:10:00.000Z' });
+  assert.deepEqual(dated.next_steps, [
+    { line:'Review the register by 19 Nov 2026', waits_on:'engine', when:'2026-11-19' },
+    { line:'Rule on the clock', waits_on:'krish', when:null },
+  ], 'the step whose day has gone is left out, never shown as still to do');
+
   // This repository's own files read whole, and every line they give is one Control Center takes.
   assert.ok(REPO.northStar && REPO.obsessions?.length === 3 && REPO.getGoing && REPO.now?.krish.length > 0);
   const own = stateFields({ repo:REPO, at:'2026-11-11T05:10:00.000Z', recommendation:{ code:'restore_measurement', action:'Complete source capture' }, objectiveFor:() => 'activated' });
   assert.equal(ccEngineStateRefusal({ ...own }, ENGINE_STATE_VERSION), null);
   assert.match(own.priorities[0].line, /rung of 10, on the way to 300 by 28 December 2026\.$/);
   assert.ok(own.next_steps.length <= 5 && own.next_steps.every(s => !s.line.endsWith('...')), 'whole lines, never cut');
+  // Today, this repository's own NOW.md and GET-GOING.md send no step whose day has gone.
+  const today = new Date().toISOString().slice(0, 10);
+  const live = stateFields({ repo:REPO, at:new Date().toISOString() });
+  assert.ok(live.next_steps?.length > 0 && live.next_steps.every(s => s.when === null || s.when >= today));
 });

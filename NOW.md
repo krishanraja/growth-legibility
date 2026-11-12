@@ -1,7 +1,7 @@
 ---
 repo: krishanraja/growth-legibility
 product: Legibility growth engine
-as_of: 2026-10-29
+as_of: 2026-11-12
 head: see Git HEAD
 lifecycle: building
 production_url: none
@@ -22,62 +22,60 @@ Legibility's growth engine: it prepares the product tests, rich named invitation
 
 Companies whose agents or products need product data they can trust: reached, from Wave 1, through their commercial leaders, and counted when their engineers make trusted reads. It shows Mindmake growing a developer product through useful tests rather than signups.
 
-## Where it is right now (as of 2026-10-27)
+## Where it is right now (as of 2026-11-12)
 
-<!-- north-star-state {"week_of": "2026-10-26", "week_target": 1, "current": 0, "current_as_of": "2026-10-27", "current_source": "Supabase legibility: accounts with a trusted read (product returned, confidence set) since Monday 00:00 UTC, internal accounts excluded; read-only count, 2026-10-27 20:46 UTC", "urgency": 4, "urgency_reason": "0 against 1 this week, under 40%"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: 0 against 1 this week (measured 27 Oct), on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits.
+<!-- north-star-state {"week_of": "2026-11-09", "week_target": 10, "current": null, "current_as_of": null, "current_source": null, "urgency": 4, "urgency_reason": "not measured this week; the last reading, 0 in the week of 26 October from the live run of 29 October, is 14 days old"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: not measured this week (the last reading was 0 in the week of 26 October, from the live run of 29 October), against 10 this week, on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits. Measuring it comes first: a run started by hand measures it even while the engine is held (Waiting on Krish, below).
 
-Held by Krish (2026-10-29): not in motion for a few weeks; Control Center sends no wake.
+Held by Krish (2026-10-29): not in motion for a few weeks. Control Center sends no wake while it holds the engine, so the last live run was the dispatch of 29 October, before the hold ([OPERATIONS.md](docs/OPERATIONS.md), "What a dispatch measures today").
 
 Lifecycle: building. The detail is in `README.md`.
 
+- Protocol 1.20.0 is built on the engine side. The runner reads Krish's instruction from the directive (krish_instruction), puts one activity line first naming it by id and a digest, and acks it received, then blocked with why: "engine held" while config/activation.json holds the engine, or, released, that this runner works by rule and cannot carry out free-text words. It reports priorities (the North Star line and the recommended constraint), obsessions (Krish's quoted aims in config/engine-state.json) and next steps (GET-GOING's first unticked item and NOW.md's "Waiting on Krish") only when Control Center serves 1.20.0. His words never reach a log. The engine is still held, so Control Center sends it no instruction until he releases it there. (2026-11-11)
+- The Reader Check is built and tested in shadow: fresh sub-agents read each invitation as its commercial leader or builder, from the candidate record only, and a private ledger scores their predictions against replies and first trusted reads. Not run on a live invitation; standing too_early. The engine is still held by Krish, and this changes nothing while it is. (2026-11-10)
+- Claude sessions here show Krish a ChatGPT sign-in link and code whenever Codex is signed out (.claude/hooks/codex-login.sh at session start, cloud included), on his subscription, never an API key (Krish, 2026-11-10).
+
 ## What changed recently
+
+- 2026-11-11 **Krish's instruction and the engine's state (protocol 1.20.0).** Ruling (Krish, 2026-11-11): every growth engine's priorities, obsessions, next steps and outstanding items feed live across Control Centre, and Krish instructs each engine with his next best action. In his words: "make sure I can instruct each one with my next best action and have it get going (as well as always understand the current state of play and what's outstanding)". The runner acks his instruction by id and never logs his words, and reports its state from this repository's own files when Control Center serves 1.20.0 (PR 26, [contracts/README.md](contracts/README.md)). Built and tested; not run live, because Control Center sends no wake and no instruction while it holds the engine.
+
+- 2026-11-10 **Codex signs in by itself.** A Claude session on this repository shows Krish a ChatGPT sign-in link and code at start whenever Codex is signed out (`.claude/hooks/codex-login.sh`), on his subscription, never an API key.
 
 - 2026-11-10 **The reader check.** Ruling (Krish, 2026-11-10): fresh simulated readers read each invitation before it reaches Krish, built only from the candidate record (a commercial leader for a buyer, the builder for a builder), and say whether they would reply within 7 days, whether they would run the test this week, the weakest link and whether they felt remembered or worked, counted by impact angle (`npm run reader`, [COPY-DOCTRINE.md](docs/COPY-DOCTRINE.md), "The reader check"). In shadow, never evidence and never a Learning Judge verdict; a private ledger is scored against real replies and first trusted reads, and it earns weight or is retired by a stop rule set before its first run. Built and tested; not run on a live invitation, and it changes nothing while the engine is held.
 
 - 2026-10-29 **Apify is a ceiling, not a pool to use up.** Ruling (Krish, 2026-10-29): Apify is pay as you go, a ceiling to stay under, and engines learn which actors are worth their cost. Each directive pool now carries `mode` (control-center PR 631): the runner says a `ceiling` pool's share is a cap, never a target (tests/credits.test.mjs), and the credits session runs Apify only for a prospect decision it needs, picks the cheapest `keep` actor from `get_apify_learnings`, trials a new one at the smallest `maxItems`, never reruns a `drop`, and settles each run with its actor, job and counts ([CREDITS-SESSION.md](docs/CREDITS-SESSION.md)). North Star check (2026-10-29): holds.
 
-- 2026-10-29 **The credits step is built.** The runner reads its share of the prepaid credits (`readCredits`), says one line per pool, refuses a spend past the share, held or unknown, and the wire takes `credits_spent` at 1.16.0 for that field only (tests/credits.test.mjs). The runner spends nothing: a daily scheduled session spends the share through Control Center ([CREDITS-SESSION.md](docs/CREDITS-SESSION.md)), created disabled while the engine is held. Spending waits on Krish's release, an approved buyer for Apify, and his change to the Apify deny rule. North Star check (2026-10-29): holds.
-
-- 2026-10-29 **Prepaid credits (protocol 1.16.0).** Ruling (Krish, 2026-10-29): an engine may spend up to its placement share of a tool's prepaid credits each cycle with no per-batch approval, and reports what it made in `credits_spent`. Legibility's pools are Apify main ($5.80 of $29, resets the 21st) and 21st Dev main (about 133 of 500, resets the 1st); while held it spends nothing. The protocol copy is at 1.16.0; the code is the next unticked Phase 2 item ([CONTROL-CENTER-BRIEF.md](docs/CONTROL-CENTER-BRIEF.md), "Prepaid credits"). North Star check (2026-10-29): holds.
+- 2026-10-29 **The credits step is built.** The runner reads its share of the prepaid credits (`readCredits`), says one line per pool, refuses a spend past the share, held or unknown, and the wire takes `credits_spent` at 1.16.0 for that field only (tests/credits.test.mjs). The runner spends nothing: a daily scheduled session spends the share through Control Center ([CREDITS-SESSION.md](docs/CREDITS-SESSION.md)), and only once the engine is released. Spending waits on Krish's release and, for Apify, his change to the Apify deny rule (the approved buyer arrived on 28 Oct). North Star check (2026-10-29): holds.
 
 - 2026-10-29 **Held by Krish.** Ruling (Krish, 2026-10-29): Not ready means a held activation state: no wake, no asks on his list, no growth council move, and the bearer stays valid. `config/activation.json` ships held, and Control Center's hold is read from its capabilities and directive: a held run still measures, proposes nothing and reports one `engine_held` hold naming what readiness needs ([OPERATIONS.md](docs/OPERATIONS.md), FAILURES F46). `npm run check` now warns from 16 Nov, under 10 days before the source review lock of 26 Nov (FAILURES F47).
-
-- 2026-10-27 **Documentation audit applied.** Every doc was checked against the code and the live state; what a live run reports now lives once, in [OPERATIONS.md](docs/OPERATIONS.md), "What a dispatch measures today", beside the environment, the run summary and a failure runbook. The session deny list gained Descript, a retired route.
-
-- 2026-10-27 **The first live run read the app's export.** Actions run 40595794935 is `degraded`, not `held`: the export was read and `weekly_builders` measured, as an activity line and as an objective. It still holds `icp_not_current_approved`, `candidate_coverage_unknown` and `opportunity_coverage_unknown`, and `activated`, `returning` and `net` stay missing until the campaign clock is activated (what clears each: [OPERATIONS.md](docs/OPERATIONS.md)).
 
 - 2026-10-27 **The app shipped its contract, A1 to A8** (legibility PRs 45 to 51), live in production apart from A3's Founding 200 page, deployed but paused until the Turnstile keys exist. A8's trial is granted by hand only, 5,000 trusted reads by default, no Stripe, `FOUNDING_AUTO_TRIAL` off. Status and what waits on Krish: [handoff/APP-PHASE-1.md](docs/handoff/APP-PHASE-1.md), section 12.
 
 - 2026-10-27 **Control Center's side.** The Draft press (protocol 1.12.0, control-center PR 585) is merged and deployed: a prepared invitation with a contact id and a Mindmake record travels as a version 2 email action, and Krish's Clear drafts it into his own Gmail; he sends. The objectives migration `20261112150000` is applied to production. Protocol 1.13.0 (the buyer, legibility.io's readings, the research desk) is control-center PR 588, merged as `20b8b51` and deployed 28 Oct; with the engine side (PR 15), the run of 28 Oct (40607512910) read buyer v2 (`icp.state: approved`) and `icp_not_current_approved` cleared ([contracts/README.md](contracts/README.md)).
 
-- 2026-10-27 **The engine reads each person's Mindmake record from Control Center** (control-center PR 581, protocol 1.11.0), by contact id, unknown on any failure. No producer fills the contact id yet.
-
 - 2026-10-27 **The number is measured: 0 against 1 this week** (read-only count at 20:46 UTC, authorised by Krish in chat). Buyer v2 was written to Control Center `product_icp` at 20:45 UTC on his authority.
 
-- 2026-10-27 **The source review is done** (Phase 1E): `source_review_due` is 26 Nov 2026 00:00 UTC; the next review is due by 19 Nov, a scheduled session's job on 17 Nov, never Krish's ([SOURCE-REGISTER.md](docs/SOURCE-REGISTER.md); GET-GOING, "1E again"). If it is missed, every run holds with `source_review_due` from 26 Nov and prepares nothing.
+- 2026-10-27 **The source review is done** (Phase 1E): `source_review_due` is 26 Nov 2026 00:00 UTC; the next review is due by 19 Nov, a session's job, never Krish's ([SOURCE-REGISTER.md](docs/SOURCE-REGISTER.md); GET-GOING, "1E again"). If it is missed, every run holds with `source_review_due` from 26 Nov and prepares nothing.
 
 - 2026-10-27 **Krish's decisions** ([history/LOG.md](docs/history/LOG.md); [ENGINE-ARCHITECTURE.md](docs/ENGINE-ARCHITECTURE.md), decisions 12 to 19): the architecture plan is approved; from Wave 1, go in through commercial leaders at companies that buy product data, testing the impact angle; the call ends with a test report and an engineer introduction; the commercial template is approved; drafts land in his mindmake.co mailbox; booking is "reply to book"; scheduled work runs only in the runner, and no interactive session may hold the engine token; each pull request is merged once it is green. To someone he already reached for Mindmake, Legibility is positioned as a partner product, in the opening words he approved ([OUTREACH-TEMPLATE.md](docs/OUTREACH-TEMPLATE.md)).
 
-- 2026-10-27 **Beta handoff recorded** ([BETA-HANDOFF.md](docs/BETA-HANDOFF.md)): seven private outreach items (expired 23 Oct) and one onboarding item wait in Control Center. The trial investigation it authorised is done; its design shipped as A8.
-
-- 2026-10-23 **The North Star has a number, a weekly ladder and an urgency rating** (Ruling, Krish, 2026-10-23; `docs/NORTH_STAR.md`).
-
 ## What is next and what is waiting on Krish
 
-- **Single next step:** GET-GOING's first unticked item, Phase 1B's attribution fields: accept `accounts[].attribution` and `reads[].key_id` in `src/guards/wire.mjs` and name them in `contracts/README.md`, so the export client can ask with `fields=attribution` and each builder's first read traces to the invitation that earned it. After it, Phase 2's research step is the candidate source every export-fed run lacks (`candidate_coverage_unknown`), and it carries the Control Center contact id the Mindmake record and the Draft press need.
+- Next (2026-11-12): review the source register by 19 Nov 2026 (GET-GOING, "1E again"): from 26 Nov every run holds with `source_review_due` until it is done; then Phase 1B's attribution fields.
 - **Waiting on Krish:**
-  - remove `CONTROL_CENTER_ENGINE_TOKEN` from this cloud environment's variables (the environment menu in the session's title bar, then Edit): an interactive session held it on 27 Oct, against the rule that only the runner does (ENGINE-ARCHITECTURE.md, decision 18);
+  - release the engine when he judges it ready: set `config/activation.json` to `active` and release it on Growth > Engines; until both, it gets no wake, proposes nothing and spends nothing;
+  - start Operate with Control Center by hand (Actions, then Run workflow) to measure the number while the engine is held: a held run reads the export, reports this week's `weekly_builders` and proposes nothing (OPERATIONS.md, "Held");
+  - create `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` so A3's Founding 200 page can go live (also the app's own next step, its NOW.md, 12 Nov);
   - add a dedicated `LEGIBILITY_EXPORT_TOKEN` Actions secret and change the app's `GROWTH_EXPORT_TOKEN_SHA256` to its hash in the same step, so the engine's Control Center bearer stops opening the export (FAILURES F44);
-  - create `TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` so A3's Founding 200 page can go live;
-  - create his MCP registry publishing key, publish `server.json` (`io.legibility/mcp` 0.4.0) and submit the directory listings by 5 Nov (A6 and A7);
+  - create his MCP registry publishing key, publish `server.json` (`io.legibility/mcp` 0.4.0) and submit the directory listings (A6 and A7); the plan's 5 Nov date has passed, and whether it was met is unverified;
   - mark `generate_lead`, `sign_up` and `test_run` as key events in Google Analytics admin (A2);
   - rule on the campaign clock (GET-GOING step 4): `activated`, `returning` and `net` stay missing until it is activated;
   - say whether the outreach offer's words change now that A8 grants a real trial; the pinned template text stays as approved until he does;
   - grant each tester's trial by hand on `/dashboard/waitlist` when they accept (A8);
+  - change the Apify deny rule in `.claude/settings.json`, with its check, when he wants the credits session to spend Apify (CREDITS-SESSION.md);
   - add the spend-capped `ANTHROPIC_API_KEY` as an Actions secret when Phase 2 needs it, with the cap set at the provider;
-  - run the Cowork brand-kit prompt.
-- North Star check (2026-10-29): holds. Krish has held the engine for a few weeks, so nothing it proposes reaches his list until he releases it; it keeps measuring the number while held.
-- North Star check (2026-10-28): holds. The buyer no longer expires (Ruling, Krish, 2026-10-28), so nothing stops the engine on a date. The number is measured at 0 against 1 this week (U4); the engine now counts it from the app's export every day, and the next steps above (attribution, then a candidate source) are what let it prepare invitations that move it.
+  - finish the Cowork brand-kit prompt (ENGINE-ARCHITECTURE.md, Appendix A v2): a Canva brand kit named Legibility exists, but a search of his Canva designs on 12 Nov found none of its seven designs;
+  - keep `CONTROL_CENTER_ENGINE_TOKEN` out of every cloud environment's variables (only the runner holds it; ENGINE-ARCHITECTURE.md, decision 18): the Default environment holds none (read 12 Nov), and a session cannot read the others' names.
+- North Star check (2026-11-12): holds.
 
 ## Read next
 
@@ -87,4 +85,4 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## Do not trust
 
-Do not treat pending outreach as fresh approval: its expiry is past. Earlier prototype/runbook status is dated evidence, not proof of current runtime state. A8's trial is live, but every grant is Krish's click: a sign-up or a pending outreach item is not proof that a tester has a trial.
+Do not treat pending outreach as fresh approval: its expiry is past. Earlier prototype/runbook status is dated evidence, not proof of current runtime state. A8's trial is live, but every grant is Krish's click: a sign-up or a pending outreach item is not proof that a tester has a trial. `docs/CONTROL-CENTER-HANDOFF.md` was superseded on 18 October by `docs/CONTROL-CENTER-BRIEF.md` and is kept for history.

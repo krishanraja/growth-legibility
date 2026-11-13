@@ -1,3 +1,4 @@
+import { answersStep } from './ai-answers.mjs';
 import { deliver } from './transport.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId } from './orchestrator.mjs';
 import { captureExport, exportHold } from './lib/export-client.mjs';
@@ -96,6 +97,9 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     const instructionRead = readInstruction(directive);
     const state = { served:servesEngineState(directive, ccFeatures), repo, instruction:instructionRead.instruction, by, at:attempt.started_at };
     summary.instruction = instructionSummary(instructionRead, state.served ? instructionAcks(state.instruction, { by, at:state.at }) : []);
+    // 1.22.0: Legibility's AI answers are AEO-Engine's (Ruling, Krish, 2026-11-12): its standing, and its buyer questions to AEO
+    // once, never while held.
+    summary.ai_answers = typeof client.answers === 'function' ? await answersStep({ client, directive, held:by.length > 0 }) : [];
     phase = 'capture';
     let snapshot = loadSnapshot ? loadSnapshot() : null;
     let observedAt = attempt.started_at;

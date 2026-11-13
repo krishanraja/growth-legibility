@@ -120,6 +120,16 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     throw fault(second.status === 409 ? 'attempt_conflict' : 'attempt_unconfirmed');
   }
 
+  // 1.22.0 (features.ai_answers): ask AEO-Engine, the one AI-answers specialist, to track Legibility's buyer questions.
+  async function answers(body) {
+    const res = await request('/answers', { method:'POST', body:JSON.stringify(body) });
+    if (res.status === 404) { await discard(res); throw fault('answers_not_supported'); }
+    if (!res.ok) { await discard(res); throw fault('answers_unavailable'); }
+    const reply = await jsonResponse(res);
+    if (reply?.ok !== true || typeof reply.request_id !== 'string') throw fault('answers_invalid');
+    return reply;
+  }
+
   async function directive(date = null) {
     const query = date ? `?date=${encodeURIComponent(date)}` : '';
     const res = await request(`/directive${query}`);
@@ -153,7 +163,7 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     return request('/reports', { method:'POST', body:payload, headers:{ 'idempotency-key':runId } });
   }
 
-  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport };
+  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport, answers };
 }
 
 const POST_REFUSALS = { 400:'receiver_report_refused', 403:'receiver_identity_refused', 413:'receiver_report_too_large', 429:'receiver_rate_limited' };

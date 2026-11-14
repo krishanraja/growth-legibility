@@ -1,3 +1,0 @@
-Status: Fleet audit repairs (14 Nov). The docs now say the 1E source review task (one-off, 17 Nov 19:23 UTC) and the disabled credits task exist (PR 31). From the review-by date every report carries one dated source review hold, which a held run names among what readiness needs (PR 30, F49). The release checklist in docs/OPERATIONS.md names the protocol re-copy (copy 1.22.0, Control Center 1.26.0) and ai_answers_detail (PR 32). One hand-started held run proved the held path live: stored held, one engine_held hold, no proposal.
-Next: A session with Control Center's repository re-copies docs/control-center/ENGINE-PROTOCOL.md and its two schemas from Control Center main, recording the commit.
-North Star check (2026-11-14): holds.

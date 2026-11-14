@@ -1,7 +1,7 @@
 ---
 repo: krishanraja/growth-legibility
 product: Legibility growth engine
-as_of: 2026-11-13
+as_of: 2026-11-14
 head: see Git HEAD
 lifecycle: building
 production_url: none
@@ -22,7 +22,7 @@ Legibility's growth engine: it prepares the product tests, rich named invitation
 
 Companies whose agents or products need product data they can trust: reached, from Wave 1, through their commercial leaders, and counted when their engineers make trusted reads. It shows Mindmake growing a developer product through useful tests rather than signups.
 
-## Where it is right now (as of 2026-11-13)
+## Where it is right now (as of 2026-11-14)
 
 <!-- north-star-state {"week_of": "2026-11-09", "week_target": 10, "current": null, "current_as_of": null, "current_source": null, "urgency": 4, "urgency_reason": "not measured this week; the last reading, 0 in the week of 26 October from the live run of 29 October, is 14 days old"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: not measured this week (the last reading was 0 in the week of 26 October, from the live run of 29 October), against 10 this week, on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits. Measuring it comes first: a run started by hand measures it even while the engine is held (Waiting on Krish, below).
 
@@ -30,6 +30,7 @@ Held by Krish (2026-10-29): not in motion for a few weeks. Control Center sends 
 
 Lifecycle: building. The detail is in `README.md`.
 
+- Fleet audit repairs (14 Nov). The docs now say the 1E source review task (one-off, 17 Nov 19:23 UTC) and the disabled credits task exist (PR 31). From the review-by date every report carries one dated source review hold, which a held run names among what readiness needs (PR 30, F49). The release checklist in docs/OPERATIONS.md names the protocol re-copy (copy 1.22.0, Control Center 1.26.0) and ai_answers_detail (PR 32). One hand-started held run proved the held path live: stored held, one engine_held hold, no proposal. (2026-11-14)
 - Legibility's AI answers are AEO-Engine's, the one AI-answers specialist (Ruling, Krish, 2026-11-12): each run reads its standing from the directive (protocol 1.22.0) and, once released and with real buyer questions in config/ai-answer-questions.json, asks AEO once (src/ai-answers.mjs). Held, it asks nothing. The protocol copy in docs/control-center/ is Control Center's at 36df34bc (protocol 1.22.0). (2026-11-13)
 - The protocol copy in docs/control-center/ is Control Center's at 212379e1 (1.21.0, the schemas unchanged): its voice_check row lists the 16 channels Control Center accepts, and it says the directive takes weekly_builders' target from this repository's north-star block (300 by 28 December), never the registry's copy; this engine still sends at most 1.20.0. (2026-11-12)
 - Every doc now says what this engine does and where it stands: held since 29 October with no live run since, protocols 1.16.0 and 1.20.0 built but not yet run live. A next step whose own deadline has passed is no longer sent to Control Center, and closeout notes now fold into NOW.md by themselves on every push to main (the fold job in .github/workflows/ci.yml). (2026-11-12)
@@ -65,7 +66,7 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What is next and what is waiting on Krish
 
-- Next (2026-11-13): When Krish releases this engine, add Legibility's real buyer questions to config/ai-answer-questions.json so its run asks AEO to track them.
+- Next (2026-11-14): A session with Control Center's repository re-copies docs/control-center/ENGINE-PROTOCOL.md and its two schemas from Control Center main, recording the commit.
 - **Waiting on Krish:**
   - release the engine when he judges it ready: set `config/activation.json` to `active` and release it on Growth > Engines; until both, it gets no wake, proposes nothing and spends nothing;
   - start Operate with Control Center by hand (Actions, then Run workflow) to measure the number while the engine is held: a held run reads the export, reports this week's `weekly_builders` and proposes nothing (OPERATIONS.md, "Held");
@@ -80,7 +81,7 @@ Lifecycle: building. The detail is in `README.md`.
   - add the spend-capped `ANTHROPIC_API_KEY` as an Actions secret when Phase 2 needs it, with the cap set at the provider;
   - finish the Cowork brand-kit prompt (ENGINE-ARCHITECTURE.md, Appendix A v2): a Canva brand kit named Legibility exists, but a search of his Canva designs on 12 Nov found none of its seven designs;
   - keep `CONTROL_CENTER_ENGINE_TOKEN` out of every cloud environment's variables (only the runner holds it; ENGINE-ARCHITECTURE.md, decision 18): the Default environment holds none (read 12 Nov), and a session cannot read the others' names.
-- North Star check (2026-11-13): holds.
+- North Star check (2026-11-14): holds.
 
 ## Read next
 

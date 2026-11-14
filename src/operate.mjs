@@ -1,11 +1,12 @@
 import { answersStep } from './ai-answers.mjs';
 import { deliver } from './transport.mjs';
-import { buildReport, engineReport, heldEngineReport, protocolRunId } from './orchestrator.mjs';
+import { buildReport, engineReport, heldEngineReport, protocolRunId, seal } from './orchestrator.mjs';
 import { captureExport, exportHold } from './lib/export-client.mjs';
 import { dropPriorMindmake, readPriorMindmake } from './lib/prior-outreach.mjs';
 import { emailAction, templateRevision } from './lib/draft-press.mjs';
 import { applyIcp, readCredits, readIcp, researchAvailability } from './lib/cc-signals.mjs';
 import { heldBy, heldReport } from './lib/hold.mjs';
+import { sourceReviewHold } from './lib/review-due.mjs';
 import { instructionAcks, instructionSummary, readInstruction, servesEngineState } from './lib/engine-state.mjs';
 
 // One Control Center run, in the protocol's order: journal the attempt, pull the directive, do the engine's own work
@@ -170,6 +171,14 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
       envelope = engineReport(privateReport, { runId, directive, directiveHold, draftPress, credits, state });
     } else {
       envelope = heldEngineReport({ runId, at:attempt.started_at, revision, mode:synthetic ? 'synthetic' : 'live', policy, directive, directiveHold, extraHolds, icp:served.icp, credits, state });
+    }
+    // The source review's dated guard (src/lib/review-due.mjs): from the review-by date, one plain hold and one activity line.
+    const reviewHold = sourceReviewHold(policy.source_review_due, Date.parse(attempt.started_at));
+    summary.source_review = reviewHold ? reviewHold.reason : 'current';
+    if (reviewHold && !envelope.holds.some(h => h.reason === reviewHold.reason)) {
+      const { payload_sha256, ...body } = envelope;
+      envelope = seal({ ...body, holds:[...body.holds, reviewHold].slice(0, 40),
+        activity:[...body.activity.slice(0, 39), { line:reviewHold.detail.slice(0, 500), evidence_url:null }] });
     }
     if (by.length) envelope = heldReport(envelope, { by, policy });
     outbox.put(envelope);

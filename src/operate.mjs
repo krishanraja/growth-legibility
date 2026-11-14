@@ -1,3 +1,4 @@
+import { scan as librarianScan } from './lib/librarian.mjs';
 import { answersStep } from './ai-answers.mjs';
 import { deliver } from './transport.mjs';
 import { buildReport, engineReport, heldEngineReport, protocolRunId, seal } from './orchestrator.mjs';
@@ -101,6 +102,8 @@ export async function operate({ client, outbox, policy, corpusSha, at = new Date
     // 1.22.0: Legibility's AI answers are AEO-Engine's (Ruling, Krish, 2026-11-12): its standing, and its buyer questions to AEO
     // once, never while held.
     summary.ai_answers = typeof client.answers === 'function' ? await answersStep({ client, directive, held:by.length > 0 }) : [];
+    // 1.35.0 (I-25): the Librarian's scan over the folders and file titles Control Center serves (library). Counts only.
+    summary.library = librarianScan(directive?.library);
     phase = 'capture';
     let snapshot = loadSnapshot ? loadSnapshot() : null;
     let observedAt = attempt.started_at;

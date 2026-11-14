@@ -272,6 +272,7 @@ docs/ENGINE-ARCHITECTURE.md  docs/FAILURES.md  docs/history/LOG.md
 **Check, at every check-in:**
 - A scan for stray, misnamed, duplicate, unindexed and private-content files. Unstamped files, such as Cowork's exports or anything Krish adds, are listed and indexed but never moved.
 - Findability is the share that conform. The target is 100%.
+- Since protocol 1.35.0 (fleet integration I-25; Ruling, Krish, 2026-11-14: Control Center reads folder names and file titles, never contents, under Ventures once a day) every run scans the listing Control Center serves in the directive as `library` (`src/lib/librarian.mjs`): `librarian/drive-taxonomy.json` declares the root by path in `drive_map` (drive-map/1), Control Center resolves it by id, and the run reports counts and findability only. Private content cannot be read from titles, so it stays unknown; a listing Control Center cannot vouch for is unknown, never clean.
 
 **Lens:** "From START-HERE, can Krish reach this wave's spec, the latest approved go-live (in Control Center) and the What-Works table (in Control Center) in two clicks?"
 

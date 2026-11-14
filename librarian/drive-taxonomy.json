@@ -2,6 +2,7 @@
   "version": "1.0.0",
   "about": "The Growth folder in Drive (Active Ventures > Legibility > 01_Growth). Folder names, the kind to folder map, the naming rule and the named exceptions. Folder ids are resolved at run time and never committed: the Legibility folder is shared to anyone with the link.",
   "root": "01_Growth",
+  "drive_map": { "schema": "drive-map/1", "about": "The root this engine declares to Control Center (fleet integration I-25), by path only; Control Center resolves it by id each day and serves its folders and file titles as library (protocol 1.35.0).", "roots": [{ "path": "Ventures/Active Ventures/Legibility/01_Growth" }] },
   "reads_only": ["00_Brand-Assets"],
   "folders": ["00_START-HERE", "01_Strategy", "02_Waves", "03_Assets", "03_Assets/Brand-Kit", "03_Assets/Templates", "03_Assets/Decks", "03_Assets/Social", "03_Assets/Directory", "_Archive"],
   "kinds": {

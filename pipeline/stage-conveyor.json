@@ -12,7 +12,7 @@
       "completion":{"source":"authoritative_output","evidence":"tests/engine.test.mjs rejects invalid, contradictory and privacy-unsafe exports before consumption; tests/export-client.test.mjs pins the export origin and refuses redirects, slow, oversized and non-JSON answers; tests/prior-outreach.test.mjs copies each Mindmake record unchanged and leaves it unknown on any failure; tests/cc-signals.test.mjs reads Control Center's buyer only when served, by the snapshot's own rule, and leaves the run unchanged when it is not"}
     },
     {
-      "id":"measure","owner":"growth-measurement","owned_paths":["src/stages/measure.mjs"],
+      "id":"measure","owner":"growth-measurement","owned_paths":["src/stages/measure.mjs","src/lib/librarian.mjs"],
       "inputs":["observed_snapshot","policy","run_clock"],"outputs":["scorecard"],"consumed_guards":["wire"],"side_effects":["none"],
       "retry":{"mode":"idempotent","total_attempt_cap":1,"checkpoint":"Immutable source seal and scorecard in final report","recovery_entrypoint":"measure-recovery"},
       "completion":{"source":"independent_rederivation","evidence":"tests/measure.test.mjs independently checks cohorts, unknown coverage and calibrated trust"}

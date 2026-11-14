@@ -37,7 +37,7 @@
 5. Every asset and strategy goes in a Growth folder in Drive "Active Ventures > Legibility". The engine keeps it easy to find.
 6. **Google Analytics comes from Control Center**, which already reads it daily ("just get google analytics data from control center, much easier"). There is no Google credential in this repo.
 7. **One offer:** a Founding 200 member gets the 30-day free trial for feedback, plus a test report on their own products.
-8. **The Drive folder keeps its "anyone with the link can edit" sharing.** So Drive holds only brand and strategy material, never names or private results.
+8. **The Drive folder's sharing is read live, never remembered** (`get_file_permissions`). Whatever it reads, Drive holds only brand and strategy material, never names or private results.
 9. **Drafts come from Control Center's existing Draft press, extended to Legibility.** His one press approves the exact email and places it as a Gmail draft in his box. This replaces his earlier "daily run makes the draft", once the existing press was found.
 10. The 7 expired outreach items are refreshed and resubmitted this week as Wave 0.
 11. **Plan v2 is approved: "Approve, start now"** (27 Oct). This revision records rulings 6 and 9 and the trial investigation's results.
@@ -74,7 +74,7 @@
   - There is no developer waitlist page and no trial entitlement.
   - The public MCP manifest carries a consumer email address.
 - **Control Center serves protocol 1.9.0 (its document's title still reads 1.8.0). Until Phase 0 this repo held the 1.2.0 copy, and it still sends 1.0.0.** The autonomy loop's fields (`stage`, `parent_proposal_id`, `subject_ref`, `amended`) are refused by the validator. *(27 Oct: the engine now sends 1.12.0 when Control Center serves the Draft press, and then the validator takes `subject_ref` and `source_revision` on a version 2 email action only; everything else is still refused.)*
-- **The Drive Legibility folder is shared "anyone with the link can edit"** (`get_file_permissions`).
+- **The Drive Legibility folder's sharing is read live, never remembered** (`get_file_permissions`).
 
 ## 0. Week 0, starting now: moves the number with no new engine code
 

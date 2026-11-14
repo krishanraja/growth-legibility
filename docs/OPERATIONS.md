@@ -80,7 +80,7 @@ With neither export variable set, the run is unchanged and its summary names `at
 
 This paragraph is the one home for what a live run reports; other documents link here. Re-date it when a run changes it.
 
-**No live run since 29 October.** Krish held the engine in Control Center on 29 October (Ruling, Krish, 2026-10-29), and Control Center sends no dispatch while it holds it, so Actions run 40821897430, the daily dispatch at 05:10 UTC that morning, before the hold, is the last live run (checked on 12 November in the Actions run list and Control Center's stored reports). The next run happens only after Krish releases the engine, or when he starts the job by hand. While `config/activation.json` still says `held`, that run sends the held report (above): measured, one `engine_held` hold, no proposal.
+**One held run since 29 October.** Krish held the engine in Control Center on 29 October (Ruling, Krish, 2026-10-29), and Control Center sends no dispatch while it holds it, so Actions run 40821897430, the daily dispatch at 05:10 UTC that morning, before the hold, is the last dispatched run. On 14 November the job was started by hand once (Actions run 43586077870) to prove the held path live: Control Center stored its report at 10:39 UTC, `live`, `held`, schema 1.20.0, no proposal and exactly one hold, `engine_held` (read back from `growth_engine_reports`). The next dispatched run happens only after Krish releases the engine.
 
 That last run, like the two on 28 October (Actions runs 40607512910 and 40636474031), read the app's export (A4, legibility PR 47; `export.state: read`) and Legibility's buyer from Control Center's 1.13.0 directive (`icp.state: approved`; control-center PR 588). Its report is `degraded`, not `held`: `weekly_builders` was measured (0 in the ISO week of 26 October) and travels both as an activity line and as an objective, because Control Center's objectives migration `20261112150000` is applied in production and the directive lists it. It came before protocols 1.16.0 and 1.20.0 reached this engine, so its summary has no `activation`, `credits` or `instruction`, and its report no engine state. What the report still lacks, and what clears each:
 
@@ -92,6 +92,14 @@ That last run, like the two on 28 October (Actions runs 40607512910 and 40636474
 | Objective `conversations_held` `missing` (`calendar_read_missing`) | No read of Krish's calendar exists | Control Center's read-only calendar read (Phase 1 asks) |
 
 So the buyer alone does not let an export-fed run prepare invitations: that also needs a candidate source. When the export cannot be read, the run has no snapshot and sends the held report instead: `held`, nothing measured, holds `source_snapshot_missing` and `icp_not_current_approved` (until the buyer is served) beside the export's own code. Even with a snapshot, `activated`, `returning` and `net` stay `missing` until the campaign clock is activated; then they report builders with a first trusted read, mature seven-day returning builders and qualified Founding members.
+
+### Before Krish releases the engine
+
+Held, a run proposes nothing, so these wait for the release; each is checked before it, never left to the first live run (fleet audit, 14 November 2026).
+
+- **The protocol copy is current.** [control-center/ENGINE-PROTOCOL.md](control-center/ENGINE-PROTOCOL.md) and the two schemas beside it are re-copied from Control Center's `docs/app/growth/ENGINE-PROTOCOL.md` on its `main`, with the commit recorded in the copy's first line, as every refresh has been. On 14 November the copy read 1.22.0 while Control Center served 1.26.0; a session without Control Center's repository cannot re-copy it, so it is the release session's first step.
+- **`ai_answers_detail` (protocol 1.26.0) is read.** `src/ai-answers.mjs` reads only the directive's `ai_answers.standing`. Before release, read what 1.26.0 adds in `ai_answers_detail` and either read it there, with tests, or say in this file why the standing alone is enough.
+- **The scheduled tasks are re-enabled, never created again** ([CREDITS-SESSION.md](CREDITS-SESSION.md)).
 
 ### Reading the run summary
 

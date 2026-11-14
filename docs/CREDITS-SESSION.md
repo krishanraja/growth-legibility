@@ -2,7 +2,7 @@
 
 Ruling (Krish, 2026-10-29): a growth engine may spend up to its placement share of a tool's prepaid credits each cycle with no per-batch approval, and reports what it made (protocol 1.16.0, [ENGINE-PROTOCOL.md](control-center/ENGINE-PROTOCOL.md), "Prepaid credits"). The runner on GitHub holds no Apify or 21st Dev key, so the spending is done by one scheduled Claude session a day for this engine, with the Control Center, Apify and 21st Dev connectors attached (Krish, 2026-10-29: "Scheduled sessions"). That session follows this file.
 
-**This engine is held** ([AGENTS.md](../AGENTS.md), "Held"; `config/activation.json`). While it is held, the session reads the share, says so, and spends nothing. Its daily scheduled task starts only once Krish releases the engine: on 12 November no such task was among his claude.ai scheduled tasks (one in the Cowork desktop app would not show there), so creating it is part of the release.
+**This engine is held** ([AGENTS.md](../AGENTS.md), "Held"; `config/activation.json`). While it is held, the session reads the share, says so, and spends nothing. Its daily scheduled task already exists on claude.ai, "Spend Legibility's prepaid credit share (held)" (12:04 Europe/London), and has been disabled since 31 October (read 14 November). On release it is re-enabled, never created a second time; it carries no connectors, so the Control Center, Apify and 21st Dev connectors are attached to it in the same step.
 
 ## Before the first spend (release prerequisites)
 

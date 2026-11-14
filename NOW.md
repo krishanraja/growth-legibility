@@ -30,6 +30,9 @@ Held by Krish (2026-10-29): not in motion for a few weeks. Control Center sends 
 
 Lifecycle: building. The detail is in `README.md`.
 
+- docs/SOURCE-REGISTER.md records that the preserved playbook's sender address (his krishraja.com address, sections 7.4 and 9.1) is superseded: approved invitations are drafted in Krish's own Gmail and give his mindmake.co address (Ruling, Krish, 2026-11-14). The playbook stays byte for byte. (2026-11-14)
+- closeout notes now fold into NOW.md after every merge: auto-merge.yml starts ci.yml on main by workflow_dispatch, and its fold job runs on that start, because the merge's own push, made with the Actions token, starts no workflow (FAILURES.md F50). (2026-11-14)
+- librarian/drive-taxonomy.json declares 01_Growth by path in drive-map/1; every run scans the directive's library (protocol 1.35.0) with src/lib/librarian.mjs and reports counts and findability only, unknown never clean. Served once Control Center's DRIVE_LIBRARY_PART flag is on. (2026-11-14)
 - our own pull requests (Krish or the Actions bot, branch in this repository, ready, at the commit that passed) now merge themselves when every "Verify growth producer" run on that commit is green (.github/workflows/auto-merge.yml, rule .github/scripts/auto-merge-pick.jq, tested). Forks, drafts and strangers wait for a person. (2026-11-14)
 - docs/control-center/ is Control Center's protocol bundle 1.33.0, byte for byte (bundle_sha256 4b7175a8aebbb8979eaefbeea1b7f0f44f2cffa0bbba9cea341da784fe7fde4d), the last protocol version of 14 November. (2026-11-14)
 - docs/control-center/ is Control Center's protocol bundle 1.28.0, byte for byte (bundle_sha256 b0dfa0d7aaa10aea0de45fb5f7dcc241c62bef70766f0fed9c6351d69af1b791), with bundle.json and a hash test that fails an edit in place (integration plan I-11). (2026-11-14)
@@ -69,7 +72,7 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What is next and what is waiting on Krish
 
-- Next (2026-11-14): watch the first pull request after this one merge itself on green.
+- Next (2026-11-14): none from this change; the next source review (due 26 November 2026) reads the register with it.
 - **Waiting on Krish:**
   - release the engine when he judges it ready: set `config/activation.json` to `active` and release it on Growth > Engines; until both, it gets no wake, proposes nothing and spends nothing;
   - start Operate with Control Center by hand (Actions, then Run workflow) to measure the number while the engine is held: a held run reads the export, reports this week's `weekly_builders` and proposes nothing (OPERATIONS.md, "Held");

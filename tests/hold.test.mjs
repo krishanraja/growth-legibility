@@ -14,6 +14,7 @@ import { validateEngineReport } from '../src/guards/wire.mjs';
 import { Outbox } from '../src/outbox.mjs';
 import { controlCenter, deliver } from '../src/transport.mjs';
 import { operate } from '../src/operate.mjs';
+import { sourceReviewHold } from '../src/lib/review-due.mjs';
 import { standIn, schemaErrors, REPORT_SCHEMA, DIRECTIVE } from './standin.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -170,4 +171,34 @@ test('the run command, held by the shipped flag, keeps only a held envelope in i
   assert.match(envelope.holds[0].detail, /mindmake_history_unknown/);
   const db = new Outbox(join(out, 'outbox.sqlite'));
   try { assert.equal(JSON.parse(db.get(envelope.run_id).payload).proposals.length, 0, 'the outbox row carries no proposal'); } finally { db.close(); }
+});
+
+// The source review's dated guard (src/lib/review-due.mjs; docs/FAILURES.md F49): from the review-by date every report carries
+// one plain hold that the review is due and not merged, held or not; it never counts usage, and it clears with the review.
+test('the source review hold is quiet before the review-by date, then names the review until the lock and the lock after it', () => {
+  const DUE = '2026-11-26T00:00:00Z';
+  assert.equal(sourceReviewHold(DUE, Date.parse('2026-11-18T23:59:59Z')), null, 'more than a week away: quiet');
+  const soon = sourceReviewHold(DUE, Date.parse('2026-11-19T00:00:00Z'));
+  assert.equal(soon.reason, 'source_review_due_soon');
+  assert.match(soon.detail, /7 days away \(2026-11-26\): review the source register by 2026-11-19.*not merged yet/);
+  assert.equal(sourceReviewHold(DUE, Date.parse('2026-11-26T00:00:00Z')).reason, 'source_review_due');
+  assert.throws(() => sourceReviewHold('soon', Date.now()), /source_review_clock_invalid/);
+});
+
+test('from the review-by date the runner reports the review hold: held, inside the one hold; active, beside the others, never twice', async t => {
+  const at = iso => ({ at:iso, clock:() => iso });
+  const quiet = await run(t, await standIn(t), { activation:HELD, ...at('2026-11-14T12:00:00Z') });
+  assert.equal(quiet.summary.source_review, 'current');
+  assert.doesNotMatch(quiet.stored.holds[0].detail, /source_review/);
+
+  const held = await run(t, await standIn(t), { activation:HELD, ...at('2026-11-20T12:00:00Z') });
+  assertHeld(held.stored);
+  assert.equal(held.summary.source_review, 'source_review_due_soon');
+  assert.match(held.stored.holds[0].detail, /source_review_due_soon/);
+  assert.ok(held.stored.activity.some(a => /review the source register by 2026-11-19/.test(a.line)));
+
+  const active = await run(t, await standIn(t), { activation:ACTIVE, ...at('2026-11-20T12:00:00Z') });
+  assert.equal(active.stored.holds.filter(h => h.reason === 'source_review_due_soon').length, 1);
+  const locked = await run(t, await standIn(t), { activation:ACTIVE, ...at('2026-11-27T12:00:00Z') });
+  assert.equal(locked.stored.holds.filter(h => h.reason === 'source_review_due').length, 1, 'the lock already holds: not added twice');
 });

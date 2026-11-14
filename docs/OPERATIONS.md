@@ -93,6 +93,14 @@ That last run, like the two on 28 October (Actions runs 40607512910 and 40636474
 
 So the buyer alone does not let an export-fed run prepare invitations: that also needs a candidate source. When the export cannot be read, the run has no snapshot and sends the held report instead: `held`, nothing measured, holds `source_snapshot_missing` and `icp_not_current_approved` (until the buyer is served) beside the export's own code. Even with a snapshot, `activated`, `returning` and `net` stay `missing` until the campaign clock is activated; then they report builders with a first trusted read, mature seven-day returning builders and qualified Founding members.
 
+### Before Krish releases the engine
+
+Held, a run proposes nothing, so these wait for the release; each is checked before it, never left to the first live run (fleet audit, 14 November 2026).
+
+- **The protocol copy is current.** [control-center/ENGINE-PROTOCOL.md](control-center/ENGINE-PROTOCOL.md) and the two schemas beside it are re-copied from Control Center's `docs/app/growth/ENGINE-PROTOCOL.md` on its `main`, with the commit recorded in the copy's first line, as every refresh has been. On 14 November the copy read 1.22.0 while Control Center served 1.26.0; a session without Control Center's repository cannot re-copy it, so it is the release session's first step.
+- **`ai_answers_detail` (protocol 1.26.0) is read.** `src/ai-answers.mjs` reads only the directive's `ai_answers.standing`. Before release, read what 1.26.0 adds in `ai_answers_detail` and either read it there, with tests, or say in this file why the standing alone is enough.
+- **The scheduled tasks are re-enabled, never created again** ([CREDITS-SESSION.md](CREDITS-SESSION.md)).
+
 ### Reading the run summary
 
 `operate` prints one JSON summary. Each field below appears only when its step ran.

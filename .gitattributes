@@ -2,3 +2,6 @@
 _corpus/legibility-growth-playbook.md -text whitespace=-blank-at-eol
 _corpus/copywriting-offers-demand-corpus.md -text whitespace=-blank-at-eol
 _corpus/copywriting-offers-demand-corpus-summary.md -text whitespace=-blank-at-eol
+
+# Control Center's protocol bundle is kept byte for byte (its hash test and ai-harness pins/bytes); never convert it.
+docs/control-center/** -text

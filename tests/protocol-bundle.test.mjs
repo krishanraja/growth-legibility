@@ -9,11 +9,13 @@ import { join } from 'node:path'
 
 const DIR = join(import.meta.dirname, '..', 'docs', 'control-center')
 const sha = (b) => createHash('sha256').update(b).digest('hex')
+// Line endings as the bundle has them (LF): a Windows checkout may hand back CRLF.
+const lf = (b) => Buffer.from(b.toString('utf8').replace(/\r\n/g, '\n'), 'utf8')
 
 test('every file of the protocol copy matches its sha256 in bundle.json', () => {
   const bundle = JSON.parse(readFileSync(join(DIR, 'bundle.json'), 'utf8'))
   assert.ok(Object.keys(bundle.files).length, 'a bundle with no files proves nothing')
-  for (const [name, want] of Object.entries(bundle.files)) assert.equal(sha(readFileSync(join(DIR, name))), want, `${name} differs from Control Center's bundle; refresh it, never edit it`)
+  for (const [name, want] of Object.entries(bundle.files)) assert.equal(sha(lf(readFileSync(join(DIR, name)))), want, `${name} differs from Control Center's bundle; refresh it, never edit it`)
 })
 
 test('the bundle hash is the documented recipe', () => {

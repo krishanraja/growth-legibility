@@ -30,6 +30,7 @@ Held by Krish (2026-10-29): not in motion for a few weeks. Control Center sends 
 
 Lifecycle: building. The detail is in `README.md`.
 
+- docs/control-center/ is Control Center's protocol bundle 1.28.0, byte for byte (bundle_sha256 b0dfa0d7aaa10aea0de45fb5f7dcc241c62bef70766f0fed9c6351d69af1b791), with bundle.json and a hash test that fails an edit in place (integration plan I-11). (2026-11-14)
 - Fleet audit repairs (14 Nov). The docs now say the 1E source review task (one-off, 17 Nov 19:23 UTC) and the disabled credits task exist (PR 31). From the review-by date every report carries one dated source review hold, which a held run names among what readiness needs (PR 30, F49). The release checklist in docs/OPERATIONS.md names the protocol re-copy (copy 1.22.0, Control Center 1.26.0) and ai_answers_detail (PR 32). One hand-started held run proved the held path live: stored held, one engine_held hold, no proposal. (2026-11-14)
 - Legibility's AI answers are AEO-Engine's, the one AI-answers specialist (Ruling, Krish, 2026-11-12): each run reads its standing from the directive (protocol 1.22.0) and, once released and with real buyer questions in config/ai-answer-questions.json, asks AEO once (src/ai-answers.mjs). Held, it asks nothing. The protocol copy in docs/control-center/ is Control Center's at 36df34bc (protocol 1.22.0). (2026-11-13)
 - The protocol copy in docs/control-center/ is Control Center's at 212379e1 (1.21.0, the schemas unchanged): its voice_check row lists the 16 channels Control Center accepts, and it says the directive takes weekly_builders' target from this repository's north-star block (300 by 28 December), never the registry's copy; this engine still sends at most 1.20.0. (2026-11-12)
@@ -66,7 +67,7 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What is next and what is waiting on Krish
 
-- Next (2026-11-14): A session with Control Center's repository re-copies docs/control-center/ENGINE-PROTOCOL.md and its two schemas from Control Center main, recording the commit.
+- Next (2026-11-14): report one counted line each run, protocol_copy: current | behind <version> | unknown, comparing bundle.json with capabilities' protocol_bundle; never a hold.
 - **Waiting on Krish:**
   - release the engine when he judges it ready: set `config/activation.json` to `active` and release it on Growth > Engines; until both, it gets no wake, proposes nothing and spends nothing;
   - start Operate with Control Center by hand (Actions, then Run workflow) to measure the number while the engine is held: a held run reads the export, reports this week's `weekly_builders` and proposes nothing (OPERATIONS.md, "Held");

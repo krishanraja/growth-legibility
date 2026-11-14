@@ -17,6 +17,8 @@ The live site URL was supplied directly by Krish and agrees with current app sou
 
 ## Current precedence and freshness
 
+The playbook's sender address is superseded: its section 7.4 names his krishraja.com address as the sender "until a dedicated Legibility sender is deliberately established", and its 9.1 invitation signs with it. Ruling (Krish, 2026-11-14): everything uses his mindmake.co address, the one auto-connected to every part of the OS (his exact words are in the commit that added this paragraph; this repository holds no real email address). An approved invitation is drafted in Krish's own Gmail, the box Control Center's Draft press writes to (protocol 1.12.0), and wherever a draft gives his address it is the mindmake.co one. The playbook itself stays byte for byte.
+
 The 14 October live canon ruling supersedes the installed principles' older blanket ban on cold outreach. The implementation permits individually evidenced named drafts and always leaves sending to the human. The original playbook and installed harness were not edited. The corpus's x402 discovery motion remains valid as research, but mainnet claims are blocked until reviewed live evidence changes the product truth.
 
 Policy requires source review by 26 November 2026 (`source_review_due`, 30 days after this review, the interval the 18 October review set) and source snapshot freshness within 24 hours. Renewal requires reviewing actual revisions and behavior; moving a timestamp alone is insufficient. Dynamic ICP, contact history, suppression and each person's Mindmake record (Control Center's prior-outreach read, `contact.prior_mindmake`) must be re-read at approval time by the source owner.

@@ -416,9 +416,9 @@ A run loads only the cards its spec names. **Wave 1 loads the five marked ★, p
 
 ## 9. Codex task-card dispatch
 
-- **Where it runs.** The Codex plugin is not installed in this cloud container, so dispatch runs from a session Krish starts on his PC, with one git worktree per card. This is build work, not the loop, so decision 18 leaves it as it is: its changes reach the engine only through pull requests.
+- **Where it runs.** Claude starts Codex only through `scripts/codex_thread.mjs`, a byte-for-byte copy of ai-harness's canonical tool (Ruling, Krish, 2026-11-15). A thread shows in Krish's Codex Desktop only when it is written to the Codex home on his computer, so dispatch runs from a session on his PC, with one git worktree per card; a cloud container never makes a thread he can see. This is build work, not the loop, so decision 18 leaves it as it is: its changes reach the engine only through pull requests.
 - **The card** (`codex/card.schema.json`, 6 KB or less) holds:
-  - model `gpt-6.1-sol` and effort `medium`, both pinned;
+  - the model and effort, both pinned;
   - maximum minutes and calls;
   - the worktree;
   - `write_allow` globs and 5 or fewer read files;
@@ -427,7 +427,7 @@ A run loads only the cards its spec names. **Wave 1 loads the five marked ★, p
   - acceptance commands that must exit 0;
   - a JSON return shape.
   Cards in git carry no allowance reading, decision id or amount.
-- **Dispatch:** `codex-companion.mjs task --background --fresh --write --model gpt-6.1-sol --effort medium --cwd <worktree> --prompt-file <card>`, never the rescue subagent. Cards longer than the session's remaining budget use `codex exec`.
+- **Dispatch:** `node scripts/codex_thread.mjs open --cwd <worktree> --sandbox workspace-write --model <pinned> --effort <pinned> "Codex card <id>: do exactly what the task card at <absolute card path> says, in this worktree only, then reply with the JSON its returns block describes."`. It starts a permanent thread in his Codex Desktop recents, titled by that first line, runs the card as its first turn, prints the thread id and releases the thread, so he can watch it, type in it and lend it his signed-in browser. `send <thread> "<message>"` adds a turn, and `read <thread>` prints every turn, his included. A card longer than the session's remaining budget runs the same `open` with `--detach --log <file>`, and its log holds the thread id first. Never the Codex plugin's long-running server and never the rescue subagent. If Codex cannot start, the session says so in one line and stops; it never edits MCP or Claude settings to work around it.
 - **The guard** reads the allowance itself at dispatch, from the Codex CLI usage status.
   - If it cannot read it, it treats the allowance as unknown and refuses.
   - At 80% or more, or when unknown, it needs Krish's yes typed in that PC session at that moment, or a Control Center spend decision read live and matched by digest and amount.

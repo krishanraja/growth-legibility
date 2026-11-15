@@ -30,6 +30,7 @@ Held by Krish (2026-10-29): not in motion for a few weeks. Control Center sends 
 
 Lifecycle: building. The detail is in `README.md`.
 
+- the branch sweep takes an approved list (branch@sha) on a hand run and deletes each named branch only at that exact commit, skipping and logging anything else; the weekly run is unchanged. Copied from ai-harness's canonical script and workflow. (2026-11-15)
 - A weekly branch sweep (`.github/workflows/branch-sweep.yml`, Sunday 03:17 UTC, and by hand) deletes every remote branch whose work is already on main and lists each branch it keeps with why: unmerged work, an open pull request, protected (Ruling, Krish, 2026-11-15). The script is `.github/scripts/branch_sweep.py`, copied unchanged from ai-harness, which holds the canonical copy. (2026-11-15)
 - docs/SOURCE-REGISTER.md records that the preserved playbook's sender address (his krishraja.com address, sections 7.4 and 9.1) is superseded: approved invitations are drafted in Krish's own Gmail and give his mindmake.co address (Ruling, Krish, 2026-11-14). The playbook stays byte for byte. (2026-11-14)
 - closeout notes now fold into NOW.md after every merge: auto-merge.yml starts ci.yml on main by workflow_dispatch, and its fold job runs on that start, because the merge's own push, made with the Actions token, starts no workflow (FAILURES.md F50). (2026-11-14)
@@ -73,7 +74,7 @@ Lifecycle: building. The detail is in `README.md`.
 
 ## What is next and what is waiting on Krish
 
-- Next (2026-11-15): none from this change; the next source review (due 26 November 2026) reads the register with it.
+- Next (2026-11-15): run the sweep by hand with dry_run false and this repository's approved list, and read its log.
 - **Waiting on Krish:**
   - release the engine when he judges it ready: set `config/activation.json` to `active` and release it on Growth > Engines; until both, it gets no wake, proposes nothing and spends nothing;
   - start Operate with Control Center by hand (Actions, then Run workflow) to measure the number while the engine is held: a held run reads the export, reports this week's `weekly_builders` and proposes nothing (OPERATIONS.md, "Held");

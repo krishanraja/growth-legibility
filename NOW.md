@@ -24,7 +24,7 @@ Companies whose agents or products need product data they can trust: reached, fr
 
 ## Where it is right now (as of 2026-11-14)
 
-<!-- north-star-state {"week_of": "2026-11-09", "week_target": 10, "current": null, "current_as_of": null, "current_source": null, "urgency": 4, "urgency_reason": "not measured this week; the last reading, 0 in the week of 26 October from the live run of 29 October, is 14 days old"} --> **North Star number: U4, far behind.** Builders making trusted reads every week: not measured this week (the last reading was 0 in the week of 26 October, from the live run of 29 October), against 10 this week, on the way to 300 by 28 December 2026. A bold swing every day; work that does not move the number waits. Measuring it comes first: a run started by hand measures it even while the engine is held (Waiting on Krish, below).
+<!-- north-star-state {"week_of":"2026-11-09","week_target":10,"current":0,"current_as_of":"2026-11-14","current_source":"growth-legibility's latest live report to Control Center (objective weekly_builders: builders with a trusted read this ISO week, internal accounts excluded), read by Control Center","urgency":5,"urgency_reason":"under 40% of the week's target two weeks running (0% now)"} --> **North Star number: U5, stalled.** Builders making trusted reads every week: 0, against 10 this week, on the way to 300 by 28 December 2026. Everything else pauses unless it moves the number.
 
 Held by Krish (2026-10-29): not in motion for a few weeks. Control Center sends no wake while it holds the engine, so the last live run was the dispatch of 29 October, before the hold ([OPERATIONS.md](docs/OPERATIONS.md), "What a dispatch measures today").
 

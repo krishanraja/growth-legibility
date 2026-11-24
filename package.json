@@ -18,6 +18,7 @@
     "check:invitation": "node scripts/check-invitation.mjs",
     "reader": "node scripts/reader.mjs",
     "insight": "node scripts/insight-sheet.mjs",
-    "divergent": "node scripts/divergent.mjs"
+    "divergent": "node scripts/divergent.mjs",
+    "humour": "node scripts/humour.mjs"
   }
 }

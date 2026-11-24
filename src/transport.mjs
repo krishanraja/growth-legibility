@@ -12,6 +12,8 @@ const PREFIX = `/api/growth/engines/${PROTOCOL.slug}`;
 const TIMEOUT_MS = 20000;
 // A full diverge runs up to four minutes at Control Center; the client waits five.
 const DIVERGENT_TIMEOUT_MS = 300000;
+// One humour-engine reading runs one model call at Control Center; the client waits two and a half minutes.
+const HUMOUR_TIMEOUT_MS = 150000;
 // Control Center's api/_priorOutreach.ts MAX_CONTACTS: at most this many contact ids in one prior-outreach read.
 export const MAX_PRIOR_OUTREACH_CONTACTS = 50;
 const plainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -180,7 +182,22 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     return value;
   }
 
-  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport, answers, divergent };
+  // features.humour (no version, 2026-11-17): one humour-engine reading on this engine's bearer, on a published prompt
+  // only (src/lib/humour.mjs), capped at 200 a day per engine. A reading only: it approves, holds and sends nothing.
+  // Nothing is retried: a refusal leaves as a code with its HTTP status, so a 429 cap is final for the day.
+  async function humour(call) {
+    const res = await request('/humour', { method:'POST', body:JSON.stringify(call), timeoutMs:HUMOUR_TIMEOUT_MS });
+    if (!res.ok) {
+      let code = null;
+      try { const b = await jsonResponse(res); code = typeof b?.error === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(b.error) ? b.error : null; } catch { /* the code stays unknown */ }
+      const e = fault(res.status === 404 ? 'humour_not_supported' : 'humour_refused'); e.status = res.status; e.answer = code; throw e;
+    }
+    const value = await jsonResponse(res);
+    if (value?.ok !== true || !plainObject(value.payload)) throw fault('humour_invalid');
+    return value;
+  }
+
+  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport, answers, divergent, humour };
 }
 
 const POST_REFUSALS = { 400:'receiver_report_refused', 403:'receiver_identity_refused', 413:'receiver_report_too_large', 429:'receiver_rate_limited' };

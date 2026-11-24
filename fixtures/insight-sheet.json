@@ -1,0 +1,146 @@
+{
+  "schema": "insight-sheet/1",
+  "venture": "example-venture",
+  "repo": "example-owner/example-engine",
+  "harness_skill_sha": "0000000000000000000000000000000000000000",
+  "made_at": "2026-11-24T09:00:00Z",
+  "north_star": {
+    "metric": "Synthetic monthly sales",
+    "urgency": 5,
+    "current": 0,
+    "as_of": "2026-11-24"
+  },
+  "stall_check": {
+    "diagnosis": "idea",
+    "evidence": "Synthetic fixture: posts reach people and the tracked links show views with no clicks."
+  },
+  "insights": [
+    {
+      "audience": "people buying a gift for a friend who has a pet",
+      "wants": "a present that shows they noticed something personal",
+      "but": "they leave it until the week before",
+      "because": "nothing in their week reminds them early enough",
+      "source": "fixture: synthetic comment themes",
+      "read_at": "2026-11-24"
+    },
+    {
+      "audience": "first-time buyers",
+      "wants": "to know the gift will look right",
+      "but": "they cannot picture it",
+      "because": "they have only seen it on other people's pets",
+      "assumption": true
+    }
+  ],
+  "chosen_insight": 0,
+  "discarded_obvious": [
+    "A countdown post to the holiday",
+    "A discount code for early orders",
+    "A gallery of finished gifts"
+  ],
+  "ideas": [
+    {
+      "id": "own-date",
+      "claim": "The best day to order is a date that means something to the buyer, not the shop's deadline.",
+      "mechanic": "Buyers pick their own date and get one nudge on it.",
+      "idea_level": "platform",
+      "method": "ritual-hijack",
+      "channel_role": "short video that hands the viewer a role",
+      "conversion_path": {
+        "offer": "the standard gift",
+        "link": "tracked link from the engine's link command",
+        "why_act": "setting the date takes ten seconds and ends the last-minute rush"
+      },
+      "kill_condition": "Fewer clicks than the plain post over two weeks.",
+      "tests": {
+        "specificity": {
+          "result": "pass",
+          "reason": "Swapped in a neighbouring gift shop; the claim about the buyer's own pet no longer holds."
+        },
+        "share": {
+          "result": "pass",
+          "reason": "A buyer sends it to the friend who keeps saying they will order one, adding 'this is you'."
+        },
+        "analogue": {
+          "result": "pass",
+          "reason": "A public reminder service used the same fixed-date ritual and is still running.",
+          "url": "https://example.com/analogue-one",
+          "read_at": "2026-11-24"
+        },
+        "floor": {
+          "result": "pass",
+          "reason": "Read the fixture floor and claims gate; closest rule is no invented scarcity, not tripped."
+        },
+        "kill_the_favourite": {
+          "result": "pass",
+          "reason": "Attack: the date feels like a sales trick. Answer: the date is the buyer's own, chosen by them."
+        }
+      }
+    },
+    {
+      "id": "name-the-rush",
+      "claim": "Give the last-minute rush a name buyers repeat about themselves.",
+      "mechanic": "A plain name for the habit, used as the hook.",
+      "idea_level": "campaign",
+      "method": "rename-the-problem",
+      "channel_role": "carousel",
+      "conversion_path": {
+        "offer": "the standard gift",
+        "link": "tracked link from the engine's link command",
+        "why_act": "seeing their own habit named makes them act before it happens again"
+      },
+      "kill_condition": "Nobody uses the name in replies within a week.",
+      "tests": {
+        "specificity": {
+          "result": "pass",
+          "reason": "Swapped in a neighbouring gift shop; the claim about the buyer's own pet no longer holds."
+        },
+        "share": {
+          "result": "pass",
+          "reason": "A buyer sends it to the friend who keeps saying they will order one, adding 'this is you'."
+        },
+        "analogue": {
+          "result": "unavailable",
+          "reason": "No real analogue found today.",
+          "url": null,
+          "read_at": null
+        },
+        "floor": {
+          "result": "pass",
+          "reason": "Read the fixture floor and claims gate; closest rule is no invented scarcity, not tripped."
+        },
+        "kill_the_favourite": {
+          "result": "pass",
+          "reason": "Attack: the date feels like a sales trick. Answer: the date is the buyer's own, chosen by them."
+        }
+      }
+    }
+  ],
+  "consults": [
+    {
+      "engine": "divergent-thinker",
+      "op": "score",
+      "result": "unavailable",
+      "ref": "fixture: not served"
+    }
+  ],
+  "lead": "own-date",
+  "blind_passes": [
+    {
+      "reader": "fresh reader one",
+      "order": [
+        "own-date",
+        "name-the-rush"
+      ],
+      "lead": "own-date"
+    },
+    {
+      "reader": "fresh reader two",
+      "order": [
+        "name-the-rush",
+        "own-date"
+      ],
+      "lead": "own-date"
+    }
+  ],
+  "sheet_sha256": "6a64b573c3f0dea2b1cb9ab7d9d72c5dc6eac28ce98aef7bc368b035480b1964"
+}

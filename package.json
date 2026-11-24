@@ -16,6 +16,7 @@
     "engine": "node src/cli.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "check:invitation": "node scripts/check-invitation.mjs",
-    "reader": "node scripts/reader.mjs"
+    "reader": "node scripts/reader.mjs",
+    "insight": "node scripts/insight-sheet.mjs"
   }
 }

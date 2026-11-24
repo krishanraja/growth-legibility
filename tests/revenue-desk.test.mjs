@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { readActivation, heldBy } from '../src/lib/hold.mjs';
 
 const root = resolve(import.meta.dirname, '..');
@@ -28,7 +29,7 @@ test('every source the adapter names exists, with its export and metric', async 
   for (const r of reads) {
     assert.ok(existsSync(join(root, r.path)), r.path);
     if (r.export) {
-      const mod = await import(join(root, r.path));
+      const mod = await import(pathToFileURL(join(root, r.path)).href);
       assert.equal(typeof mod[r.export], 'function', `${r.path} ${r.export}`);
     }
     if (r.metric) assert.match(readFileSync(join(root, r.path), 'utf8'), new RegExp(`\\b${r.metric}\\b`), r.metric);

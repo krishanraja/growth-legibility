@@ -5,7 +5,7 @@
  *   npm run reader -- brief --input <file> [--n 10]    one brief per candidate draft (a snapshot or a check:invitation input), in runtime/reader/briefs/
  *   npm run reader -- brief --input <file> --insight <sheet>   the same, with a valid insight sheet's ideas as extra
  *                                                       impact angles (insight:<idea id>) beside the three fixed ones
- *                                                       (config/insight-desk.json); an invalid sheet is refused
+ *                                                       (config/insight-desk.json); an invalid sheet, or one for another engine, is refused
  *   npm run reader -- check                             which readers have not answered, or answered out of shape
  *   npm run reader -- save <candidate_id> < answer.json   file a reader's own reply when it printed instead of writing; refuses a bad one
  *   npm run reader -- tally                             counts and codes for the run, by impact angle, and the ledger entries
@@ -23,7 +23,7 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, relative } from 'node:path';
-import { validateSheet, sheetAngles, methodsFromAdapter } from '../src/lib/insight-sheet.mjs';
+import { validateSheet, ownerErrors, sheetAngles, methodsFromAdapter } from '../src/lib/insight-sheet.mjs';
 import { selectDrafts, briefFor, briefSha, validAnswer, tally, tallyLine, ledgerEntry, mergeLedger, calibrate, calibrationLine, validOutcomes, DEFAULT_PER_RUN } from '../src/lib/reader.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -70,13 +70,17 @@ if (cmd === 'brief') {
   if (!candidates) fail('The file holds no candidates: pass a snapshot or a check:invitation input.');
   const n = Number.parseInt(flag('--n') ?? `${DEFAULT_PER_RUN}`, 10);
   // An insight sheet, only when the session names one: its ideas become extra angles. Without it, nothing changes.
+  // Every refusal here comes before the last run's briefs and answers are cleared, so a refused sheet loses nothing.
   const sheetFile = flag('--insight');
   let insight = null;
+  if (args.includes('--insight') && (!sheetFile || sheetFile.startsWith('--'))) fail('Usage: --insight needs a sheet file: npm run reader -- brief --input <file> --insight <sheet>');
   if (sheetFile) {
-    const sheet = await readJson(resolve(sheetFile));
-    const methods = methodsFromAdapter(await readJson(resolve(root, 'config/insight-desk.json'), null), root);
-    const errors = validateSheet(sheet, { methods });
-    if (errors.length) fail(`Refused: the insight sheet is not valid (${errors.length} reason${errors.length === 1 ? '' : 's'}; run \`npm run insight -- check <sheet>\`).`);
+    let sheet, adapter;
+    try { sheet = JSON.parse(await readFile(resolve(sheetFile), 'utf8')); } catch { fail('Refused: the insight sheet cannot be read as JSON.'); }
+    try { adapter = JSON.parse(await readFile(resolve(root, 'config/insight-desk.json'), 'utf8')); } catch { adapter = null; }
+    const methods = methodsFromAdapter(adapter, root);
+    const errors = [...ownerErrors(sheet, adapter), ...validateSheet(sheet, { methods })];
+    if (errors.length) fail(`Refused: the insight sheet is not valid for this engine (${errors.length} reason${errors.length === 1 ? '' : 's'}; run \`npm run insight -- check <sheet>\`).`);
     insight = { sheet_sha256: sheet.sheet_sha256, harness_skill_sha: sheet.harness_skill_sha, angles: sheetAngles(sheet, { methods }) };
   }
   const items = selectDrafts(candidates, n, insight ? { angles: insight.angles } : undefined);

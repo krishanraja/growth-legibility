@@ -42,7 +42,12 @@ const sameSet = (obj, keys) => isObj(obj) && Object.keys(obj).length === keys.le
 const extraKeys = (obj, keys) => Object.keys(obj).filter(k => !keys.includes(k)).sort();
 const plain = s => String(s).toLowerCase().split(/\s+/).filter(Boolean).join(' ');
 
-/** JSON with every object's keys sorted and no spaces: the bytes the sheet's hash is taken over. Pure. */
+/**
+ * JSON with every object's keys sorted and no spaces: the bytes the sheet's hash is taken over. Pure. It matches the
+ * skill's Python (sort_keys, separators (',', ':'), ensure_ascii False) for strings, integers, booleans and null. The
+ * two languages print some other numbers differently (1.0, 1e21), so a sheet carrying one would hash differently in
+ * each; no field of insight-sheet/1 holds such a number today.
+ */
 export function canonicalJson(value) {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
   if (isObj(value)) return `{${Object.keys(value).sort().map(k => `${JSON.stringify(k)}:${canonicalJson(value[k])}`).join(',')}}`;
@@ -61,6 +66,20 @@ export function knownMethods(path) {
     const ids = [...readFileSync(path, 'utf8').matchAll(/^### `([a-z0-9-]+)`/gm)].map(m => m[1]);
     return ids.length ? new Set(ids) : null;
   } catch { return null; }
+}
+
+/**
+ * Why a sheet does not belong to this engine: its repo and venture must equal the adapter's (config/insight-desk.json),
+ * so a sheet written for another venture never feeds this engine's drafts (one sheet per venture; the taste ledger is
+ * keyed by venture). No adapter means ownership cannot be confirmed, which refuses the sheet. Pure.
+ */
+export function ownerErrors(sheet, adapter) {
+  if (!isObj(adapter) || !filled(adapter.repo) || !filled(adapter.venture)) return ['no insight desk adapter names this engine, so the sheet cannot be confirmed as its own'];
+  const errors = [];
+  if (!isObj(sheet)) return ['the sheet is not a JSON object'];
+  if (sheet.repo !== adapter.repo) errors.push(`repo: the sheet is for ${JSON.stringify(sheet.repo ?? null)}, not this engine (${adapter.repo})`);
+  if (sheet.venture !== adapter.venture) errors.push(`venture: the sheet is for ${JSON.stringify(sheet.venture ?? null)}, not this engine's venture (${adapter.venture})`);
+  return errors;
 }
 
 /**

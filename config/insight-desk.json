@@ -1,0 +1,28 @@
+{
+  "schema": "insight-desk-adapter/1",
+  "ruling": "Ruling (Krish, 2026-11-24): the creative director is the ai-harness insight-desk skill with a thin adapter in each growth engine, all five wired now; no separate repo until the graduation trigger fires.",
+  "venture": "legibility",
+  "repo": "krishanraja/growth-legibility",
+  "skill": {
+    "name": "insight-desk",
+    "read": "get_skill('insight-desk') once ai-harness admits it; until then a local ai-harness checkout, else unavailable and the engine runs as before",
+    "local_paths": ["../ai-harness/skills/insight-desk", "../ai-harness/candidates/insight-desk"]
+  },
+  "north_star": {
+    "state_line": "NOW.md, the north-star-state comment under \"Where it is right now\"",
+    "north_star": "docs/NORTH_STAR.md"
+  },
+  "taste": "get_approved_taste for repository krishanraja/growth-legibility, venture legibility",
+  "floor": ["docs/COPY-DOCTRINE.md", "docs/OUTREACH-TEMPLATE.md", "docs/FAILURES.md"],
+  "live": "Control Center's prior-outreach route and the invitations already prepared in the latest private report under runtime/",
+  "humour": { "allowed": false, "why": "unavailable: this engine has no humour route, and its copy doctrine is plain and evidence-led" },
+  "divergent": { "namespace": "growth-legibility:ideas", "route": "connector only: divergent_score, divergent_record and divergent_run from a session on Krish's account; a run with neither records unavailable" },
+  "blind_reader": "fresh-context sub-agents from a Claude session, as scripts/reader.mjs sends them; never the session that wrote the ideas",
+  "hook": {
+    "object": "draft.impact in src/lib/reader.mjs",
+    "how": "npm run reader -- brief --input <file> --insight <sheet>: a valid sheet's ideas become insight:<idea id> angles beside the three fixed ones; without --insight nothing changes"
+  },
+  "sheets": "runtime/insight/, ignored, never committed",
+  "approval": "stage plan behind strategy on Krish's list, and only while the engine is active; while config/activation.json or Control Center holds it, the sheet stays local and puts no ask on his list",
+  "cadence": "at most one sheet a week"
+}

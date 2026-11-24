@@ -3,6 +3,9 @@
  * src/lib/reader.mjs; docs/COPY-DOCTRINE.md, "The reader check").
  *
  *   npm run reader -- brief --input <file> [--n 10]    one brief per candidate draft (a snapshot or a check:invitation input), in runtime/reader/briefs/
+ *   npm run reader -- brief --input <file> --insight <sheet>   the same, with a valid insight sheet's ideas as extra
+ *                                                       impact angles (insight:<idea id>) beside the three fixed ones
+ *                                                       (config/insight-desk.json); an invalid sheet is refused
  *   npm run reader -- check                             which readers have not answered, or answered out of shape
  *   npm run reader -- save <candidate_id> < answer.json   file a reader's own reply when it printed instead of writing; refuses a bad one
  *   npm run reader -- tally                             counts and codes for the run, by impact angle, and the ledger entries
@@ -20,6 +23,7 @@
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve, relative } from 'node:path';
+import { validateSheet, sheetAngles, methodsFromAdapter } from '../src/lib/insight-sheet.mjs';
 import { selectDrafts, briefFor, briefSha, validAnswer, tally, tallyLine, ledgerEntry, mergeLedger, calibrate, calibrationLine, validOutcomes, DEFAULT_PER_RUN } from '../src/lib/reader.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -65,7 +69,17 @@ if (cmd === 'brief') {
   const candidates = candidatesOf(await readJson(resolve(file)));
   if (!candidates) fail('The file holds no candidates: pass a snapshot or a check:invitation input.');
   const n = Number.parseInt(flag('--n') ?? `${DEFAULT_PER_RUN}`, 10);
-  const items = selectDrafts(candidates, n);
+  // An insight sheet, only when the session names one: its ideas become extra angles. Without it, nothing changes.
+  const sheetFile = flag('--insight');
+  let insight = null;
+  if (sheetFile) {
+    const sheet = await readJson(resolve(sheetFile));
+    const methods = methodsFromAdapter(await readJson(resolve(root, 'config/insight-desk.json'), null), root);
+    const errors = validateSheet(sheet, { methods });
+    if (errors.length) fail(`Refused: the insight sheet is not valid (${errors.length} reason${errors.length === 1 ? '' : 's'}; run \`npm run insight -- check <sheet>\`).`);
+    insight = { sheet_sha256: sheet.sheet_sha256, harness_skill_sha: sheet.harness_skill_sha, angles: sheetAngles(sheet, { methods }) };
+  }
+  const items = selectDrafts(candidates, n, insight ? { angles: insight.angles } : undefined);
   if (!items.length) fail('No candidate has a draft and a record that says who its reader is: nothing to read.');
   // A new run replaces the last run's briefs and answers; the ledger is kept.
   for (const d of ['briefs', 'answers']) await rm(resolve(dir, d), { recursive: true, force: true });
@@ -73,8 +87,9 @@ if (cmd === 'brief') {
   await mkdir(resolve(dir, 'answers'), { recursive: true });
   const at = flag('--at') ?? new Date().toISOString();
   for (const [i, item] of items.entries()) await writeFile(resolve(dir, 'briefs', fileName(i, 'md')), briefFor(item, resolve(dir, 'answers', fileName(i, 'json'))));
-  await writeFile(RUN, JSON.stringify({ at, items: items.map(item => ({ ...item, brief_sha: briefSha(item) })) }, null, 2));
+  await writeFile(RUN, JSON.stringify({ at, ...(insight ? { insight } : {}), items: items.map(item => ({ ...item, brief_sha: briefSha(item) })) }, null, 2));
   console.log(`Wrote ${items.length} reader brief${items.length === 1 ? '' : 's'} (${items.length} sub-agent call${items.length === 1 ? '' : 's'}).`);
+  if (insight) console.log(`Insight sheet ${insight.sheet_sha256.slice(0, 12)}: ${insight.angles.length} extra angle${insight.angles.length === 1 ? '' : 's'} beside the three fixed ones.`);
   waves({ items });
 } else if (cmd === 'check') {
   const run = await loadRun();
@@ -112,5 +127,5 @@ if (cmd === 'brief') {
   const ledger = await readJson(LEDGER, []);
   console.log(calibrationLine(calibrate(ledger, input.outcomes, flag('--at') ?? new Date().toISOString())));
 } else {
-  fail('Usage: npm run reader -- brief --input <file> [--n 10] | check | save <candidate_id> | tally | calibrate --outcomes <file> [--at <iso>]');
+  fail('Usage: npm run reader -- brief --input <file> [--n 10] [--insight <sheet>] | check | save <candidate_id> | tally | calibrate --outcomes <file> [--at <iso>]');
 }

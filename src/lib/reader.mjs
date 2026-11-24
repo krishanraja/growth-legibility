@@ -47,15 +47,25 @@ export function readerFacts(c) {
   return out;
 }
 
-/** The candidates this run reads, in order: a draft with words and a record with facts, at most `n`. Pure. */
-export function selectDrafts(candidates, n = DEFAULT_PER_RUN) {
+/**
+ * The angles a draft may name: the three fixed ones, plus any an insight sheet adds (`insight:<idea id>`, from
+ * src/lib/insight-sheet.mjs `sheetAngles`, only when the session passes a sheet). Pure.
+ */
+export const impactsWith = (angles = []) => [...IMPACTS, ...(Array.isArray(angles) ? angles.filter(a => typeof a === 'string' && a.startsWith('insight:') && !IMPACTS.includes(a)) : [])];
+
+/**
+ * The candidates this run reads, in order: a draft with words and a record with facts, at most `n`. With no `angles`
+ * the three fixed angles are the only ones a draft may name, exactly as before. Pure.
+ */
+export function selectDrafts(candidates, n = DEFAULT_PER_RUN, { angles = [] } = {}) {
+  const allowed = impactsWith(angles);
   const cap = Math.max(1, Math.min(MAX_PER_RUN, Number.isInteger(n) ? n : DEFAULT_PER_RUN));
   const out = [];
   for (const c of Array.isArray(candidates) ? candidates : []) {
     if (out.length >= cap) break;
     const text = str(c?.draft?.text), facts = readerFacts(c);
     if (typeof c?.id !== 'string' || !text || facts.length < 2) continue;
-    out.push({ id: c.id, role: roleOf(c), impact: IMPACTS.includes(c.draft.impact) ? c.draft.impact : null, facts, draft: text });
+    out.push({ id: c.id, role: roleOf(c), impact: allowed.includes(c.draft.impact) ? c.draft.impact : null, facts, draft: text });
   }
   return out;
 }

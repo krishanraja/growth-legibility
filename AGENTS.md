@@ -56,7 +56,7 @@ Preserve source bytes and hash verification. Never update source dates without r
 ## Insight desk (Ruling, Krish, 2026-11-24)
 
 Before new invitation angles, a Claude session may run the ai-harness `insight-desk` skill: it turns the North Star into an insight sheet of up to three tested ideas, never copy. The adapter is `config/insight-desk.json`. Read the skill with `get_skill('insight-desk')` once ai-harness admits it; until then from a local ai-harness checkout, and if neither is there, say so and change nothing.
-- Humour is unavailable here. divergent-thinker runs only through the connector, in `growth-legibility:ideas`; with no connector it is recorded `unavailable`, never passed.
+- Humour is unavailable here: Control Center's humour route takes only humour-engine's published prompts, whose package and validators are Python (config/insight-desk.json). divergent-thinker runs through `npm run divergent -- <op>` (scripts/divergent.mjs, this engine's bearer, `features.divergent` first, namespace `growth-legibility` or `growth-legibility:<lane>`; exit 0 answered, 1 flagged, 2 not answered) or the connector, `score` and `record` first; with neither it is recorded `unavailable`, never passed.
 - Sheets live in ignored `runtime/insight/`, at most one a week. `npm run insight -- check <sheet>` checks one by the skill's rules (`src/lib/insight-sheet.mjs`).
 - The hook: `npm run reader -- brief --input <file> --insight <sheet>` lets a draft name `insight:<idea id>` in `draft.impact` beside the three fixed angles. Without `--insight` nothing changes.
 - While this engine is held, a sheet stays local and puts no ask on Krish's list. Once released, it reaches him only as stage `plan` behind `strategy`; approving an idea approves a plan, never a send.

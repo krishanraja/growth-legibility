@@ -187,18 +187,18 @@ test('the source review hold is quiet before the review-by date, then names the 
 
 test('from the review-by date the runner reports the review hold: held, inside the one hold; active, beside the others, never twice', async t => {
   const at = iso => ({ at:iso, clock:() => iso });
-  const quiet = await run(t, await standIn(t), { activation:HELD, ...at('2026-11-14T12:00:00Z') });
+  const quiet = await run(t, await standIn(t), { activation:HELD, ...at('2026-12-12T12:00:00Z') });
   assert.equal(quiet.summary.source_review, 'current');
   assert.doesNotMatch(quiet.stored.holds[0].detail, /source_review/);
 
-  const held = await run(t, await standIn(t), { activation:HELD, ...at('2026-11-20T12:00:00Z') });
+  const held = await run(t, await standIn(t), { activation:HELD, ...at('2026-12-18T12:00:00Z') });
   assertHeld(held.stored);
   assert.equal(held.summary.source_review, 'source_review_due_soon');
   assert.match(held.stored.holds[0].detail, /source_review_due_soon/);
-  assert.ok(held.stored.activity.some(a => /review the source register by 2026-11-19/.test(a.line)));
+  assert.ok(held.stored.activity.some(a => /review the source register by 2026-12-17/.test(a.line)));
 
-  const active = await run(t, await standIn(t), { activation:ACTIVE, ...at('2026-11-20T12:00:00Z') });
+  const active = await run(t, await standIn(t), { activation:ACTIVE, ...at('2026-12-18T12:00:00Z') });
   assert.equal(active.stored.holds.filter(h => h.reason === 'source_review_due_soon').length, 1);
-  const locked = await run(t, await standIn(t), { activation:ACTIVE, ...at('2026-11-27T12:00:00Z') });
+  const locked = await run(t, await standIn(t), { activation:ACTIVE, ...at('2026-12-25T12:00:00Z') });
   assert.equal(locked.stored.holds.filter(h => h.reason === 'source_review_due').length, 1, 'the lock already holds: not added twice');
 });

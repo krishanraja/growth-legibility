@@ -10,6 +10,8 @@ import { atLeast, CREDITS_VERSION, DRAFT_PRESS_VERSION, ENGINE_STATE_VERSION, is
 export const APPROVED_ORIGIN = 'https://controlcenter.krishraja.com';
 const PREFIX = `/api/growth/engines/${PROTOCOL.slug}`;
 const TIMEOUT_MS = 20000;
+// A full diverge runs up to four minutes at Control Center; the client waits five.
+const DIVERGENT_TIMEOUT_MS = 300000;
 // Control Center's api/_priorOutreach.ts MAX_CONTACTS: at most this many contact ids in one prior-outreach read.
 export const MAX_PRIOR_OUTREACH_CONTACTS = 50;
 const plainObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -36,11 +38,11 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
   if (typeof token !== 'string' || !token || /\s/.test(token)) throw fault('receiver_credential_missing');
   const root = origin.origin;
 
-  async function request(path, { method = 'GET', body, headers = {} } = {}) {
+  async function request(path, { method = 'GET', body, headers = {}, timeoutMs = TIMEOUT_MS } = {}) {
     let response;
     try {
       response = await fetcher(`${root}${PREFIX}${path}`, {
-        method, body, redirect:'error', signal:AbortSignal.timeout(TIMEOUT_MS),
+        method, body, redirect:'error', signal:AbortSignal.timeout(timeoutMs),
         headers:{ authorization:`Bearer ${token}`, accept:'application/json', ...(body === undefined ? {} : { 'content-type':'application/json' }), ...headers },
       });
     } catch { throw fault('receiver_transport_uncertain'); }
@@ -72,7 +74,7 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     // 1.20.0: the engine's state and Krish's instruction. Counts only when the receiver serves 1.20.0 or later and takes a
     // 1.20.0 report, so a report carrying them is never sent to a receiver that would refuse it.
     const engineState = cap.features?.engine_state === true && atLeast(cap.schema_version, ENGINE_STATE_VERSION) && receiverTakes(cap, ENGINE_STATE_VERSION);
-    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress, icp:cap.features?.icp === true, research:research !== null, credits, engine_state:engineState }, research };
+    return { activation:cap.activation?.state ?? null, features:{ prior_outreach:cap.features?.prior_outreach === true, draft_press:draftPress, icp:cap.features?.icp === true, research:research !== null, credits, engine_state:engineState, divergent:cap.features?.divergent === true, humour:cap.features?.humour === true }, research };
   }
 
   // 1.11.0: each person's Mindmake record, for 1 to 50 distinct contact ids. Only the asked ids leave this function, each
@@ -163,7 +165,22 @@ export function controlCenter({ token, base = APPROVED_ORIGIN, fetcher = fetch, 
     return request('/reports', { method:'POST', body:payload, headers:{ 'idempotency-key':runId } });
   }
 
-  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport, answers };
+  // features.divergent (no version, 2026-11-18): one divergent-thinker consult on this engine's bearer. Control Center
+  // runs the model and caps it per engine per day (1 diverge, 20 quick calls, $5; score and record free). Nothing is
+  // retried: a refusal leaves as a code with its HTTP status, so a 429 cap is final for the day.
+  async function divergent(body) {
+    const res = await request('/divergent', { method:'POST', body:JSON.stringify(body), timeoutMs:DIVERGENT_TIMEOUT_MS });
+    if (!res.ok) {
+      let code = null;
+      try { const b = await jsonResponse(res); code = typeof b?.error === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(b.error) ? b.error : null; } catch { /* the code stays unknown */ }
+      const e = fault(res.status === 404 ? 'divergent_not_supported' : 'divergent_refused'); e.status = res.status; e.answer = code; throw e;
+    }
+    const value = await jsonResponse(res);
+    if (value?.ok !== true) throw fault('divergent_invalid');
+    return value;
+  }
+
+  return { local, capabilities, postAttempt, readAttempt, directive, decisions, priorOutreach, readReport, postReport, answers, divergent };
 }
 
 const POST_REFUSALS = { 400:'receiver_report_refused', 403:'receiver_identity_refused', 413:'receiver_report_too_large', 429:'receiver_rate_limited' };

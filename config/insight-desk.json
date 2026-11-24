@@ -15,8 +15,8 @@
   "taste": "get_approved_taste for repository krishanraja/growth-legibility, venture legibility",
   "floor": ["docs/COPY-DOCTRINE.md", "docs/OUTREACH-TEMPLATE.md", "docs/FAILURES.md"],
   "live": "Control Center's prior-outreach route and the invitations already prepared in the latest private report under runtime/",
-  "humour": { "allowed": false, "why": "unavailable: this engine has no humour route, and its copy doctrine is plain and evidence-led" },
-  "divergent": { "namespace": "growth-legibility:ideas", "route": "connector only: divergent_score, divergent_record and divergent_run from a session on Krish's account; a run with neither records unavailable" },
+  "humour": { "allowed": false, "why": "unavailable: Control Center serves POST /api/growth/engines/legibility/humour (capped at 200 calls a day), but it takes only humour-engine's published prompts by SHA-256 and returns a reading that only humour-engine's validators interpret; that package is Python and this engine is JavaScript with no copy of it, and its copy doctrine is plain and evidence-led. The transport reports features.humour so the gap stays visible." },
+  "divergent": { "namespace": "growth-legibility:ideas", "route": "npm run divergent on this engine's bearer (POST /api/growth/engines/legibility/divergent, only when capabilities say features.divergent), else the connector's divergent_score, divergent_record and divergent_run from a session on Krish's account; score and record first (free), paid moves only when a session asks at U4 or U5, under Control Center's caps (1 diverge, 20 quick calls, $5 a day; a 429 is final); a run with neither records unavailable" },
   "blind_reader": "fresh-context sub-agents from a Claude session, as scripts/reader.mjs sends them; never the session that wrote the ideas",
   "hook": {
     "object": "draft.impact in src/lib/reader.mjs",

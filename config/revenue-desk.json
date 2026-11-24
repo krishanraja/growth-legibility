@@ -1,0 +1,110 @@
+{
+  "schema": "revenue-desk-adapter/1",
+  "ruling": "Ruling (Krish, 2026-11-24): build the revenue desk as recommended; measure first where nothing is counted; thresholds binding only after his yes.",
+  "why": "The revenue desk is ai-harness's revenue-desk method: it reads each step from work to money, says which step is blind, where the money is stuck and whether this week's rung can be reached, and proposes one 7-day test. This file is the thin adapter that tells the method where this engine reads each step. It holds no figures and no people.",
+  "venture": "legibility",
+  "repo": "krishanraja/growth-legibility",
+  "method": {
+    "name": "revenue-desk",
+    "read": "get_skill('revenue-desk') once ai-harness admits it; until then a local ai-harness checkout, else unavailable and the engine runs as before",
+    "local_paths": ["../ai-harness/skills/revenue-desk"],
+    "runner": "krishanraja/strategist runs the desk in its existing daily U5 watch and Sunday board; this engine runs nothing new."
+  },
+  "north_star": {
+    "state_line": "NOW.md, the north-star-state comment under \"Where it is right now\"",
+    "north_star": "docs/NORTH_STAR.md"
+  },
+  "stage": "measure_first",
+  "stage_why": "The engine is held (config/activation.json), so no run has measured since the dispatch before the hold and every step below is blind. No trial has been granted and no buyer exists. The one output is the reading plan: which measure.mjs metric counts each step once Krish releases the engine; nothing is estimated and no step reads as zero.",
+  "blind_rule": "A step with no reading, an unreadable one, or one older than 7 days is blind, recorded with its reason and never as zero. While any step is blind the venture never reads on track or clear.",
+  "held": {
+    "activation": "config/activation.json",
+    "check": "src/lib/hold.mjs heldBy",
+    "rule": "While config/activation.json or Control Center holds this engine, the desk stays local: no sheet, test or ask reaches Krish's list. Only Krish releases the engine."
+  },
+  "money_path": [
+    {
+      "step": "invitation",
+      "counts": "rich named invitations Krish approved and placed as drafts in his own Gmail",
+      "better": "up",
+      "stage": "measure_first",
+      "read": [
+        { "path": "src/lib/draft-press.mjs", "export": "emailAction" },
+        { "path": "docs/OUTREACH-TEMPLATE.md" }
+      ],
+      "note": "Control Center owns the approval queue and records whether a draft went; this engine never sends."
+    },
+    {
+      "step": "trial_entry",
+      "counts": "verified and qualified enrolments that pass the trial entry gate, and the trial keys created",
+      "better": "up",
+      "stage": "measure_first",
+      "read": [
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "qualified_enrolments" },
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "api_keys_created" },
+        { "path": "docs/BETA-HANDOFF.md" }
+      ]
+    },
+    {
+      "step": "first_trusted_read",
+      "counts": "builders whose first trusted read came from their own key",
+      "better": "up",
+      "stage": "measure_first",
+      "read": [
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "first_trusted_reads" }
+      ]
+    },
+    {
+      "step": "returning",
+      "counts": "builders returning with a trusted read inside 7 days, and builders with a trusted read this ISO week (the North Star number)",
+      "better": "up",
+      "stage": "measure_first",
+      "read": [
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "seven_day_returning" },
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "weekly_builders" }
+      ]
+    },
+    {
+      "step": "settled_revenue",
+      "counts": "settled mainnet revenue paid by agents, apart from human sign-up revenue; testnet volume never counts",
+      "better": "up",
+      "stage": "measure_first",
+      "read": [
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "mainnet_agent_revenue_usd" },
+        { "path": "src/stages/measure.mjs", "export": "measure", "metric": "human_signup_revenue_usd" }
+      ]
+    }
+  ],
+  "trial_entry_gate": {
+    "offer": "the one offer: a 30-day free trial in exchange for feedback, plus a test report on their own product pages (docs/OUTREACH-TEMPLATE.md, docs/COPY-DOCTRINE.md)",
+    "conditions": [
+      "a current approved ICP from Control Center; a proposed corpus ICP is not enough",
+      "one named person, researched from current evidence, never a list",
+      "the invitation follows the approved template and Krish approved its exact words",
+      "a reply booked the 25-minute call, which ended with the test report on their own pages",
+      "the engineer who gets the key is introduced, and Krish grants the trial himself with his click; nothing grants it automatically"
+    ],
+    "never": "unlimited usage, free overages, waived charges, an SLA or billing terms; the trial is never a discount on a price",
+    "source": "docs/BETA-HANDOFF.md"
+  },
+  "measure_first": {
+    "plan": "On release, each dispatch reports the metrics above from measure() as counts with their window; the desk reads the protocol report, never a copy. Two counted weeks come before any band is proposed.",
+    "until": "Krish releases the engine"
+  },
+  "bands": {
+    "status": "assumption",
+    "binding": false,
+    "binding_after": "Krish's yes on the exact bands, recorded with his words",
+    "calibrate_from": "this engine's own counted weeks after release, never another venture's or an outside benchmark",
+    "per_step": {
+      "invitation": { "warning": null, "breach": null },
+      "trial_entry": { "warning": null, "breach": null },
+      "first_trusted_read": { "warning": null, "breach": null },
+      "returning": { "warning": null, "breach": null },
+      "settled_revenue": { "warning": null, "breach": null }
+    }
+  },
+  "sheets": "runtime/revenue/, ignored, never committed",
+  "spend_authority": "none",
+  "approval": "While held, nothing leaves this repository. Once released, the desk's one test reaches Krish only as stage plan behind strategy; his yes approves a plan, never a send, a trial grant or a spend."
+}

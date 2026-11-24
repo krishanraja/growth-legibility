@@ -1,0 +1,3 @@
+Status: The revenue desk adapter is in (Ruling, Krish, 2026-11-24): config/revenue-desk.json declares the path from invitation to settled revenue, where measure() counts each step, and the 30-day free trial entry gate that Krish grants by hand. The stage is measure first because the engine is held and every step is blind; while held the desk stays local and puts no ask on his list. Bands are unset assumptions that bind only after his yes, and spend_authority is none. tests/revenue-desk.test.mjs checks the adapter parses and its sources exist.
+Next: once Krish releases the engine, read two counted weeks of these metrics from the dispatch report before any band is proposed.
+North Star check (2026-11-24): holds.

@@ -61,6 +61,13 @@ Before new invitation angles, a Claude session may run the ai-harness `insight-d
 - The hook: `npm run reader -- brief --input <file> --insight <sheet>` lets a draft name `insight:<idea id>` in `draft.impact` beside the three fixed angles. Without `--insight` nothing changes.
 - While this engine is held, a sheet stays local and puts no ask on Krish's list. Once released, it reaches him only as stage `plan` behind `strategy`; approving an idea approves a plan, never a send.
 
+## Revenue desk (Ruling, Krish, 2026-11-24)
+
+The ai-harness `revenue-desk` method, run by krishanraja/strategist in its daily U5 watch and Sunday board, reads each step from work to money, names any blind step and proposes at most one 7-day test. This engine keeps only the thin adapter, `config/revenue-desk.json`.
+- The path: invitation, trial entry, first trusted read, returning, settled revenue, each read from `measure()` in `src/stages/measure.mjs` (or the Draft press for invitations). The trial entry gate is the one offer, a 30-day free trial for feedback that Krish grants by hand (docs/BETA-HANDOFF.md).
+- Stage: measure first. The engine is held, so every step is blind; the one output is the reading plan, never an estimate or a zero.
+- While `config/activation.json` or Control Center holds the engine, the desk stays local and puts no ask on Krish's list. Bands are assumptions that bind only after his yes; `spend_authority` is none. `tests/revenue-desk.test.mjs` checks the adapter parses and its sources exist.
+
 <!-- krish-canon:start release=v2026.11.23.2 sha=3fe59caba97d rendered=2026-11-24 -->
 ## Krish canon
 

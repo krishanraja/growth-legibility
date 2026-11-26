@@ -68,7 +68,7 @@ The ai-harness `revenue-desk` method, run by krishanraja/strategist in its daily
 - Stage: measure first. The engine is held, so every step is blind; the one output is the reading plan, never an estimate or a zero.
 - While `config/activation.json` or Control Center holds the engine, the desk stays local and puts no ask on Krish's list. Bands are assumptions that bind only after his yes; `spend_authority` is none. `tests/revenue-desk.test.mjs` checks the adapter parses and its sources exist.
 
-<!-- krish-canon:start release=v2026.11.24.7 sha=f0538f159cc8 rendered=2026-11-25 -->
+<!-- krish-canon:start release=v2026.11.25.2 sha=478570da4e8c rendered=2026-11-26 -->
 ## Krish canon
 
 Rendered from `krishanraja/ai-harness`; the start marker names the last release that changed this block, not the latest release. Nothing inside these
@@ -122,7 +122,7 @@ in the harness. What he works on is live, never copied here; read it from Contro
 https://controlcenter.krishraja.com/api/canon/KRISH.md (and `PORTFOLIO.md` beside it).
 
 **Where the rest lives.** The operating contract, the routing contract and the
-34 curated skills are in `krishanraja/ai-harness`. On a machine with the harness installed the same skills are under the user skills root, and the local copy is
+35 curated skills are in `krishanraja/ai-harness`. On a machine with the harness installed the same skills are under the user skills root, and the local copy is
 authoritative for reading; the repository is authoritative for what is correct. Where none is installed (claude.ai, a cloud session), read each skill live with Control Center `get_skill`.
 
 **This repository's own rules:** `AGENTS.md`, `docs/BRIEF.md`
